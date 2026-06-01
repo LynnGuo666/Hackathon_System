@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button, Chip } from "@heroui/react";
-import { Activity, Home, KeyRound, Mail, Map, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
+import { Activity, Compass, Home, KeyRound, Mail, Map, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -17,6 +17,7 @@ const participantNavItems = [
 
 const adminNavItems = [
   { href: "/admin/resources", label: "资源后台", icon: KeyRound },
+  { href: "/admin/navigation", label: "导航配置", icon: Compass },
   { href: "/admin/email-outbox", label: "邮件队列", icon: Mail },
 ];
 

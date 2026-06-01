@@ -24,6 +24,7 @@ var (
 	ErrInvalidCheckinID   = errors.New("invalid checkin id")
 	ErrInvalidResourceCSV = errors.New("resource csv must contain at least one code")
 	ErrInvalidProfile     = errors.New("profile requires full name, team name, school, and phone")
+	ErrInvalidNavigation  = errors.New("navigation link requires title and url")
 )
 
 type Service struct {
@@ -213,6 +214,25 @@ func (s *Service) RetryEmail(actorID, id string) (models.EmailOutbox, error) {
 
 func (s *Service) ListAudits() ([]models.AuditLog, error) {
 	return s.store.ListAudits()
+}
+
+func (s *Service) CreateNavigationLink(actorID string, input models.NavigationLink) (models.NavigationLink, error) {
+	input.Title = strings.TrimSpace(input.Title)
+	input.Description = strings.TrimSpace(input.Description)
+	input.URL = strings.TrimSpace(input.URL)
+	if input.Title == "" || input.URL == "" {
+		return models.NavigationLink{}, ErrInvalidNavigation
+	}
+	link, err := s.store.CreateNavigationLink(input, s.now())
+	if err != nil {
+		return models.NavigationLink{}, err
+	}
+	_, _ = s.store.RecordAudit(actorID, "navigation_link.create", "navigation_link", link.ID, "", s.now())
+	return link, nil
+}
+
+func (s *Service) ListNavigationLinks(includeDisabled bool) ([]models.NavigationLink, error) {
+	return s.store.ListNavigationLinks(includeDisabled)
 }
 
 func (s *Service) participantByCheckin(checkinID string) (*models.Participant, error) {

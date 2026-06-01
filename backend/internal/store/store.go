@@ -34,4 +34,7 @@ type Store interface {
 
 	RecordAudit(actorID, action, targetType, targetID, reason string, now time.Time) (models.AuditLog, error)
 	ListAudits() ([]models.AuditLog, error)
+
+	CreateNavigationLink(input models.NavigationLink, now time.Time) (models.NavigationLink, error)
+	ListNavigationLinks(includeDisabled bool) ([]models.NavigationLink, error)
 }

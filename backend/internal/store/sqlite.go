@@ -125,9 +125,22 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   reason TEXT,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS navigation_links (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  url TEXT NOT NULL,
+  enabled INTEGER NOT NULL,
+  sort_order INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 `
-	_, err := s.db.Exec(schema)
-	return err
+	if _, err := s.db.Exec(schema); err != nil {
+		return err
+	}
+	return s.seedNavigationLinks()
 }
 
 func (s *SQLiteStore) UpsertVerificationCode(code *models.VerificationCode) error {
@@ -639,6 +652,75 @@ FROM audit_logs ORDER BY created_at ASC`)
 		out = append(out, log)
 	}
 	return out, rows.Err()
+}
+
+func (s *SQLiteStore) CreateNavigationLink(input models.NavigationLink, now time.Time) (models.NavigationLink, error) {
+	input.ID = NewID("nav")
+	input.Enabled = true
+	input.CreatedAt = now
+	input.UpdatedAt = now
+	if input.SortOrder == 0 {
+		var maxOrder int
+		_ = s.db.QueryRow(`SELECT COALESCE(MAX(sort_order), 0) FROM navigation_links`).Scan(&maxOrder)
+		input.SortOrder = maxOrder + 10
+	}
+	_, err := s.db.Exec(`
+INSERT INTO navigation_links (id, title, description, url, enabled, sort_order, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		input.ID, input.Title, input.Description, input.URL, boolInt(input.Enabled), input.SortOrder, encodeTime(input.CreatedAt), encodeTime(input.UpdatedAt))
+	return input, err
+}
+
+func (s *SQLiteStore) ListNavigationLinks(includeDisabled bool) ([]models.NavigationLink, error) {
+	query := `SELECT id, title, description, url, enabled, sort_order, created_at, updated_at FROM navigation_links`
+	args := []any{}
+	if !includeDisabled {
+		query += ` WHERE enabled = ?`
+		args = append(args, 1)
+	}
+	query += ` ORDER BY sort_order ASC, created_at ASC`
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []models.NavigationLink{}
+	for rows.Next() {
+		var link models.NavigationLink
+		var enabled int
+		var createdAt, updatedAt string
+		if err := rows.Scan(&link.ID, &link.Title, &link.Description, &link.URL, &enabled, &link.SortOrder, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
+		link.Enabled = enabled == 1
+		link.CreatedAt = decodeTime(createdAt)
+		link.UpdatedAt = decodeTime(updatedAt)
+		out = append(out, link)
+	}
+	return out, rows.Err()
+}
+
+func (s *SQLiteStore) seedNavigationLinks() error {
+	var count int
+	if err := s.db.QueryRow(`SELECT COUNT(1) FROM navigation_links`).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	now := time.Now()
+	defaults := []models.NavigationLink{
+		{Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/profile", SortOrder: 10},
+		{Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/identity", SortOrder: 20},
+		{Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/resources", SortOrder: 30},
+		{Title: "总览", Description: "返回选手服务工作台", URL: "/dashboard", SortOrder: 40},
+	}
+	for _, link := range defaults {
+		if _, err := s.CreateNavigationLink(link, now); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func scanParticipant(row *sql.Row, p *models.Participant) error {

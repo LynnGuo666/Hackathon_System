@@ -59,6 +59,17 @@ export type EmailOutbox = {
   createdAt: string;
 };
 
+export type NavigationLink = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  enabled: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   if (options.body && !headers.has("Content-Type")) {
@@ -121,5 +132,13 @@ export const api = {
     request<EmailOutbox>(`/api/admin/email-outbox/${id}/retry`, {
       admin: true,
       method: "POST",
+    }),
+  navigationLinks: () => request<NavigationLink[]>("/api/navigation-links"),
+  adminNavigationLinks: () => request<NavigationLink[]>("/api/admin/navigation-links", { admin: true }),
+  createNavigationLink: (input: Pick<NavigationLink, "title" | "description" | "url"> & { sortOrder?: number }) =>
+    request<NavigationLink>("/api/admin/navigation-links", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify(input),
     }),
 };

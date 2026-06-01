@@ -34,6 +34,7 @@ type MemoryStore struct {
 	assignmentByPoolUser  map[string]string
 	emails                map[string]*models.EmailOutbox
 	audits                []*models.AuditLog
+	navigationLinks       map[string]*models.NavigationLink
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -48,6 +49,7 @@ func NewMemoryStore() *MemoryStore {
 		assignmentByPoolUser:  map[string]string{},
 		emails:                map[string]*models.EmailOutbox{},
 		audits:                []*models.AuditLog{},
+		navigationLinks:       defaultNavigationLinks(),
 	}
 }
 
@@ -427,6 +429,61 @@ func (s *MemoryStore) ListAudits() ([]models.AuditLog, error) {
 		out = append(out, *log)
 	}
 	return out, nil
+}
+
+func (s *MemoryStore) CreateNavigationLink(input models.NavigationLink, now time.Time) (models.NavigationLink, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	input.ID = NewID("nav")
+	input.Enabled = true
+	input.CreatedAt = now
+	input.UpdatedAt = now
+	if input.SortOrder == 0 {
+		maxOrder := 0
+		for _, link := range s.navigationLinks {
+			if link.SortOrder > maxOrder {
+				maxOrder = link.SortOrder
+			}
+		}
+		input.SortOrder = maxOrder + 10
+	}
+	clone := input
+	s.navigationLinks[input.ID] = &clone
+	return input, nil
+}
+
+func (s *MemoryStore) ListNavigationLinks(includeDisabled bool) ([]models.NavigationLink, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := []models.NavigationLink{}
+	for _, link := range s.navigationLinks {
+		if includeDisabled || link.Enabled {
+			out = append(out, *link)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].SortOrder == out[j].SortOrder {
+			return out[i].CreatedAt.Before(out[j].CreatedAt)
+		}
+		return out[i].SortOrder < out[j].SortOrder
+	})
+	return out, nil
+}
+
+func defaultNavigationLinks() map[string]*models.NavigationLink {
+	now := time.Now()
+	links := []models.NavigationLink{
+		{ID: NewID("nav"), Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/profile", Enabled: true, SortOrder: 10, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/identity", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/resources", Enabled: true, SortOrder: 30, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "总览", Description: "返回选手服务工作台", URL: "/dashboard", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
+	}
+	out := map[string]*models.NavigationLink{}
+	for index := range links {
+		link := links[index]
+		out[link.ID] = &link
+	}
+	return out
 }
 
 func encryptForMVP(value string) string {

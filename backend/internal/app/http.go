@@ -36,6 +36,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/me", s.me)
 	s.mux.HandleFunc("GET /api/profile", s.profile)
 	s.mux.HandleFunc("PUT /api/profile", s.profile)
+	s.mux.HandleFunc("GET /api/navigation-links", s.navigationLinks)
 
 	s.mux.HandleFunc("GET /api/resources", s.resources)
 	s.mux.HandleFunc("POST /api/resources/{poolId}/claim", s.claimResource)
@@ -53,6 +54,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/admin/email-outbox/{id}/retry", s.retryEmail)
 	s.mux.HandleFunc("GET /api/admin/audit-logs", s.auditLogs)
 	s.mux.HandleFunc("GET /api/admin/profiles", s.adminProfiles)
+	s.mux.HandleFunc("GET /api/admin/navigation-links", s.adminNavigationLinks)
+	s.mux.HandleFunc("POST /api/admin/navigation-links", s.adminNavigationLinks)
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
@@ -310,6 +313,40 @@ func (s *Server) adminProfiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, profiles)
+}
+
+func (s *Server) navigationLinks(w http.ResponseWriter, r *http.Request) {
+	links, err := s.service.ListNavigationLinks(false)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, links)
+}
+
+func (s *Server) adminNavigationLinks(w http.ResponseWriter, r *http.Request) {
+	if !requireResourceAdmin(w, r) {
+		return
+	}
+	if r.Method == http.MethodGet {
+		links, err := s.service.ListNavigationLinks(true)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, links)
+		return
+	}
+	var input models.NavigationLink
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	link, err := s.service.CreateNavigationLink(auth.ActorID(r), input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, link)
 }
 
 func participantEmail(r *http.Request) string {
