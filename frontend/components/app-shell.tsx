@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-black/10 bg-paper/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
           <div>
-            <p className="text-sm text-ink/60">Douyin Hackathon</p>
+            <p className="text-sm text-ink/60">Hackathon</p>
             <h1 className="text-lg font-semibold text-ink">选手服务系统</h1>
           </div>
           <div className="flex items-center gap-3">

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"douyin-hackathon-system/backend/internal/mailer"
-	"douyin-hackathon-system/backend/internal/models"
-	"douyin-hackathon-system/backend/internal/store"
+	"hackathon-system/backend/internal/mailer"
+	"hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/store"
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"douyin-hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/models"
 )
 
 var (

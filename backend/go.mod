@@ -1,4 +1,4 @@
-module douyin-hackathon-system/backend
+module hackathon-system/backend
 
 go 1.26
 

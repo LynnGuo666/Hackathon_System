@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"douyin-hackathon-system/backend/internal/models"
-	"douyin-hackathon-system/backend/internal/store"
+	"hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/store"
 )
 
 func newTestService(t *testing.T) (*Service, *store.SQLiteStore) {

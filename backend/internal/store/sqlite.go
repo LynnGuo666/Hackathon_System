@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"douyin-hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )

@@ -3,7 +3,7 @@ package store
 import (
 	"time"
 
-	"douyin-hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/models"
 )
 
 type Store interface {

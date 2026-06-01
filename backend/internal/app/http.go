@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"douyin-hackathon-system/backend/internal/auth"
-	"douyin-hackathon-system/backend/internal/models"
-	"douyin-hackathon-system/backend/internal/store"
+	"hackathon-system/backend/internal/auth"
+	"hackathon-system/backend/internal/models"
+	"hackathon-system/backend/internal/store"
 )
 
 type Server struct {

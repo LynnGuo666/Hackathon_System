@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"douyin-hackathon-system/backend/internal/app"
-	"douyin-hackathon-system/backend/internal/store"
+	"hackathon-system/backend/internal/app"
+	"hackathon-system/backend/internal/store"
 )
 
 func main() {
