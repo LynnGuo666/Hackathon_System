@@ -14,7 +14,7 @@ export default function AdminResourcesPage() {
     <AppShell>
       <section className="grid gap-5">
         <div>
-          <p className="text-sm text-ink/60">resource_admin</p>
+          <p className="text-sm text-foreground/60">resource_admin</p>
           <h2 className="text-2xl font-semibold">资源池与发放</h2>
         </div>
         <Card className="rounded-md">

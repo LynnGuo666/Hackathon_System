@@ -8,7 +8,7 @@ export default function LoginPage() {
     <main className="mx-auto grid min-h-screen max-w-md place-items-center px-5">
       <Card className="w-full rounded-md">
         <CardHeader className="block">
-          <p className="text-sm text-ink/60">赛前入口</p>
+          <p className="text-sm text-foreground/60">赛前入口</p>
           <h1 className="text-2xl font-semibold">邮箱验证码登录</h1>
         </CardHeader>
         <CardBody className="gap-4">
@@ -16,7 +16,7 @@ export default function LoginPage() {
           <Input label="验证码" placeholder="6 位数字" />
           <Button color="primary">发送验证码</Button>
           <Button color="success">验证并进入</Button>
-          <p className="text-sm text-ink/60">
+          <p className="text-sm text-foreground/60">
             赛前用邮箱填写需求；现场签到后，CheckinID 将成为资源发放和核销身份。
           </p>
         </CardBody>

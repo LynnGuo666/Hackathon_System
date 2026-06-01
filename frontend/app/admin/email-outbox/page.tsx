@@ -12,7 +12,7 @@ export default function EmailOutboxPage() {
       <Card className="rounded-md">
         <CardHeader className="justify-between">
           <div>
-            <p className="text-sm text-ink/60">Outbox</p>
+            <p className="text-sm text-foreground/60">Outbox</p>
             <h2 className="text-2xl font-semibold">邮件队列</h2>
           </div>
           <Button variant="flat" startContent={<RefreshCw size={16} />}>刷新</Button>

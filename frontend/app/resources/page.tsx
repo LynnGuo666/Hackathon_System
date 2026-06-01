@@ -11,7 +11,7 @@ export default function ResourcesPage() {
     <AppShell>
       <section className="grid gap-5">
         <div>
-          <p className="text-sm text-ink/60">唯一资源</p>
+          <p className="text-sm text-foreground/60">唯一资源</p>
           <h2 className="text-2xl font-semibold">我的兑换码与领取凭证</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -24,7 +24,7 @@ export default function ResourcesPage() {
               <CardBody className="gap-3">
                 <Input label="兑换码" value={resource.code} readOnly />
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-ink/60">有效期：{resource.expiresAt}</p>
+                  <p className="text-sm text-foreground/60">有效期：{resource.expiresAt}</p>
                   <Button size="sm" variant="flat" startContent={<Copy size={16} />}>复制</Button>
                 </div>
               </CardBody>

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
-      <body>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body className="bg-background text-foreground">
         <Providers>
           {children}
           {process.env.NODE_ENV === "development" && <Agentation />}

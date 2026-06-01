@@ -9,22 +9,22 @@ export default function DashboardPage() {
     <AppShell>
       <section className="grid gap-5">
         <div>
-          <p className="text-sm text-ink/60">当前身份</p>
+          <p className="text-sm text-foreground/60">当前身份</p>
           <h2 className="text-2xl font-semibold">赛前需求工作台</h2>
         </div>
 
         <Card className="rounded-md">
           <CardBody className="grid gap-3 md:grid-cols-3">
             <div>
-              <p className="text-sm text-ink/60">邮箱</p>
+              <p className="text-sm text-foreground/60">邮箱</p>
               <p className="font-medium">{participant.email}</p>
             </div>
             <div>
-              <p className="text-sm text-ink/60">CheckinID</p>
+              <p className="text-sm text-foreground/60">CheckinID</p>
               <p className="font-medium">{participant.checkinId || "现场签到后绑定"}</p>
             </div>
             <div>
-              <p className="text-sm text-ink/60">状态</p>
+              <p className="text-sm text-foreground/60">状态</p>
               <Chip color="warning" variant="flat">赛前 email 身份</Chip>
             </div>
           </CardBody>
@@ -39,7 +39,7 @@ export default function DashboardPage() {
               </CardHeader>
               <Divider />
               <CardBody>
-                <p className="text-sm text-ink/65">审核结果和截止状态会通过邮件同步通知。</p>
+                <p className="text-sm text-foreground/65">审核结果和截止状态会通过邮件同步通知。</p>
               </CardBody>
             </Card>
           ))}

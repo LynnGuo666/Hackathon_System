@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - db-data:/data
+    environment:
+      - ADDR=:8080
+      - DATABASE_PATH=/data/hackathon.sqlite
+      - STATIC_DIR=/app/frontend/out
+    restart: unless-stopped
+
+volumes:
+  db-data:

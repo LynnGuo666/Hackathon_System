@@ -1,17 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "../hero.ts";
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  color: #172026;
-  background: #f6f4ef;
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 body {
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(231, 240, 239, 0.75), rgba(246, 244, 239, 0.95)),
-    #f6f4ef;
+  background: hsl(var(--heroui-background));
 }
 
 * {

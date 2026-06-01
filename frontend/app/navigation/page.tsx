@@ -14,7 +14,7 @@ export default function NavigationPage() {
     <AppShell>
       <section className="grid gap-4">
         <div>
-          <p className="text-sm text-ink/60">后台配置</p>
+          <p className="text-sm text-foreground/60">后台配置</p>
           <h2 className="text-2xl font-semibold">现场导航</h2>
         </div>
         {navs.map(([title, location, detail]) => (
@@ -23,7 +23,7 @@ export default function NavigationPage() {
               <h3 className="font-semibold">{title}</h3>
               <Chip size="sm" color="primary" variant="flat">{location}</Chip>
             </CardHeader>
-            <CardBody className="text-sm text-ink/70">{detail}</CardBody>
+            <CardBody className="text-sm text-foreground/70">{detail}</CardBody>
           </Card>
         ))}
       </section>
