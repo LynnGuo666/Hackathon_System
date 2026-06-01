@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Agentation } from "agentation";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -11,7 +12,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          {process.env.NODE_ENV === "development" && <Agentation />}
+        </Providers>
       </body>
     </html>
   );
