@@ -31,7 +31,8 @@ export default function LoginPage() {
     setMessage("");
     try {
       await api.verifyCode(email, code);
-      router.push("/dashboard");
+      const next = new URLSearchParams(window.location.search).get("next") || "/dashboard";
+      router.push(next.startsWith("/") ? next : "/dashboard");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "验证失败");
     } finally {

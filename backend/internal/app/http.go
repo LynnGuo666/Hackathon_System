@@ -34,6 +34,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/auth/verify-code", s.verifyCode)
 	s.mux.HandleFunc("POST /api/auth/bind-checkin", s.bindCheckin)
 	s.mux.HandleFunc("GET /api/me", s.me)
+	s.mux.HandleFunc("GET /api/profile", s.profile)
+	s.mux.HandleFunc("PUT /api/profile", s.profile)
 
 	s.mux.HandleFunc("GET /api/resources", s.resources)
 	s.mux.HandleFunc("POST /api/resources/{poolId}/claim", s.claimResource)
@@ -50,6 +52,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/admin/email-outbox", s.emailOutbox)
 	s.mux.HandleFunc("POST /api/admin/email-outbox/{id}/retry", s.retryEmail)
 	s.mux.HandleFunc("GET /api/admin/audit-logs", s.auditLogs)
+	s.mux.HandleFunc("GET /api/admin/profiles", s.adminProfiles)
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +119,29 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, participant)
+}
+
+func (s *Server) profile(w http.ResponseWriter, r *http.Request) {
+	email := participantEmail(r)
+	if r.Method == http.MethodGet {
+		profile, err := s.service.Profile(email)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, profile)
+		return
+	}
+	var input models.ParticipantProfile
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	profile, err := s.service.SaveProfile(email, input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, profile)
 }
 
 func (s *Server) resources(w http.ResponseWriter, r *http.Request) {
@@ -272,6 +298,18 @@ func (s *Server) auditLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, logs)
+}
+
+func (s *Server) adminProfiles(w http.ResponseWriter, r *http.Request) {
+	if !requireResourceAdmin(w, r) {
+		return
+	}
+	profiles, err := s.service.ListProfiles()
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, profiles)
 }
 
 func participantEmail(r *http.Request) string {

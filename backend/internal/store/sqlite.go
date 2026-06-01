@@ -47,6 +47,20 @@ CREATE TABLE IF NOT EXISTS participants (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS participant_profiles (
+  email TEXT PRIMARY KEY REFERENCES participants(email) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  team_name TEXT NOT NULL,
+  school TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  dietary_needs TEXT NOT NULL,
+  tshirt_size TEXT NOT NULL,
+  emergency_contact TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  submitted_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS email_verification_codes (
   email TEXT PRIMARY KEY,
   code_hash TEXT NOT NULL,
@@ -266,6 +280,70 @@ FROM participants WHERE checkin_id = ?`, strings.TrimSpace(checkinID)), &p)
 		return nil, ErrNotFound
 	}
 	return &p, err
+}
+
+func (s *SQLiteStore) UpsertParticipantProfile(email string, input models.ParticipantProfile, now time.Time) (models.ParticipantProfile, error) {
+	email = NormalizeEmail(email)
+	var submittedAt string
+	err := s.db.QueryRow(`SELECT submitted_at FROM participant_profiles WHERE email = ?`, email).Scan(&submittedAt)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return models.ParticipantProfile{}, err
+	}
+	if submittedAt == "" {
+		submittedAt = encodeTime(now)
+	}
+	input.Email = email
+	input.SubmittedAt = decodeTime(submittedAt)
+	input.UpdatedAt = now
+	_, err = s.db.Exec(`
+INSERT INTO participant_profiles (
+  email, full_name, team_name, school, phone, dietary_needs, tshirt_size, emergency_contact, notes, submitted_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(email) DO UPDATE SET
+  full_name = excluded.full_name,
+  team_name = excluded.team_name,
+  school = excluded.school,
+  phone = excluded.phone,
+  dietary_needs = excluded.dietary_needs,
+  tshirt_size = excluded.tshirt_size,
+  emergency_contact = excluded.emergency_contact,
+  notes = excluded.notes,
+  updated_at = excluded.updated_at
+`, input.Email, input.FullName, input.TeamName, input.School, input.Phone, input.DietaryNeeds, input.TShirtSize, input.EmergencyContact, input.Notes, encodeTime(input.SubmittedAt), encodeTime(input.UpdatedAt))
+	return input, err
+}
+
+func (s *SQLiteStore) GetParticipantProfile(email string) (models.ParticipantProfile, error) {
+	var profile models.ParticipantProfile
+	err := scanParticipantProfile(s.db.QueryRow(`
+SELECT email, full_name, team_name, school, phone, dietary_needs, tshirt_size, emergency_contact, notes, submitted_at, updated_at
+FROM participant_profiles WHERE email = ?`, NormalizeEmail(email)), &profile)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.ParticipantProfile{}, ErrNotFound
+	}
+	return profile, err
+}
+
+func (s *SQLiteStore) ListParticipantProfiles() ([]models.ParticipantProfile, error) {
+	rows, err := s.db.Query(`
+SELECT email, full_name, team_name, school, phone, dietary_needs, tshirt_size, emergency_contact, notes, submitted_at, updated_at
+FROM participant_profiles ORDER BY updated_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []models.ParticipantProfile{}
+	for rows.Next() {
+		var profile models.ParticipantProfile
+		var submittedAt, updatedAt string
+		if err := rows.Scan(&profile.Email, &profile.FullName, &profile.TeamName, &profile.School, &profile.Phone, &profile.DietaryNeeds, &profile.TShirtSize, &profile.EmergencyContact, &profile.Notes, &submittedAt, &updatedAt); err != nil {
+			return nil, err
+		}
+		profile.SubmittedAt = decodeTime(submittedAt)
+		profile.UpdatedAt = decodeTime(updatedAt)
+		out = append(out, profile)
+	}
+	return out, rows.Err()
 }
 
 func (s *SQLiteStore) CreateResourcePool(input models.ResourcePool) (models.ResourcePool, error) {
@@ -572,6 +650,16 @@ func scanParticipant(row *sql.Row, p *models.Participant) error {
 	p.CheckedInAt = decodeTime(checkedInAt)
 	p.CreatedAt = decodeTime(createdAt)
 	p.UpdatedAt = decodeTime(updatedAt)
+	return nil
+}
+
+func scanParticipantProfile(row *sql.Row, profile *models.ParticipantProfile) error {
+	var submittedAt, updatedAt string
+	if err := row.Scan(&profile.Email, &profile.FullName, &profile.TeamName, &profile.School, &profile.Phone, &profile.DietaryNeeds, &profile.TShirtSize, &profile.EmergencyContact, &profile.Notes, &submittedAt, &updatedAt); err != nil {
+		return err
+	}
+	profile.SubmittedAt = decodeTime(submittedAt)
+	profile.UpdatedAt = decodeTime(updatedAt)
 	return nil
 }
 

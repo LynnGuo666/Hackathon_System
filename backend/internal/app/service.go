@@ -23,6 +23,7 @@ var (
 	ErrPermissionDenied   = errors.New("permission denied")
 	ErrInvalidCheckinID   = errors.New("invalid checkin id")
 	ErrInvalidResourceCSV = errors.New("resource csv must contain at least one code")
+	ErrInvalidProfile     = errors.New("profile requires full name, team name, school, and phone")
 )
 
 type Service struct {
@@ -100,6 +101,36 @@ func (s *Service) Me(email string) (*models.Participant, error) {
 		return nil, ErrLoginRequired
 	}
 	return s.store.GetParticipantByEmail(email)
+}
+
+func (s *Service) SaveProfile(email string, input models.ParticipantProfile) (models.ParticipantProfile, error) {
+	if email == "" {
+		return models.ParticipantProfile{}, ErrLoginRequired
+	}
+	input = trimProfile(input)
+	if input.FullName == "" || input.TeamName == "" || input.School == "" || input.Phone == "" {
+		return models.ParticipantProfile{}, ErrInvalidProfile
+	}
+	if _, err := s.store.GetParticipantByEmail(email); err != nil {
+		return models.ParticipantProfile{}, err
+	}
+	profile, err := s.store.UpsertParticipantProfile(email, input, s.now())
+	if err != nil {
+		return models.ParticipantProfile{}, err
+	}
+	_, _ = s.store.RecordAudit(email, "participant.profile_upsert", "participant_profile", email, "", s.now())
+	return profile, nil
+}
+
+func (s *Service) Profile(email string) (models.ParticipantProfile, error) {
+	if email == "" {
+		return models.ParticipantProfile{}, ErrLoginRequired
+	}
+	return s.store.GetParticipantProfile(email)
+}
+
+func (s *Service) ListProfiles() ([]models.ParticipantProfile, error) {
+	return s.store.ListParticipantProfiles()
 }
 
 func (s *Service) CreatePool(actorID string, input models.ResourcePool) (models.ResourcePool, error) {
@@ -191,4 +222,16 @@ func (s *Service) participantByCheckin(checkinID string) (*models.Participant, e
 func hashCode(code string) string {
 	sum := sha256.Sum256([]byte(strings.TrimSpace(code)))
 	return hex.EncodeToString(sum[:])
+}
+
+func trimProfile(input models.ParticipantProfile) models.ParticipantProfile {
+	input.FullName = strings.TrimSpace(input.FullName)
+	input.TeamName = strings.TrimSpace(input.TeamName)
+	input.School = strings.TrimSpace(input.School)
+	input.Phone = strings.TrimSpace(input.Phone)
+	input.DietaryNeeds = strings.TrimSpace(input.DietaryNeeds)
+	input.TShirtSize = strings.TrimSpace(input.TShirtSize)
+	input.EmergencyContact = strings.TrimSpace(input.EmergencyContact)
+	input.Notes = strings.TrimSpace(input.Notes)
+	return input
 }

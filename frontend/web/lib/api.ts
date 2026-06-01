@@ -13,6 +13,20 @@ export type Participant = {
   status: "pending" | "active" | "disabled";
 };
 
+export type ParticipantProfile = {
+  email?: string;
+  fullName: string;
+  teamName: string;
+  school: string;
+  phone: string;
+  dietaryNeeds: string;
+  tshirtSize: string;
+  emergencyContact: string;
+  notes: string;
+  submittedAt?: string;
+  updatedAt?: string;
+};
+
 export type ResourcePool = {
   id: string;
   name: string;
@@ -86,6 +100,12 @@ export const api = {
       body: JSON.stringify({ checkinId }),
     }),
   me: () => request<Participant>("/api/me"),
+  profile: () => request<ParticipantProfile>("/api/profile"),
+  updateProfile: (profile: ParticipantProfile) =>
+    request<ParticipantProfile>("/api/profile", {
+      method: "PUT",
+      body: JSON.stringify(profile),
+    }),
   resources: () => request<ResourceAssignment[]>("/api/resources"),
   pools: () => request<ResourcePool[]>("/api/admin/resources/pools", { admin: true }),
   createPool: (name: string, type: string) =>
@@ -95,6 +115,7 @@ export const api = {
       body: JSON.stringify({ name, type }),
     }),
   assignments: () => request<ResourceAssignment[]>("/api/admin/resources/assignments", { admin: true }),
+  profiles: () => request<ParticipantProfile[]>("/api/admin/profiles", { admin: true }),
   emailOutbox: () => request<EmailOutbox[]>("/api/admin/email-outbox", { admin: true }),
   retryEmail: (id: string) =>
     request<EmailOutbox>(`/api/admin/email-outbox/${id}/retry`, {

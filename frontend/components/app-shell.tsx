@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { Button, Chip } from "@heroui/react";
-import { Activity, Home, KeyRound, Mail, Map, ShieldCheck, Ticket } from "lucide-react";
+import { Activity, Home, KeyRound, Mail, Map, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 const participantNavItems = [
   { href: "/dashboard", label: "总览", icon: Home },
+  { href: "/profile", label: "我的资料", icon: UserRoundPen },
   { href: "/identity", label: "签到身份", icon: ShieldCheck },
   { href: "/resources", label: "我的资源", icon: Ticket },
   { href: "/navigation", label: "现场导航", icon: Map },

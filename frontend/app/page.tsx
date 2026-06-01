@@ -13,7 +13,7 @@ export default function HomePage() {
             <h1 className="text-lg font-semibold">公众入口</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button as={Link} href="/login" variant="flat" startContent={<UserRoundPen size={16} />}>
+            <Button as={Link} href="/login?next=/profile" variant="flat" startContent={<UserRoundPen size={16} />}>
               填写信息
             </Button>
             <Button as={Link} href="/login" color="primary" startContent={<LogIn size={16} />}>
@@ -34,7 +34,7 @@ export default function HomePage() {
             公众页面只保留报名与登录入口；登录后进入选手工作台，管理员从独立后台管理资源、邮件队列和发放记录。
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button as={Link} href="/login" color="primary" startContent={<UserRoundPen size={17} />}>
+            <Button as={Link} href="/login?next=/profile" color="primary" startContent={<UserRoundPen size={17} />}>
               填写信息
             </Button>
             <Button as={Link} href="/navigation" variant="flat" startContent={<Map size={17} />}>

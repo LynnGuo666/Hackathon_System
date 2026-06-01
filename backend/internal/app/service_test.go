@@ -64,6 +64,39 @@ func TestCheckinIDAndEmailAreUniqueAfterBinding(t *testing.T) {
 	}
 }
 
+func TestParticipantProfileRequiresLoginAndRequiredFields(t *testing.T) {
+	service, db := newTestService(t)
+	now := time.Now()
+
+	if _, err := service.SaveProfile("", models.ParticipantProfile{}); !errors.Is(err, ErrLoginRequired) {
+		t.Fatalf("expected login required, got %v", err)
+	}
+	_, _ = db.UpsertPreEventParticipant("profile@example.com", now)
+	if _, err := service.SaveProfile("profile@example.com", models.ParticipantProfile{FullName: "Ada"}); !errors.Is(err, ErrInvalidProfile) {
+		t.Fatalf("expected invalid profile, got %v", err)
+	}
+
+	saved, err := service.SaveProfile("profile@example.com", models.ParticipantProfile{
+		FullName: " Ada Lovelace ",
+		TeamName: " Engines ",
+		School:   " London ",
+		Phone:    " 123456 ",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.Email != "profile@example.com" || saved.FullName != "Ada Lovelace" || saved.TeamName != "Engines" {
+		t.Fatalf("unexpected profile: %+v", saved)
+	}
+	loaded, err := service.Profile("profile@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.FullName != saved.FullName {
+		t.Fatalf("expected saved profile, got %+v", loaded)
+	}
+}
+
 func TestResourceRequiresCheckinAndIsUniquePerPool(t *testing.T) {
 	service, db := newTestService(t)
 	now := time.Now()

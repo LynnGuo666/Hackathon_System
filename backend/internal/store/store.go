@@ -16,6 +16,9 @@ type Store interface {
 	UpsertPreEventParticipant(email string, now time.Time) (*models.Participant, error)
 	GetParticipantByEmail(email string) (*models.Participant, error)
 	GetParticipantByCheckinID(checkinID string) (*models.Participant, error)
+	UpsertParticipantProfile(email string, input models.ParticipantProfile, now time.Time) (models.ParticipantProfile, error)
+	GetParticipantProfile(email string) (models.ParticipantProfile, error)
+	ListParticipantProfiles() ([]models.ParticipantProfile, error)
 
 	CreateResourcePool(input models.ResourcePool) (models.ResourcePool, error)
 	ListResourcePools() ([]models.ResourcePool, error)

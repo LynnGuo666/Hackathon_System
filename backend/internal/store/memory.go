@@ -26,6 +26,7 @@ type MemoryStore struct {
 
 	participantsByCheckin map[string]*models.Participant
 	participantsByEmail   map[string]*models.Participant
+	profilesByEmail       map[string]*models.ParticipantProfile
 	codes                 map[string]*models.VerificationCode
 	pools                 map[string]*models.ResourcePool
 	items                 map[string]*models.ResourceItem
@@ -39,6 +40,7 @@ func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		participantsByCheckin: map[string]*models.Participant{},
 		participantsByEmail:   map[string]*models.Participant{},
+		profilesByEmail:       map[string]*models.ParticipantProfile{},
 		codes:                 map[string]*models.VerificationCode{},
 		pools:                 map[string]*models.ResourcePool{},
 		items:                 map[string]*models.ResourceItem{},
@@ -183,6 +185,46 @@ func (s *MemoryStore) GetParticipantByCheckinID(checkinID string) (*models.Parti
 	}
 	clone := *p
 	return &clone, nil
+}
+
+func (s *MemoryStore) UpsertParticipantProfile(email string, input models.ParticipantProfile, now time.Time) (models.ParticipantProfile, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	email = NormalizeEmail(email)
+	if _, ok := s.participantsByEmail[email]; !ok {
+		return models.ParticipantProfile{}, ErrNotFound
+	}
+	if existing, ok := s.profilesByEmail[email]; ok {
+		input.SubmittedAt = existing.SubmittedAt
+	} else {
+		input.SubmittedAt = now
+	}
+	input.Email = email
+	input.UpdatedAt = now
+	clone := input
+	s.profilesByEmail[email] = &clone
+	return input, nil
+}
+
+func (s *MemoryStore) GetParticipantProfile(email string) (models.ParticipantProfile, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	profile, ok := s.profilesByEmail[NormalizeEmail(email)]
+	if !ok {
+		return models.ParticipantProfile{}, ErrNotFound
+	}
+	return *profile, nil
+}
+
+func (s *MemoryStore) ListParticipantProfiles() ([]models.ParticipantProfile, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make([]models.ParticipantProfile, 0, len(s.profilesByEmail))
+	for _, profile := range s.profilesByEmail {
+		out = append(out, *profile)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].UpdatedAt.After(out[j].UpdatedAt) })
+	return out, nil
 }
 
 func (s *MemoryStore) CreateResourcePool(input models.ResourcePool) (models.ResourcePool, error) {

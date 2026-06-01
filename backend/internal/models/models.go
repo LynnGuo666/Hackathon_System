@@ -21,6 +21,20 @@ type Participant struct {
 	UpdatedAt       time.Time         `json:"updatedAt"`
 }
 
+type ParticipantProfile struct {
+	Email            string    `json:"email"`
+	FullName         string    `json:"fullName"`
+	TeamName         string    `json:"teamName"`
+	School           string    `json:"school"`
+	Phone            string    `json:"phone"`
+	DietaryNeeds     string    `json:"dietaryNeeds"`
+	TShirtSize       string    `json:"tshirtSize"`
+	EmergencyContact string    `json:"emergencyContact"`
+	Notes            string    `json:"notes"`
+	SubmittedAt      time.Time `json:"submittedAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+}
+
 type VerificationCode struct {
 	Email        string    `json:"email"`
 	CodeHash     string    `json:"-"`
