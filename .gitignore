@@ -1,6 +1,12 @@
+.DS_Store
 .next/
 node_modules/
-api/hackathon.sqlite
+frontend/out/
+frontend/.next/
+frontend/web/out/
+frontend/node_modules/
+.idea/
+backend/hackathon.sqlite
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
