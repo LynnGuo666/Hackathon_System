@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
-import { ArrowRight, Compass, KeyRound, Mail, Settings2 } from "lucide-react";
+import { ArrowRight, Coffee, Compass, KeyRound, Mail, Settings2 } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 
@@ -20,6 +20,13 @@ const adminModules = [
     description: "查看邮件投递状态，并对失败邮件执行重试。",
     group: "运营功能",
     icon: Mail,
+  },
+  {
+    href: "/admin/meal-orders",
+    title: "餐饮补给",
+    description: "管理餐食餐次、饮料补给批次和选手提交记录。",
+    group: "运营功能",
+    icon: Coffee,
   },
   {
     href: "/admin/features",

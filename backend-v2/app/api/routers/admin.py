@@ -9,11 +9,15 @@ from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
     AssignInput,
     AuditLog,
+    DrinkOrder,
+    DrinkSupplySlot,
     EmailOutbox,
     EventLocation,
     FeatureLink,
     FeatureToggleInput,
     ImportCodesInput,
+    MealOrder,
+    MealOrderSlot,
     NavigationLink,
     OSMSearchResult,
     ParticipantProfile,
@@ -180,6 +184,152 @@ def audit_logs(repo: SQLiteRepository = Depends(repository)) -> list[AuditLog]:
 )
 def profiles(repo: SQLiteRepository = Depends(repository)) -> list[ParticipantProfile]:
     return repo.list_participant_profiles()
+
+
+@router.get(
+    "/meal-order-slots",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[MealOrderSlot],
+    response_model_by_alias=True,
+)
+@router.get(
+    "/meal-slots",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[MealOrderSlot],
+    response_model_by_alias=True,
+)
+def admin_meal_slots(repo: SQLiteRepository = Depends(repository)) -> list[MealOrderSlot]:
+    return repo.list_meal_slots(include_disabled=True)
+
+
+@router.post(
+    "/meal-order-slots",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=MealOrderSlot,
+    response_model_by_alias=True,
+)
+@router.post(
+    "/meal-slots",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=MealOrderSlot,
+    response_model_by_alias=True,
+)
+def create_meal_slot(
+    input: MealOrderSlot,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> MealOrderSlot:
+    return svc.create_meal_slot(actor, input)
+
+
+@router.patch(
+    "/meal-order-slots/{slot_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=MealOrderSlot,
+    response_model_by_alias=True,
+)
+@router.put(
+    "/meal-slots/{slot_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=MealOrderSlot,
+    response_model_by_alias=True,
+)
+def update_meal_slot(
+    slot_id: str,
+    input: MealOrderSlot,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> MealOrderSlot:
+    return svc.update_meal_slot(actor, slot_id, input)
+
+
+@router.get(
+    "/meal-orders",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[MealOrder],
+    response_model_by_alias=True,
+)
+def admin_meal_orders(
+    slotId: str = "",
+    slot_id: str = "",
+    repo: SQLiteRepository = Depends(repository),
+) -> list[MealOrder]:
+    return repo.list_meal_orders(slot_id=slotId or slot_id)
+
+
+@router.get(
+    "/drink-supply-slots",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[DrinkSupplySlot],
+    response_model_by_alias=True,
+)
+@router.get(
+    "/drink-slots",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[DrinkSupplySlot],
+    response_model_by_alias=True,
+)
+def admin_drink_slots(repo: SQLiteRepository = Depends(repository)) -> list[DrinkSupplySlot]:
+    return repo.list_drink_slots(include_disabled=True)
+
+
+@router.post(
+    "/drink-supply-slots",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=DrinkSupplySlot,
+    response_model_by_alias=True,
+)
+@router.post(
+    "/drink-slots",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=DrinkSupplySlot,
+    response_model_by_alias=True,
+)
+def create_drink_slot(
+    input: DrinkSupplySlot,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> DrinkSupplySlot:
+    return svc.create_drink_slot(actor, input)
+
+
+@router.patch(
+    "/drink-supply-slots/{slot_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=DrinkSupplySlot,
+    response_model_by_alias=True,
+)
+@router.put(
+    "/drink-slots/{slot_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=DrinkSupplySlot,
+    response_model_by_alias=True,
+)
+def update_drink_slot(
+    slot_id: str,
+    input: DrinkSupplySlot,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> DrinkSupplySlot:
+    return svc.update_drink_slot(actor, slot_id, input)
+
+
+@router.get(
+    "/drink-orders",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[DrinkOrder],
+    response_model_by_alias=True,
+)
+def admin_drink_orders(
+    slotId: str = "",
+    slot_id: str = "",
+    repo: SQLiteRepository = Depends(repository),
+) -> list[DrinkOrder]:
+    return repo.list_drink_orders(slot_id=slotId or slot_id)
 
 
 @router.get(

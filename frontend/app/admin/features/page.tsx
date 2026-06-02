@@ -22,20 +22,16 @@ import {
   TableRow,
   useDisclosure,
 } from "@heroui/react";
-import { ExternalLink, MapPin, RefreshCw, Search } from "lucide-react";
+import { ExternalLink, MapPin, RefreshCw } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
-import { api, type EventLocation, type FeatureLink, type OSMSearchResult } from "@/web/lib/api";
+import { api, type EventLocation, type FeatureLink } from "@/web/lib/api";
 
 export default function AdminFeaturesPage() {
   const [modules, setModules] = useState<FeatureLink[]>([]);
   const [location, setLocation] = useState<EventLocation | null>(null);
-  const [locationQuery, setLocationQuery] = useState("");
-  const [locationResults, setLocationResults] = useState<OSMSearchResult[]>([]);
   const [manualLocationName, setManualLocationName] = useState("");
-  const [locationSearchError, setLocationSearchError] = useState("");
-  const [searching, setSearching] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
   const { isOpen: isLocationOpen, onOpen: openLocation, onOpenChange: onLocationOpenChange } = useDisclosure();
@@ -64,45 +60,6 @@ export default function AdminFeaturesPage() {
       notify.error(errorText(error, "更新模块失败"));
     } finally {
       setUpdatingId("");
-    }
-  }
-
-  async function searchLocations() {
-    setSearching(true);
-    setLocationSearchError("");
-    try {
-      setLocationResults(await api.searchLocations(locationQuery));
-    } catch (error) {
-      const message = errorText(error, "搜索地点失败");
-      setLocationSearchError(message);
-      notify.error(message);
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  async function saveLocation(result: OSMSearchResult) {
-    const osmUrl = result.osmType && result.osmId
-      ? `https://www.openstreetmap.org/${result.osmType}/${result.osmId}`
-      : "";
-    try {
-      const saved = await api.updateEventLocation({
-        id: "default",
-        name: result.displayName.split(",")[0] || result.displayName,
-        address: result.displayName,
-        latitude: result.latitude,
-        longitude: result.longitude,
-        osmType: result.osmType,
-        osmId: result.osmId,
-        osmUrl,
-        updatedAt: "",
-      });
-      setLocation(saved);
-      setManualLocationName(saved.name);
-      setLocationResults([]);
-      notify.success("赛事地点已保存");
-    } catch (error) {
-      notify.error(errorText(error, "保存地点失败"));
     }
   }
 
@@ -216,7 +173,7 @@ export default function AdminFeaturesPage() {
                     <div>
                       <h3 className="font-semibold">赛事地点详情</h3>
                       <p className="text-sm font-normal text-foreground/60">
-                        搜索 OpenStreetMap 地点并保存到选手端地图页面。
+                        填写选手端展示的赛事地点名称。
                       </p>
                     </div>
                   </ModalHeader>
@@ -236,55 +193,10 @@ export default function AdminFeaturesPage() {
                         暂未配置赛事地点。
                       </div>
                     )}
-                    <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                      <Input
-                        label="搜索地点"
-                        placeholder="输入场馆、学校、酒店或地址"
-                        value={locationQuery}
-                        onValueChange={setLocationQuery}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" && locationQuery.trim()) {
-                            searchLocations();
-                          }
-                        }}
-                      />
-                      <Button
-                        className="self-end"
-                        variant="flat"
-                        startContent={<Search size={16} />}
-                        isDisabled={!locationQuery.trim()}
-                        isLoading={searching}
-                        onPress={searchLocations}
-                      >
-                        搜索
-                      </Button>
-                    </div>
-                    {locationSearchError && (
-                      <div className="rounded-md border border-warning/35 bg-warning/10 p-3 text-sm text-warning-700">
-                        {locationSearchError}。也可以在下方直接填写地点名称。
-                      </div>
-                    )}
-                    {locationResults.length > 0 && (
-                      <div className="grid max-h-72 gap-2 overflow-y-auto pr-1">
-                        {locationResults.map((result) => (
-                          <div key={result.placeId} className="flex items-start justify-between gap-3 rounded-md border border-divider p-3">
-                            <div>
-                              <p className="text-sm font-medium">{result.displayName}</p>
-                              <p className="text-xs text-foreground/50">
-                                {result.latitude.toFixed(6)}, {result.longitude.toFixed(6)}
-                              </p>
-                            </div>
-                            <Button size="sm" color="primary" variant="flat" onPress={() => saveLocation(result)}>
-                              保存
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                     <div className="grid gap-3 rounded-md border border-divider bg-content2 p-3">
                       <div>
-                        <p className="font-medium">直接填写地点</p>
-                        <p className="text-sm text-foreground/60">不需要经纬度；选手端会展示这个地点名称。</p>
+                        <p className="font-medium">地点名称</p>
+                        <p className="text-sm text-foreground/60">不需要搜索或经纬度；选手端会直接展示这个名称。</p>
                       </div>
                       <Input label="地点名称" placeholder="Demo Hall" value={manualLocationName} onValueChange={setManualLocationName} />
                       <Button

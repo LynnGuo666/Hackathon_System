@@ -1,13 +1,14 @@
 import json
-import secrets
 import sqlite3
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator
 
 from app.core.errors import Conflict, NoResource, NotFound
 from app.core.security import normalize_email
+from app.repositories.common import bool_int, decode_time, encode_time, new_id, now_utc
+from app.repositories.meal_orders import MealOrderRepositoryMixin
 from app.schemas import (
     AccommodationRequest,
     AuditLog,
@@ -28,32 +29,6 @@ from app.schemas import (
 )
 
 
-def new_id(prefix: str) -> str:
-    return f"{prefix}_{secrets.token_hex(8)}"
-
-
-def now_utc() -> datetime:
-    return datetime.now(UTC)
-
-
-def encode_time(value: datetime | None) -> str:
-    if not value:
-        return ""
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
-    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
-
-
-def decode_time(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
-
-def bool_int(value: bool) -> int:
-    return 1 if value else 0
-
-
 def encrypt_for_mvp(value: str) -> str:
     return value.encode().hex()
 
@@ -65,7 +40,7 @@ def decrypt_for_mvp(value: str) -> str:
         return ""
 
 
-class SQLiteRepository:
+class SQLiteRepository(MealOrderRepositoryMixin):
     def __init__(self, path: str):
         self.path = path
         db_path = Path(path)

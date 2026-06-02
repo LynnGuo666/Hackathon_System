@@ -133,6 +133,77 @@ export type AccommodationRequest = {
   updatedAt: string;
 };
 
+export type MealSlot = {
+  id: string;
+  title: string;
+  description: string;
+  serviceDate: string;
+  serviceTime: string;
+  orderDeadline: string;
+  isOpen: boolean;
+  enabled: boolean;
+  sortOrder: number;
+  dietaryOptions: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DrinkSlot = {
+  id: string;
+  title: string;
+  description: string;
+  serviceDate: string;
+  serviceTime: string;
+  orderDeadline: string;
+  isOpen: boolean;
+  enabled: boolean;
+  sortOrder: number;
+  drinkOptions: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MealOrder = {
+  id: string;
+  email: string;
+  slotId: string;
+  dietaryNeeds: string[];
+  otherDetail: string;
+  notes: string;
+  participantName?: string;
+  teamName?: string;
+  slot?: MealSlot;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DrinkOrder = {
+  id: string;
+  email: string;
+  slotId: string;
+  drinkOption: string;
+  notes: string;
+  participantName?: string;
+  teamName?: string;
+  slot?: DrinkSlot;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MealSlotInput = Pick<
+  MealSlot,
+  "title" | "description" | "serviceDate" | "serviceTime" | "orderDeadline" | "isOpen" | "enabled" | "sortOrder" | "dietaryOptions"
+>;
+
+export type DrinkSlotInput = Pick<
+  DrinkSlot,
+  "title" | "description" | "serviceDate" | "serviceTime" | "orderDeadline" | "isOpen" | "enabled" | "sortOrder" | "drinkOptions"
+>;
+
+export type MealOrderInput = Pick<MealOrder, "dietaryNeeds" | "otherDetail" | "notes">;
+
+export type DrinkOrderInput = Pick<DrinkOrder, "drinkOption" | "notes">;
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   if (options.body && !headers.has("Content-Type")) {
@@ -257,4 +328,46 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(input),
     }),
+  mealSlots: () => request<MealSlot[]>("/api/meal-slots"),
+  drinkSlots: () => request<DrinkSlot[]>("/api/drink-slots"),
+  mealOrders: () => request<MealOrder[]>("/api/meal-orders"),
+  drinkOrders: () => request<DrinkOrder[]>("/api/drink-orders"),
+  updateMealOrder: (slotId: string, input: MealOrderInput) =>
+    request<MealOrder>(`/api/meal-slots/${encodeURIComponent(slotId)}/order`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  updateDrinkOrder: (slotId: string, input: DrinkOrderInput) =>
+    request<DrinkOrder>(`/api/drink-slots/${encodeURIComponent(slotId)}/order`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  adminMealSlots: () => request<MealSlot[]>("/api/admin/meal-slots", { admin: true }),
+  createMealSlot: (input: MealSlotInput) =>
+    request<MealSlot>("/api/admin/meal-slots", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateMealSlot: (slotId: string, input: MealSlotInput) =>
+    request<MealSlot>(`/api/admin/meal-slots/${encodeURIComponent(slotId)}`, {
+      admin: true,
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  adminDrinkSlots: () => request<DrinkSlot[]>("/api/admin/drink-slots", { admin: true }),
+  createDrinkSlot: (input: DrinkSlotInput) =>
+    request<DrinkSlot>("/api/admin/drink-slots", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateDrinkSlot: (slotId: string, input: DrinkSlotInput) =>
+    request<DrinkSlot>(`/api/admin/drink-slots/${encodeURIComponent(slotId)}`, {
+      admin: true,
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  adminMealOrders: () => request<MealOrder[]>("/api/admin/meal-orders", { admin: true }),
+  adminDrinkOrders: () => request<DrinkOrder[]>("/api/admin/drink-orders", { admin: true }),
 };
