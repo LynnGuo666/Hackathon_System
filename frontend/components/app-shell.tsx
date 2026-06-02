@@ -56,14 +56,14 @@ export function AppShell({
   const pathname = usePathname();
   const router = useRouter();
   const participantItems = variant === "participant"
-    ? [
+    ? uniqueByHref([
       ...participantNavItems,
       ...featureItems.map((item) => ({
         href: item.url,
         label: item.title,
         icon: featureNavIcons[item.url as keyof typeof featureNavIcons] ?? ClipboardList,
       })),
-    ]
+    ])
     : [];
 
   useEffect(() => {
@@ -165,4 +165,15 @@ export function AppShell({
       </div>
     </div>
   );
+}
+
+function uniqueByHref<T extends { href: string }>(items: T[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.href)) {
+      return false;
+    }
+    seen.add(item.href);
+    return true;
+  });
 }

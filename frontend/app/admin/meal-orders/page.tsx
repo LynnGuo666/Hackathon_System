@@ -188,17 +188,18 @@ function MealSlotForm({
           <p className="text-sm text-foreground/60">配置选手端可提交的餐食批次和忌口选项。</p>
         </div>
       </CardHeader>
-      <CardBody className="grid gap-3 md:grid-cols-2">
+      <CardBody className="grid gap-4 md:grid-cols-2">
         <Input label="餐次名称" placeholder="Day 1 午餐" value={title} onValueChange={setTitle} />
         <Input label="排序" type="number" value={sortOrder} onValueChange={setSortOrder} />
         <Input label="供应日期" type="date" value={serviceDate} onValueChange={setServiceDate} />
         <Input label="供应时间" type="time" value={serviceTime} onValueChange={setServiceTime} />
-        <Input className="md:col-span-2" label="提交截止时间" type="datetime-local" value={orderDeadline} onValueChange={setOrderDeadline} />
-        <Textarea className="md:col-span-2" label="说明" value={description} onValueChange={setDescription} />
+        <Input label="提交截止时间" type="datetime-local" value={orderDeadline} onValueChange={setOrderDeadline} />
+        <div className="hidden md:block" />
+        <Textarea label="说明" minRows={4} value={description} onValueChange={setDescription} />
         <Textarea
-          className="md:col-span-2"
           label="忌口选项"
           description="每行一个选项"
+          minRows={4}
           value={dietaryOptions}
           onValueChange={setDietaryOptions}
         />
@@ -269,17 +270,18 @@ function DrinkSlotForm({
           <p className="text-sm text-foreground/60">配置选手端单选饮料范围和开放状态。</p>
         </div>
       </CardHeader>
-      <CardBody className="grid gap-3 md:grid-cols-2">
+      <CardBody className="grid gap-4 md:grid-cols-2">
         <Input label="批次名称" placeholder="Day 1 下午补给" value={title} onValueChange={setTitle} />
         <Input label="排序" type="number" value={sortOrder} onValueChange={setSortOrder} />
         <Input label="供应日期" type="date" value={serviceDate} onValueChange={setServiceDate} />
         <Input label="供应时间" type="time" value={serviceTime} onValueChange={setServiceTime} />
-        <Input className="md:col-span-2" label="提交截止时间" type="datetime-local" value={orderDeadline} onValueChange={setOrderDeadline} />
-        <Textarea className="md:col-span-2" label="说明" value={description} onValueChange={setDescription} />
+        <Input label="提交截止时间" type="datetime-local" value={orderDeadline} onValueChange={setOrderDeadline} />
+        <div className="hidden md:block" />
+        <Textarea label="说明" minRows={4} value={description} onValueChange={setDescription} />
         <Textarea
-          className="md:col-span-2"
           label="饮料选项"
           description="每行一个选项"
+          minRows={4}
           value={drinkOptions}
           onValueChange={setDrinkOptions}
         />

@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Chip,
   Input,
   Modal,
@@ -99,70 +96,57 @@ export default function AdminFeaturesPage() {
       <AppShell variant="admin">
         <section className="grid gap-5">
           <div>
-            <p className="text-sm text-foreground/60">feature modules</p>
             <h2 className="text-2xl font-semibold">功能模块</h2>
-            <p className="mt-1 text-sm text-foreground/60">
-              启用或禁用系统内置模块。禁用后，选手端不会展示对应功能入口。
-            </p>
           </div>
 
-          <Card className="rounded-md">
-            <CardHeader className="justify-between gap-4">
-              <div>
-                <h3 className="font-semibold">模块列表</h3>
-                <p className="text-sm text-foreground/60">功能模块由系统提供；赛事文档和资料链接请到导航页添加。</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Chip variant="flat">{modules.filter((item) => item.enabled).length} 个启用</Chip>
-                <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
-                  刷新
-                </Button>
-              </div>
-            </CardHeader>
-            <CardBody className="grid gap-3">
-              <Table aria-label="功能模块配置">
-                <TableHeader>
-                  <TableColumn>模块</TableColumn>
-                  <TableColumn>地址</TableColumn>
-                  <TableColumn>说明</TableColumn>
-                  <TableColumn>状态</TableColumn>
-                  <TableColumn>操作</TableColumn>
-                </TableHeader>
-                <TableBody items={modules}>
-                  {(row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.title}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center gap-1 text-sm">
-                          {row.url}
-                          {row.url.startsWith("http") && <ExternalLink size={14} className="text-foreground/45" />}
-                        </span>
-                      </TableCell>
-                      <TableCell>{row.description || "-"}</TableCell>
-                      <TableCell>
-                        <Switch
-                          isSelected={row.enabled}
-                          isDisabled={updatingId === row.id}
-                          onValueChange={(enabled) => toggleModule(row, enabled)}
-                        >
-                          {row.enabled ? "启用" : "禁用"}
-                        </Switch>
-                      </TableCell>
-                      <TableCell>
-                        {row.id === "feat_location" ? (
-                          <Button size="sm" variant="flat" startContent={<MapPin size={16} />} onPress={openLocation}>
-                            详情
-                          </Button>
-                        ) : (
-                          <span className="text-sm text-foreground/40">-</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardBody>
-          </Card>
+          <div className="flex items-center justify-between gap-3">
+            <Chip variant="flat">{modules.filter((item) => item.enabled).length} 个启用</Chip>
+            <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
+              刷新
+            </Button>
+          </div>
+
+          <Table aria-label="功能模块配置">
+            <TableHeader>
+              <TableColumn>模块</TableColumn>
+              <TableColumn>地址</TableColumn>
+              <TableColumn>说明</TableColumn>
+              <TableColumn>状态</TableColumn>
+              <TableColumn>操作</TableColumn>
+            </TableHeader>
+            <TableBody items={modules}>
+              {(row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.title}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center gap-1 text-sm">
+                      {row.url}
+                      {row.url.startsWith("http") && <ExternalLink size={14} className="text-foreground/45" />}
+                    </span>
+                  </TableCell>
+                  <TableCell>{row.description || "-"}</TableCell>
+                  <TableCell>
+                    <Switch
+                      isSelected={row.enabled}
+                      isDisabled={updatingId === row.id}
+                      onValueChange={(enabled) => toggleModule(row, enabled)}
+                    >
+                      {row.enabled ? "启用" : "禁用"}
+                    </Switch>
+                  </TableCell>
+                  <TableCell>
+                    {row.id === "feat_location" ? (
+                      <Button size="sm" variant="flat" startContent={<MapPin size={16} />} onPress={openLocation}>
+                        详情
+                      </Button>
+                    ) : (
+                      <span className="text-sm text-foreground/40">-</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
           <Modal isOpen={isLocationOpen} size="2xl" onOpenChange={onLocationOpenChange}>
             <ModalContent>
@@ -172,9 +156,6 @@ export default function AdminFeaturesPage() {
                     <MapPin size={20} className="mt-1 text-foreground/50" />
                     <div>
                       <h3 className="font-semibold">赛事地点详情</h3>
-                      <p className="text-sm font-normal text-foreground/60">
-                        填写选手端展示的赛事地点名称。
-                      </p>
                     </div>
                   </ModalHeader>
                   <ModalBody className="grid gap-4">
@@ -194,10 +175,6 @@ export default function AdminFeaturesPage() {
                       </div>
                     )}
                     <div className="grid gap-3 rounded-md border border-divider bg-content2 p-3">
-                      <div>
-                        <p className="font-medium">地点名称</p>
-                        <p className="text-sm text-foreground/60">不需要搜索或经纬度；选手端会直接展示这个名称。</p>
-                      </div>
                       <Input label="地点名称" placeholder="Demo Hall" value={manualLocationName} onValueChange={setManualLocationName} />
                       <Button
                         color="primary"
