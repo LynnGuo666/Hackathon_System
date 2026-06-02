@@ -13,6 +13,7 @@ from app.schemas import (
     AuditLog,
     EmailOutbox,
     EmailStatus,
+    FeatureLink,
     NavigationLink,
     Participant,
     ParticipantProfile,
@@ -647,13 +648,34 @@ FROM audit_logs ORDER BY created_at ASC
         ]
 
     def create_navigation_link(self, link: NavigationLink, now: datetime) -> NavigationLink:
+        return self._create_link("navigation_links", "nav", NavigationLink, link, now)
+
+    def list_navigation_links(self, include_disabled: bool) -> list[NavigationLink]:
+        return self._list_links("navigation_links", NavigationLink, include_disabled)
+
+    def create_feature_link(self, link: FeatureLink, now: datetime) -> FeatureLink:
+        return self._create_link("feature_links", "feat", FeatureLink, link, now)
+
+    def list_feature_links(self, include_disabled: bool) -> list[FeatureLink]:
+        return self._list_links("feature_links", FeatureLink, include_disabled)
+
+    def _create_link(
+        self,
+        table: str,
+        id_prefix: str,
+        model: type[NavigationLink] | type[FeatureLink],
+        link: NavigationLink | FeatureLink,
+        now: datetime,
+    ) -> NavigationLink | FeatureLink:
         sort_order = link.sort_order
         if sort_order == 0:
-            row = self.db.execute("SELECT COALESCE(MAX(sort_order), 0) max_order FROM navigation_links").fetchone()
+            row = self.db.execute(
+                f"SELECT COALESCE(MAX(sort_order), 0) max_order FROM {table}"
+            ).fetchone()
             sort_order = row["max_order"] + 10
         saved = link.model_copy(
             update={
-                "id": new_id("nav"),
+                "id": new_id(id_prefix),
                 "enabled": True,
                 "sort_order": sort_order,
                 "created_at": now,
@@ -661,8 +683,8 @@ FROM audit_logs ORDER BY created_at ASC
             }
         )
         self.db.execute(
-            """
-INSERT INTO navigation_links (id, title, description, url, enabled, sort_order, created_at, updated_at)
+            f"""
+INSERT INTO {table} (id, title, description, url, enabled, sort_order, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 """,
             (
@@ -678,8 +700,13 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         )
         return saved
 
-    def list_navigation_links(self, include_disabled: bool) -> list[NavigationLink]:
-        query = "SELECT id, title, description, url, enabled, sort_order, created_at, updated_at FROM navigation_links"
+    def _list_links(
+        self,
+        table: str,
+        model: type[NavigationLink] | type[FeatureLink],
+        include_disabled: bool,
+    ) -> list[NavigationLink] | list[FeatureLink]:
+        query = f"SELECT id, title, description, url, enabled, sort_order, created_at, updated_at FROM {table}"
         params: tuple[Any, ...] = ()
         if not include_disabled:
             query += " WHERE enabled = ?"
@@ -687,7 +714,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         query += " ORDER BY sort_order ASC, created_at ASC"
         rows = self.db.execute(query, params).fetchall()
         return [
-            NavigationLink(
+            model(
                 id=row["id"],
                 title=row["title"],
                 description=row["description"],

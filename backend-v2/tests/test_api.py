@@ -24,13 +24,52 @@ def make_client(tmp_path: Path) -> TestClient:
     return TestClient(app)
 
 
-def test_public_seeded_navigation_and_health(tmp_path: Path):
+def test_public_seeded_feature_links_and_health(tmp_path: Path):
     client = make_client(tmp_path)
 
     assert client.get("/api/health").json() == {"status": "ok"}
+    features = client.get("/api/feature-links").json()
     links = client.get("/api/navigation-links").json()
 
-    assert [link["url"] for link in links][:2] == ["/p/profile", "/p/accommodation"]
+    assert [link["url"] for link in features][:2] == ["/p/profile", "/p/accommodation"]
+    assert "/p/profile" not in [link["url"] for link in links]
+
+
+def test_admin_feature_links_are_separate_from_navigation(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    assert client.get("/api/admin/feature-links").status_code == 403
+
+    feature = client.post(
+        "/api/admin/feature-links",
+        headers={"X-Admin-Token": "secret"},
+        json={
+            "title": " 点餐登记 ",
+            "description": "提交午餐偏好",
+            "url": " https://example.com/order ",
+        },
+    )
+    assert feature.status_code == 201
+    assert feature.json()["title"] == "点餐登记"
+    assert feature.json()["url"] == "https://example.com/order"
+
+    navigation = client.post(
+        "/api/admin/navigation-links",
+        headers={"X-Admin-Token": "secret"},
+        json={
+            "title": "赛事规则",
+            "description": "查看比赛规则文档",
+            "url": "https://example.com/rules",
+        },
+    )
+    assert navigation.status_code == 201
+
+    public_features = client.get("/api/feature-links").json()
+    public_navigation = client.get("/api/navigation-links").json()
+
+    assert "https://example.com/order" in [link["url"] for link in public_features]
+    assert "https://example.com/order" not in [link["url"] for link in public_navigation]
+    assert "https://example.com/rules" in [link["url"] for link in public_navigation]
 
 
 def test_send_code_prints_debug_log(tmp_path: Path, capfd):

@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { Button, Card, CardBody, Chip, Spinner } from "@heroui/react";
-import { ArrowRight, ExternalLink } from "lucide-react";
 import { Countdown } from "@/components/countdown";
-import { api, type Participant, type SiteConfig, type NavigationLink } from "@/web/lib/api";
+import { api, type Participant, type SiteConfig } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [config, setConfig] = useState<SiteConfig | null>(null);
-  const [links, setLinks] = useState<NavigationLink[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -18,11 +16,9 @@ export default function DashboardPage() {
     Promise.all([
       api.me().catch((err) => { setError(err instanceof Error ? err.message : "无法读取身份信息"); return null; }),
       api.siteConfig().catch(() => null),
-      api.navigationLinks().catch(() => []),
-    ]).then(([p, cfg, navLinks]) => {
+    ]).then(([p, cfg]) => {
       setParticipant(p);
       setConfig(cfg);
-      setLinks(navLinks);
     }).finally(() => setLoading(false));
   }, []);
 

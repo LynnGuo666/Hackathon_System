@@ -18,6 +18,7 @@ from app.repositories.sqlite import SQLiteRepository, now_utc
 from app.schemas import (
     AccommodationOption,
     AccommodationRequest,
+    FeatureLink,
     NavigationLink,
     Participant,
     ParticipantProfile,
@@ -205,6 +206,23 @@ class HackathonService:
         saved = self.repository.create_navigation_link(trimmed, now)
         self.repository.record_audit(
             actor_id, "navigation_link.create", "navigation_link", saved.id, "", now
+        )
+        return saved
+
+    def create_feature_link(self, actor_id: str, link: FeatureLink) -> FeatureLink:
+        trimmed = link.model_copy(
+            update={
+                "title": link.title.strip(),
+                "description": link.description.strip(),
+                "url": link.url.strip(),
+            }
+        )
+        if not trimmed.title or not trimmed.url:
+            raise InvalidNavigation("feature link requires title and url")
+        now = now_utc()
+        saved = self.repository.create_feature_link(trimmed, now)
+        self.repository.record_audit(
+            actor_id, "feature_link.create", "feature_link", saved.id, "", now
         )
         return saved
 

@@ -1,13 +1,86 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import Link from "next/link";
+import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
+import { ArrowRight, Compass, KeyRound, Mail, Settings2 } from "lucide-react";
+import { AdminAuthGuard } from "@/components/admin-auth-guard";
+import { AppShell } from "@/components/app-shell";
+
+const adminModules = [
+  {
+    href: "/admin/resources",
+    title: "资源发放",
+    description: "创建资源池，查看兑换码和权益发放记录。",
+    group: "运营功能",
+    icon: KeyRound,
+  },
+  {
+    href: "/admin/email-outbox",
+    title: "邮件队列",
+    description: "查看邮件投递状态，并对失败邮件执行重试。",
+    group: "运营功能",
+    icon: Mail,
+  },
+  {
+    href: "/admin/features",
+    title: "功能入口",
+    description: "维护需求收集、点餐、资源发放等可办理事项。",
+    group: "体验配置",
+    icon: Settings2,
+  },
+  {
+    href: "/admin/navigation",
+    title: "入口导航",
+    description: "维护公开首页和选手端展示的快捷入口。",
+    group: "体验配置",
+    icon: Compass,
+  },
+];
 
 export default function AdminPage() {
-  const router = useRouter();
-  useEffect(() => {
-    const token = sessionStorage.getItem("admin_token");
-    router.replace(token ? "/admin/resources" : "/admin/login");
-  }, [router]);
-  return null;
+  return (
+    <AdminAuthGuard>
+      <AppShell variant="admin">
+        <section className="grid gap-5">
+          <div>
+            <p className="text-sm text-foreground/60">admin workspace</p>
+            <h2 className="text-2xl font-semibold">管理后台</h2>
+            <p className="mt-1 text-sm text-foreground/60">
+              左侧是后台自己的工作导航；前台入口和展示功能在体验配置里单独管理。
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {adminModules.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card
+                  key={item.href}
+                  as={Link}
+                  href={item.href}
+                  className="rounded-md transition-transform hover:scale-[1.01]"
+                >
+                  <CardHeader className="justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-md border border-divider bg-content2 p-2">
+                        <Icon size={18} />
+                      </span>
+                      <div>
+                        <h3 className="font-semibold">{item.title}</h3>
+                        <Chip size="sm" variant="flat">{item.group}</Chip>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-foreground/45" />
+                  </CardHeader>
+                  <CardBody className="pt-0 text-sm text-foreground/60">
+                    {item.description}
+                  </CardBody>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      </AppShell>
+    </AdminAuthGuard>
+  );
 }

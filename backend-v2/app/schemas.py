@@ -155,6 +155,17 @@ class NavigationLink(APIModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class FeatureLink(APIModel):
+    id: str = ""
+    title: str = ""
+    description: str = ""
+    url: str = ""
+    enabled: bool = True
+    sort_order: int = Field(default=0, alias="sortOrder")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
 class AccommodationOption(StrEnum):
     sleeping_bag = "sleeping_bag"
     tent = "tent"

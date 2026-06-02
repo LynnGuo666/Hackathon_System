@@ -70,6 +70,17 @@ export type NavigationLink = {
   updatedAt: string;
 };
 
+export type FeatureLink = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  enabled: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type SiteConfig = {
   id: string;
   countdownTitle: string;
@@ -158,6 +169,14 @@ export const api = {
   adminNavigationLinks: () => request<NavigationLink[]>("/api/admin/navigation-links", { admin: true }),
   createNavigationLink: (input: Pick<NavigationLink, "title" | "description" | "url"> & { sortOrder?: number }) =>
     request<NavigationLink>("/api/admin/navigation-links", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  featureLinks: () => request<FeatureLink[]>("/api/feature-links"),
+  adminFeatureLinks: () => request<FeatureLink[]>("/api/admin/feature-links", { admin: true }),
+  createFeatureLink: (input: Pick<FeatureLink, "title" | "description" | "url"> & { sortOrder?: number }) =>
+    request<FeatureLink>("/api/admin/feature-links", {
       admin: true,
       method: "POST",
       body: JSON.stringify(input),

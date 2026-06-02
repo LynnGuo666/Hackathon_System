@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository
 from app.repositories.sqlite import SQLiteRepository
-from app.schemas import NavigationLink, SiteConfig
+from app.schemas import FeatureLink, NavigationLink, SiteConfig
 
 router = APIRouter(prefix="/api")
 
@@ -15,6 +15,11 @@ def health() -> dict[str, str]:
 @router.get("/navigation-links", response_model=list[NavigationLink], response_model_by_alias=True)
 def navigation_links(repo: SQLiteRepository = Depends(repository)) -> list[NavigationLink]:
     return repo.list_navigation_links(include_disabled=False)
+
+
+@router.get("/feature-links", response_model=list[FeatureLink], response_model_by_alias=True)
+def feature_links(repo: SQLiteRepository = Depends(repository)) -> list[FeatureLink]:
+    return repo.list_feature_links(include_disabled=False)
 
 
 @router.get("/site-config", response_model=SiteConfig, response_model_by_alias=True)

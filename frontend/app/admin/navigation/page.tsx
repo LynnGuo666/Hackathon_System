@@ -1,10 +1,10 @@
 "use client";
 
-import { Button, Card, CardBody, CardHeader, Input, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
-import { Plus, RefreshCw, Save } from "lucide-react";
+import { Button, Card, CardBody, CardHeader, Chip, Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import { ExternalLink, Plus, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
-import { api, type NavigationLink, type SiteConfig } from "@/web/lib/api";
+import { api, type NavigationLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 export default function AdminNavigationPage() {
@@ -15,44 +15,12 @@ export default function AdminNavigationPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // countdown config state
-  const [cfg, setCfg] = useState<SiteConfig>({ id: "default", countdownTitle: "", countdownEnd: "", countdownEnabled: false, updatedAt: "" });
-  const [cfgLoading, setCfgLoading] = useState(false);
-  const [cfgMsg, setCfgMsg] = useState("");
-
   async function refresh() {
     try {
       setLinks(await api.adminNavigationLinks());
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "读取导航配置失败");
-    }
-  }
-
-  async function loadConfig() {
-    try {
-      const c = await api.siteConfig();
-      setCfg(c);
-    } catch {
-      // ignore
-    }
-  }
-
-  async function saveConfig() {
-    setCfgLoading(true);
-    setCfgMsg("");
-    try {
-      const saved = await api.updateSiteConfig({
-        countdownTitle: cfg.countdownTitle,
-        countdownEnd: cfg.countdownEnd,
-        countdownEnabled: cfg.countdownEnabled,
-      });
-      setCfg(saved);
-      setCfgMsg("已保存");
-    } catch (error) {
-      setCfgMsg(error instanceof Error ? error.message : "保存失败");
-    } finally {
-      setCfgLoading(false);
     }
   }
 
@@ -75,7 +43,6 @@ export default function AdminNavigationPage() {
 
   useEffect(() => {
     refresh();
-    loadConfig();
   }, []);
 
   return (
@@ -83,56 +50,27 @@ export default function AdminNavigationPage() {
     <AppShell variant="admin">
       <section className="grid gap-5">
         <div>
-          <p className="text-sm text-foreground/60">site navigation</p>
-          <h2 className="text-2xl font-semibold">导航与倒计时配置</h2>
+          <p className="text-sm text-foreground/60">front-stage entries</p>
+          <h2 className="text-2xl font-semibold">入口导航</h2>
+          <p className="mt-1 text-sm text-foreground/60">
+            管理选手端和公开首页展示的快捷入口；后台左侧菜单由系统固定维护。
+          </p>
         </div>
 
-        {/* 倒计时设置 */}
         <Card className="rounded-md">
           <CardHeader>
-            <h3 className="font-semibold">倒计时设置</h3>
-          </CardHeader>
-          <CardBody className="grid gap-3 md:grid-cols-2">
-            <Switch
-              className="md:col-span-2"
-              isSelected={cfg.countdownEnabled}
-              onValueChange={(v) => setCfg((c) => ({ ...c, countdownEnabled: v }))}
-            >
-              启用倒计时
-            </Switch>
-            <Input
-              label="活动名称"
-              placeholder="黑客松 2026"
-              value={cfg.countdownTitle}
-              onValueChange={(v) => setCfg((c) => ({ ...c, countdownTitle: v }))}
-            />
-            <Input
-              label="目标时间"
-              type="datetime-local"
-              value={cfg.countdownEnd ? cfg.countdownEnd.slice(0, 16) : ""}
-              onValueChange={(v) => setCfg((c) => ({ ...c, countdownEnd: v ? new Date(v).toISOString() : "" }))}
-            />
-            <div className="flex items-center gap-3 md:col-span-2">
-              <Button color="primary" startContent={<Save size={16} />} isLoading={cfgLoading} onPress={saveConfig}>
-                保存倒计时
-              </Button>
-              {cfgMsg && <p className="text-sm text-foreground/70">{cfgMsg}</p>}
+            <div>
+              <h3 className="font-semibold">新增前台入口</h3>
+              <p className="text-sm text-foreground/60">适合放赛程、直播、资料包、地图等选手需要快速访问的链接。</p>
             </div>
-          </CardBody>
-        </Card>
-
-        {/* 添加导航 */}
-        <Card className="rounded-md">
-          <CardHeader>
-            <h3 className="font-semibold">添加跳转按钮</h3>
           </CardHeader>
           <CardBody className="grid gap-3 md:grid-cols-[1fr_1fr]">
-            <Input label="按钮名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
+            <Input label="入口名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
             <Input label="跳转地址" placeholder="/p/dashboard 或 https://example.com" value={url} onValueChange={setUrl} />
-            <Input className="md:col-span-2" label="说明" placeholder="显示在按钮上方的简短说明" value={description} onValueChange={setDescription} />
+            <Input className="md:col-span-2" label="说明" placeholder="显示在入口卡片上的简短说明" value={description} onValueChange={setDescription} />
             <div className="flex gap-2 md:col-span-2">
               <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createLink}>
-                添加
+                添加入口
               </Button>
               <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
                 刷新
@@ -142,10 +80,13 @@ export default function AdminNavigationPage() {
           </CardBody>
         </Card>
 
-        {/* 当前导航列表 */}
         <Card className="rounded-md">
-          <CardHeader>
-            <h3 className="font-semibold">当前导航入口</h3>
+          <CardHeader className="justify-between gap-4">
+            <div>
+              <h3 className="font-semibold">已配置入口</h3>
+              <p className="text-sm text-foreground/60">当前后端支持新增和查看；编辑、停用、排序后续可补接口。</p>
+            </div>
+            <Chip variant="flat">{links.length} 个入口</Chip>
           </CardHeader>
           <CardBody>
             <Table aria-label="导航按钮配置">
@@ -153,14 +94,25 @@ export default function AdminNavigationPage() {
                 <TableColumn>名称</TableColumn>
                 <TableColumn>地址</TableColumn>
                 <TableColumn>说明</TableColumn>
+                <TableColumn>状态</TableColumn>
                 <TableColumn>排序</TableColumn>
               </TableHeader>
               <TableBody items={links}>
                 {(row) => (
                   <TableRow key={row.id}>
                     <TableCell>{row.title}</TableCell>
-                    <TableCell>{row.url}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1 text-sm">
+                        {row.url}
+                        {row.url.startsWith("http") && <ExternalLink size={14} className="text-foreground/45" />}
+                      </span>
+                    </TableCell>
                     <TableCell>{row.description || "-"}</TableCell>
+                    <TableCell>
+                      <Chip size="sm" color={row.enabled ? "success" : "default"} variant="flat">
+                        {row.enabled ? "启用" : "停用"}
+                      </Chip>
+                    </TableCell>
                     <TableCell>{row.sortOrder}</TableCell>
                   </TableRow>
                 )}

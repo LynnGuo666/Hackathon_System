@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { Activity, BedDouble, ClipboardList, Compass, Home, KeyRound, LogOut, Mail, Ticket, UserRoundPen } from "lucide-react";
+import { Activity, BedDouble, ClipboardList, Compass, Home, KeyRound, LayoutDashboard, LogOut, Mail, Settings2, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -17,9 +17,20 @@ const participantNavItems = [
 ];
 
 const adminNavItems = [
-  { href: "/admin/resources", label: "资源后台", icon: KeyRound },
-  { href: "/admin/navigation", label: "导航配置", icon: Compass },
-  { href: "/admin/email-outbox", label: "邮件队列", icon: Mail },
+  {
+    title: "运营功能",
+    items: [
+      { href: "/admin/resources", label: "资源发放", icon: KeyRound },
+      { href: "/admin/email-outbox", label: "邮件队列", icon: Mail },
+    ],
+  },
+  {
+    title: "体验配置",
+    items: [
+      { href: "/admin/features", label: "功能入口", icon: Settings2 },
+      { href: "/admin/navigation", label: "入口导航", icon: Compass },
+    ],
+  },
 ];
 
 export function AppShell({
@@ -32,7 +43,7 @@ export function AppShell({
   const [apiReady, setApiReady] = useState<"checking" | "online" | "offline">("checking");
   const pathname = usePathname();
   const router = useRouter();
-  const navItems = variant === "admin" ? adminNavItems : participantNavItems;
+  const participantItems = variant === "participant" ? participantNavItems : [];
 
   useEffect(() => {
     api.health()
@@ -67,23 +78,61 @@ export function AppShell({
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-5 py-5 lg:grid-cols-[220px_1fr]">
         <aside className="rounded-md border border-divider bg-content1 p-2 lg:sticky lg:top-24 lg:h-fit">
           <nav className="grid gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = pathname === item.href;
-              return (
-                <Button
-                  key={item.href}
-                  as={Link}
-                  href={item.href}
-                  color={active ? "primary" : "default"}
-                  variant={active ? "flat" : "light"}
-                  className="justify-start"
-                  startContent={<Icon size={17} />}
-                >
-                  {item.label}
-                </Button>
-              );
-            })}
+            {variant === "admin" && (
+              <Button
+                as={Link}
+                href="/admin"
+                color={pathname === "/admin" ? "primary" : "default"}
+                variant={pathname === "/admin" ? "flat" : "light"}
+                className="justify-start"
+                startContent={<LayoutDashboard size={17} />}
+              >
+                后台首页
+              </Button>
+            )}
+
+            {variant === "admin" ? (
+              adminNavItems.map((group) => (
+                <div key={group.title} className="grid gap-1 pt-3 first:pt-1">
+                  <p className="px-3 text-xs font-medium text-foreground/45">{group.title}</p>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = pathname === item.href;
+                    return (
+                      <Button
+                        key={item.href}
+                        as={Link}
+                        href={item.href}
+                        color={active ? "primary" : "default"}
+                        variant={active ? "flat" : "light"}
+                        className="justify-start"
+                        startContent={<Icon size={17} />}
+                      >
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              ))
+            ) : (
+              participantItems.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+                return (
+                  <Button
+                    key={item.href}
+                    as={Link}
+                    href={item.href}
+                    color={active ? "primary" : "default"}
+                    variant={active ? "flat" : "light"}
+                    className="justify-start"
+                    startContent={<Icon size={17} />}
+                  >
+                    {item.label}
+                  </Button>
+                );
+              })
+            )}
             {variant === "admin" && (
               <Button
                 variant="light"

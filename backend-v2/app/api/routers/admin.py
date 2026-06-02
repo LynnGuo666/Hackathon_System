@@ -10,6 +10,7 @@ from app.schemas import (
     AssignInput,
     AuditLog,
     EmailOutbox,
+    FeatureLink,
     ImportCodesInput,
     NavigationLink,
     ParticipantProfile,
@@ -188,6 +189,31 @@ def create_navigation_link(
     svc: HackathonService = Depends(service),
 ) -> NavigationLink:
     return svc.create_navigation_link(actor, input)
+
+
+@router.get(
+    "/feature-links",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[FeatureLink],
+    response_model_by_alias=True,
+)
+def admin_feature_links(repo: SQLiteRepository = Depends(repository)) -> list[FeatureLink]:
+    return repo.list_feature_links(include_disabled=True)
+
+
+@router.post(
+    "/feature-links",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=FeatureLink,
+    response_model_by_alias=True,
+)
+def create_feature_link(
+    input: FeatureLink,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> FeatureLink:
+    return svc.create_feature_link(actor, input)
 
 
 @router.put(
