@@ -34,7 +34,18 @@ export type ResourcePool = {
   distributionRule: string;
   visiblePhase: string;
   enabled: boolean;
+  allowMultipleClaims: boolean;
   createdAt: string;
+};
+
+export type ResourceItem = {
+  id: string;
+  poolId: string;
+  publicLabel: string;
+  status: string;
+  assignedCheckinId: string;
+  assignedAt?: string;
+  expiresAt?: string;
 };
 
 export type ResourceAssignment = {
@@ -174,13 +185,32 @@ export const api = {
     }),
   resources: () => request<ResourceAssignment[]>("/api/resources"),
   pools: () => request<ResourcePool[]>("/api/admin/resources/pools", { admin: true }),
-  createPool: (name: string, type: string) =>
+  pool: (poolId: string) => request<ResourcePool>(`/api/admin/resources/pools/${poolId}`, { admin: true }),
+  createPool: (input: Pick<ResourcePool, "name" | "type"> & { allowMultipleClaims?: boolean }) =>
     request<ResourcePool>("/api/admin/resources/pools", {
       admin: true,
       method: "POST",
-      body: JSON.stringify({ name, type }),
+      body: JSON.stringify(input),
     }),
-  assignments: () => request<ResourceAssignment[]>("/api/admin/resources/assignments", { admin: true }),
+  resourceItems: (poolId: string) =>
+    request<ResourceItem[]>(`/api/admin/resources/pools/${poolId}/items`, { admin: true }),
+  importResourceItems: (poolId: string, values: string[]) =>
+    request<ResourceItem[]>(`/api/admin/resources/pools/${poolId}/items/import`, {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify({ values }),
+    }),
+  assignResource: (poolId: string, checkinId: string) =>
+    request<ResourceAssignment>(`/api/admin/resources/pools/${poolId}/assign`, {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify({ checkinId }),
+    }),
+  assignments: (poolId?: string) =>
+    request<ResourceAssignment[]>(
+      `/api/admin/resources/assignments${poolId ? `?pool_id=${encodeURIComponent(poolId)}` : ""}`,
+      { admin: true },
+    ),
   profiles: () => request<ParticipantProfile[]>("/api/admin/profiles", { admin: true }),
   emailOutbox: () => request<EmailOutbox[]>("/api/admin/email-outbox", { admin: true }),
   retryEmail: (id: string) =>

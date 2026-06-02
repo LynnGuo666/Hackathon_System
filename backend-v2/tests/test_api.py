@@ -163,3 +163,34 @@ def test_checkin_and_resource_claim(tmp_path: Path):
 
     duplicate = client.post(f"/api/resources/{pool['id']}/claim")
     assert duplicate.status_code == 409
+
+
+def test_resource_pool_can_allow_multiple_claims(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    client.post("/api/auth/send-code", json={"email": "multi@example.com"})
+    body = client.get("/api/admin/email-outbox", headers={"X-Admin-Token": "secret"}).json()[0][
+        "body"
+    ]
+    code = body.split("是 ")[1].split("，")[0]
+    client.post("/api/auth/verify-code", json={"email": "multi@example.com", "code": code})
+    client.post("/api/auth/bind-checkin", json={"checkinId": "CHECKIN-MULTI"})
+
+    pool = client.post(
+        "/api/admin/resources/pools",
+        headers={"X-Admin-Token": "secret"},
+        json={"name": "多次发放资源", "type": "code", "allowMultipleClaims": True},
+    ).json()
+    imported = client.post(
+        f"/api/admin/resources/pools/{pool['id']}/items/import",
+        headers={"X-Admin-Token": "secret"},
+        json={"values": ["CODE-1", "CODE-2"]},
+    )
+    assert imported.status_code == 201
+
+    first = client.post(f"/api/resources/{pool['id']}/claim")
+    second = client.post(f"/api/resources/{pool['id']}/claim")
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert [first.json()["plainCode"], second.json()["plainCode"]] == ["CODE-1", "CODE-2"]

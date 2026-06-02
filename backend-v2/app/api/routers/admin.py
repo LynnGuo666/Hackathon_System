@@ -37,6 +37,16 @@ def list_pools(repo: SQLiteRepository = Depends(repository)) -> list[ResourcePoo
     return repo.list_resource_pools()
 
 
+@router.get(
+    "/resources/pools/{pool_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=ResourcePool,
+    response_model_by_alias=True,
+)
+def get_pool(pool_id: str, repo: SQLiteRepository = Depends(repository)) -> ResourcePool:
+    return repo.get_resource_pool(pool_id)
+
+
 @router.post(
     "/resources/pools",
     status_code=201,
@@ -71,7 +81,7 @@ async def import_items(
         codes = [row[0] for row in csv.reader(io.StringIO(body)) if row]
     else:
         input = ImportCodesInput.model_validate(await request.json())
-        codes = input.codes
+        codes = input.values or input.codes
     return svc.import_resource_codes(actor, pool_id, codes)
 
 
@@ -93,8 +103,11 @@ def list_items(
     response_model=list[ResourceAssignment],
     response_model_by_alias=True,
 )
-def list_assignments(repo: SQLiteRepository = Depends(repository)) -> list[ResourceAssignment]:
-    return repo.list_assignments()
+def list_assignments(
+    pool_id: str = "",
+    repo: SQLiteRepository = Depends(repository),
+) -> list[ResourceAssignment]:
+    return repo.list_assignments(pool_id=pool_id)
 
 
 @router.post(

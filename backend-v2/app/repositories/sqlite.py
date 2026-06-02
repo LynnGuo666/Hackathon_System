@@ -354,8 +354,10 @@ FROM participant_profiles ORDER BY updated_at DESC
         )
         self.db.execute(
             """
-INSERT INTO resource_pools (id, name, type, distribution_rule, visible_phase, enabled, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO resource_pools (
+    id, name, type, distribution_rule, visible_phase, enabled, allow_multiple_claims, created_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 """,
             (
                 saved.id,
@@ -364,15 +366,37 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
                 saved.distribution_rule,
                 saved.visible_phase,
                 bool_int(saved.enabled),
+                bool_int(saved.allow_multiple_claims),
                 encode_time(saved.created_at),
             ),
         )
         return saved
 
+    def get_resource_pool(self, pool_id: str) -> ResourcePool:
+        row = self.db.execute(
+            """
+SELECT id, name, type, distribution_rule, visible_phase, enabled, allow_multiple_claims, created_at
+FROM resource_pools WHERE id = ?
+""",
+            (pool_id,),
+        ).fetchone()
+        if not row:
+            raise NotFound("not found")
+        return ResourcePool(
+            id=row["id"],
+            name=row["name"],
+            type=row["type"],
+            distributionRule=row["distribution_rule"],
+            visiblePhase=row["visible_phase"],
+            enabled=bool(row["enabled"]),
+            allowMultipleClaims=bool(row["allow_multiple_claims"]),
+            createdAt=decode_time(row["created_at"]),
+        )
+
     def list_resource_pools(self) -> list[ResourcePool]:
         rows = self.db.execute(
             """
-SELECT id, name, type, distribution_rule, visible_phase, enabled, created_at
+SELECT id, name, type, distribution_rule, visible_phase, enabled, allow_multiple_claims, created_at
 FROM resource_pools ORDER BY created_at ASC
 """
         ).fetchall()
@@ -384,6 +408,7 @@ FROM resource_pools ORDER BY created_at ASC
                 distributionRule=row["distribution_rule"],
                 visiblePhase=row["visible_phase"],
                 enabled=bool(row["enabled"]),
+                allowMultipleClaims=bool(row["allow_multiple_claims"]),
                 createdAt=decode_time(row["created_at"]),
             )
             for row in rows
@@ -452,11 +477,16 @@ FROM resource_items
             ).fetchone()["count"]
             if not exists:
                 raise NotFound("not found")
+            pool = tx.execute(
+                "SELECT allow_multiple_claims FROM resource_pools WHERE id = ?", (pool_id,)
+            ).fetchone()
+            if not pool:
+                raise NotFound("not found")
             existing = tx.execute(
                 "SELECT id FROM resource_assignments WHERE pool_id = ? AND checkin_id = ?",
                 (pool_id, checkin_id),
             ).fetchone()
-            if existing:
+            if existing and not bool(pool["allow_multiple_claims"]):
                 raise Conflict("resource already assigned to participant")
             item = tx.execute(
                 """
@@ -512,19 +542,25 @@ VALUES (?, ?, ?, ?, ?, 0, ?)
                 raise self._constraint_error(exc) from exc
             return assignment, assignment.plain_code
 
-    def list_assignments(self, checkin_id: str = "") -> list[ResourceAssignment]:
+    def list_assignments(self, checkin_id: str = "", pool_id: str = "") -> list[ResourceAssignment]:
         query = """
 SELECT a.id, a.checkin_id, a.pool_id, a.resource_item_id, a.status, a.delivered_by_email,
        COALESCE(a.delivered_at, '') delivered_at, a.created_at, i.code_ciphertext
 FROM resource_assignments a
 JOIN resource_items i ON i.id = a.resource_item_id
 """
-        params: tuple[Any, ...] = ()
+        filters: list[str] = []
+        params: list[Any] = []
         if checkin_id:
-            query += " WHERE a.checkin_id = ?"
-            params = (checkin_id,)
+            filters.append("a.checkin_id = ?")
+            params.append(checkin_id)
+        if pool_id:
+            filters.append("a.pool_id = ?")
+            params.append(pool_id)
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
         query += " ORDER BY a.created_at ASC"
-        rows = self.db.execute(query, params).fetchall()
+        rows = self.db.execute(query, tuple(params)).fetchall()
         return [
             ResourceAssignment(
                 id=row["id"],

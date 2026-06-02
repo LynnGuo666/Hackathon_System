@@ -3,9 +3,14 @@ import { Chip } from "@heroui/react";
 const colorMap = {
   pending: "warning",
   active: "success",
+  disabled: "default",
+  available: "success",
   failed: "danger",
   fulfilled: "success",
   assigned: "primary",
+  used: "primary",
+  未使用: "success",
+  已使用: "primary",
   default: "default",
 } as const;
 

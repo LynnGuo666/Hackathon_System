@@ -76,6 +76,7 @@ class ResourcePool(APIModel):
     )
     visible_phase: VisiblePhase = Field(default=VisiblePhase.all, alias="visiblePhase")
     enabled: bool = True
+    allow_multiple_claims: bool = Field(default=False, alias="allowMultipleClaims")
     created_at: datetime | None = Field(default=None, alias="createdAt")
 
 
@@ -232,6 +233,7 @@ class BindCheckinInput(APIModel):
 
 class ImportCodesInput(APIModel):
     codes: list[str] = Field(default_factory=list)
+    values: list[str] = Field(default_factory=list)
 
 
 class AssignInput(APIModel):

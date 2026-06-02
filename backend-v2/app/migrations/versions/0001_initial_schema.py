@@ -86,7 +86,6 @@ def upgrade() -> None:
         sa.Column("delivered_by_email", sa.Integer(), nullable=False),
         sa.Column("delivered_at", sa.Text()),
         sa.Column("created_at", sa.Text(), nullable=False),
-        sa.UniqueConstraint("checkin_id", "pool_id"),
     )
     op.create_table(
         "email_outbox",
