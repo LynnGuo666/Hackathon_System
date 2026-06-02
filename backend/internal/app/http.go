@@ -29,19 +29,25 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) routes() {
+	// ── 公共路由（无需登录） ────────────────────────────────────
 	s.mux.HandleFunc("GET /api/health", s.health)
+	s.mux.HandleFunc("GET /api/navigation-links", s.navigationLinks)
+	s.mux.HandleFunc("GET /api/site-config", s.getSiteConfig)
+
+	// ── 认证路由 ───────────────────────────────────────────────
 	s.mux.HandleFunc("POST /api/auth/send-code", s.sendCode)
 	s.mux.HandleFunc("POST /api/auth/verify-code", s.verifyCode)
+
+	// ── 选手路由（需要 participant_email cookie） ───────────────
 	s.mux.HandleFunc("POST /api/auth/bind-checkin", s.bindCheckin)
 	s.mux.HandleFunc("GET /api/me", s.me)
 	s.mux.HandleFunc("GET /api/profile", s.profile)
 	s.mux.HandleFunc("PUT /api/profile", s.profile)
-	s.mux.HandleFunc("GET /api/navigation-links", s.navigationLinks)
-
 	s.mux.HandleFunc("GET /api/resources", s.resources)
 	s.mux.HandleFunc("POST /api/resources/{poolId}/claim", s.claimResource)
 	s.mux.HandleFunc("POST /api/resources/{assignmentId}/resend-email", s.resendEmail)
 
+	// ── 管理员路由（需要 X-Admin-Role header） ──────────────────
 	s.mux.HandleFunc("GET /api/admin/resources/pools", s.adminPools)
 	s.mux.HandleFunc("POST /api/admin/resources/pools", s.adminPools)
 	s.mux.HandleFunc("POST /api/admin/resources/pools/{id}/items/import", s.importItems)
@@ -49,13 +55,13 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/admin/resources/assignments", s.listAssignments)
 	s.mux.HandleFunc("POST /api/admin/resources/pools/{id}/assign", s.adminAssign)
 	s.mux.HandleFunc("POST /api/admin/resources/assignments/{id}/resend-email", s.resendEmail)
-
 	s.mux.HandleFunc("GET /api/admin/email-outbox", s.emailOutbox)
 	s.mux.HandleFunc("POST /api/admin/email-outbox/{id}/retry", s.retryEmail)
 	s.mux.HandleFunc("GET /api/admin/audit-logs", s.auditLogs)
 	s.mux.HandleFunc("GET /api/admin/profiles", s.adminProfiles)
 	s.mux.HandleFunc("GET /api/admin/navigation-links", s.adminNavigationLinks)
 	s.mux.HandleFunc("POST /api/admin/navigation-links", s.adminNavigationLinks)
+	s.mux.HandleFunc("PUT /api/admin/site-config", s.updateSiteConfig)
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
@@ -347,6 +353,31 @@ func (s *Server) adminNavigationLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, link)
+}
+
+func (s *Server) getSiteConfig(w http.ResponseWriter, r *http.Request) {
+	cfg, err := s.service.SiteConfig()
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, cfg)
+}
+
+func (s *Server) updateSiteConfig(w http.ResponseWriter, r *http.Request) {
+	if !requireResourceAdmin(w, r) {
+		return
+	}
+	var input models.SiteConfig
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	cfg, err := s.service.UpdateSiteConfig(auth.ActorID(r), input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, cfg)
 }
 
 func participantEmail(r *http.Request) string {

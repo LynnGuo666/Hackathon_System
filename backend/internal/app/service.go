@@ -235,6 +235,19 @@ func (s *Service) ListNavigationLinks(includeDisabled bool) ([]models.Navigation
 	return s.store.ListNavigationLinks(includeDisabled)
 }
 
+func (s *Service) SiteConfig() (models.SiteConfig, error) {
+	return s.store.GetSiteConfig()
+}
+
+func (s *Service) UpdateSiteConfig(actorID string, input models.SiteConfig) (models.SiteConfig, error) {
+	cfg, err := s.store.UpdateSiteConfig(input, s.now())
+	if err != nil {
+		return models.SiteConfig{}, err
+	}
+	_, _ = s.store.RecordAudit(actorID, "site_config.update", "site_config", cfg.ID, "", s.now())
+	return cfg, nil
+}
+
 func (s *Service) participantByCheckin(checkinID string) (*models.Participant, error) {
 	return s.store.GetParticipantByCheckinID(checkinID)
 }

@@ -1,22 +1,38 @@
+"use client";
+
 import Link from "next/link";
-import { Button, Card, CardBody, CardHeader } from "@heroui/react";
-import { LogIn, Map, UserRoundPen } from "lucide-react";
+import { Button, Card, CardBody, Spinner } from "@heroui/react";
+import { ArrowRight, ExternalLink, LogIn, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Countdown } from "@/components/countdown";
+import { api, type NavigationLink, type SiteConfig } from "@/web/lib/api";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [links, setLinks] = useState<NavigationLink[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.siteConfig().catch(() => null),
+      api.navigationLinks().catch(() => []),
+    ]).then(([cfg, navLinks]) => {
+      setConfig(cfg);
+      setLinks(navLinks);
+    }).finally(() => setLoading(false));
+  }, []);
+
   return (
     <main className="min-h-screen">
       <header className="border-b border-divider bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
-          <div>
-            <p className="text-sm text-foreground/60">Hackathon</p>
-            <h1 className="text-lg font-semibold">公众入口</h1>
-          </div>
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
+          <p className="text-sm font-semibold text-foreground/80">Hackathon</p>
           <div className="flex items-center gap-2">
-            <Button as={Link} href="/login?next=/profile" variant="flat" startContent={<UserRoundPen size={16} />}>
+            <Button as={Link} href="/login?next=/p/profile" variant="flat" size="sm" startContent={<UserRoundPen size={16} />}>
               填写信息
             </Button>
-            <Button as={Link} href="/login" color="primary" startContent={<LogIn size={16} />}>
+            <Button as={Link} href="/login" color="primary" size="sm" startContent={<LogIn size={16} />}>
               登录
             </Button>
             <ThemeToggle />
@@ -24,35 +40,54 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-5 px-5 py-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="grid content-start gap-4">
-          <p className="text-sm text-foreground/60">参赛者服务</p>
-          <h2 className="max-w-3xl text-4xl font-semibold leading-tight">
-            先用邮箱进入系统，现场签到后绑定 CheckinID。
-          </h2>
-          <p className="max-w-2xl text-foreground/65">
-            公众页面只保留报名与登录入口；登录后进入选手工作台，管理员从独立后台管理资源、邮件队列和发放记录。
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Button as={Link} href="/login?next=/profile" color="primary" startContent={<UserRoundPen size={17} />}>
-              填写信息
-            </Button>
-            <Button as={Link} href="/navigation" variant="flat" startContent={<Map size={17} />}>
-              查看现场导航
-            </Button>
-          </div>
-        </div>
+      <section className="mx-auto flex max-w-5xl flex-col items-center gap-10 px-5 py-16">
+        {loading && <Spinner label="加载中" />}
 
-        <Card className="rounded-md">
-          <CardHeader>
-            <h3 className="font-semibold">入口分工</h3>
-          </CardHeader>
-          <CardBody className="gap-3 text-sm text-foreground/70">
-            <p>公众：访问首页，右上角填写信息或登录。</p>
-            <p>选手：登录后查看身份、签到、资源领取。</p>
-            <p>管理员：进入后台维护资源池、发放记录和邮件队列。</p>
-          </CardBody>
-        </Card>
+        {!loading && config?.countdownEnabled && config.countdownEnd && (
+          <Countdown endISO={config.countdownEnd} title={config.countdownTitle} />
+        )}
+
+        {!loading && links.length > 0 && (
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {links.map((item) => {
+              const external = item.url.startsWith("http");
+              return (
+                <Card key={item.id} className="rounded-md">
+                  <CardBody className="grid gap-3">
+                    <div>
+                      <h3 className="font-semibold">{item.title}</h3>
+                      {item.description && <p className="text-sm text-foreground/60">{item.description}</p>}
+                    </div>
+                    <Button
+                      as={Link}
+                      href={item.url}
+                      color="primary"
+                      variant="flat"
+                      className="justify-between"
+                      endContent={external ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+                    >
+                      进入
+                    </Button>
+                  </CardBody>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && !config?.countdownEnabled && links.length === 0 && (
+          <div className="grid gap-4 text-center">
+            <p className="text-foreground/60">欢迎来到黑客松服务系统</p>
+            <div className="flex justify-center gap-3">
+              <Button as={Link} href="/login?next=/p/profile" color="primary" startContent={<UserRoundPen size={17} />}>
+                填写信息
+              </Button>
+              <Button as={Link} href="/login" variant="flat" startContent={<LogIn size={17} />}>
+                登录
+              </Button>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

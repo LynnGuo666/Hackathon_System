@@ -70,6 +70,14 @@ export type NavigationLink = {
   updatedAt: string;
 };
 
+export type SiteConfig = {
+  id: string;
+  countdownTitle: string;
+  countdownEnd: string;
+  countdownEnabled: boolean;
+  updatedAt: string;
+};
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   if (options.body && !headers.has("Content-Type")) {
@@ -139,6 +147,13 @@ export const api = {
     request<NavigationLink>("/api/admin/navigation-links", {
       admin: true,
       method: "POST",
+      body: JSON.stringify(input),
+    }),
+  siteConfig: () => request<SiteConfig>("/api/site-config"),
+  updateSiteConfig: (input: Partial<SiteConfig>) =>
+    request<SiteConfig>("/api/admin/site-config", {
+      admin: true,
+      method: "PUT",
       body: JSON.stringify(input),
     }),
 };

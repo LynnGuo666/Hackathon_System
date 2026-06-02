@@ -37,4 +37,7 @@ type Store interface {
 
 	CreateNavigationLink(input models.NavigationLink, now time.Time) (models.NavigationLink, error)
 	ListNavigationLinks(includeDisabled bool) ([]models.NavigationLink, error)
+
+	GetSiteConfig() (models.SiteConfig, error)
+	UpdateSiteConfig(input models.SiteConfig, now time.Time) (models.SiteConfig, error)
 }

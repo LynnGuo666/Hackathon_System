@@ -35,6 +35,7 @@ type MemoryStore struct {
 	emails                map[string]*models.EmailOutbox
 	audits                []*models.AuditLog
 	navigationLinks       map[string]*models.NavigationLink
+	siteConfig            models.SiteConfig
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -50,6 +51,7 @@ func NewMemoryStore() *MemoryStore {
 		emails:                map[string]*models.EmailOutbox{},
 		audits:                []*models.AuditLog{},
 		navigationLinks:       defaultNavigationLinks(),
+		siteConfig:            models.SiteConfig{ID: "default"},
 	}
 }
 
@@ -470,13 +472,29 @@ func (s *MemoryStore) ListNavigationLinks(includeDisabled bool) ([]models.Naviga
 	return out, nil
 }
 
+func (s *MemoryStore) GetSiteConfig() (models.SiteConfig, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.siteConfig, nil
+}
+
+func (s *MemoryStore) UpdateSiteConfig(input models.SiteConfig, now time.Time) (models.SiteConfig, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.siteConfig.CountdownTitle = input.CountdownTitle
+	s.siteConfig.CountdownEnd = input.CountdownEnd
+	s.siteConfig.CountdownEnabled = input.CountdownEnabled
+	s.siteConfig.UpdatedAt = now.Format(time.RFC3339)
+	return s.siteConfig, nil
+}
+
 func defaultNavigationLinks() map[string]*models.NavigationLink {
 	now := time.Now()
 	links := []models.NavigationLink{
-		{ID: NewID("nav"), Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/profile", Enabled: true, SortOrder: 10, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/identity", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/resources", Enabled: true, SortOrder: 30, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "总览", Description: "返回选手服务工作台", URL: "/dashboard", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", Enabled: true, SortOrder: 10, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", Enabled: true, SortOrder: 30, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
 	}
 	out := map[string]*models.NavigationLink{}
 	for index := range links {

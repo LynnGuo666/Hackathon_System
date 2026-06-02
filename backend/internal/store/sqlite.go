@@ -136,11 +136,22 @@ CREATE TABLE IF NOT EXISTS navigation_links (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS site_config (
+  id TEXT PRIMARY KEY,
+  countdown_title TEXT NOT NULL DEFAULT '',
+  countdown_end TEXT NOT NULL DEFAULT '',
+  countdown_enabled INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+);
 `
 	if _, err := s.db.Exec(schema); err != nil {
 		return err
 	}
-	return s.seedNavigationLinks()
+	if err := s.seedNavigationLinks(); err != nil {
+		return err
+	}
+	return s.seedSiteConfig()
 }
 
 func (s *SQLiteStore) UpsertVerificationCode(code *models.VerificationCode) error {
@@ -700,6 +711,56 @@ func (s *SQLiteStore) ListNavigationLinks(includeDisabled bool) ([]models.Naviga
 	return out, rows.Err()
 }
 
+func (s *SQLiteStore) GetSiteConfig() (models.SiteConfig, error) {
+	var cfg models.SiteConfig
+	var countdownEnd, updatedAt string
+	var enabled int
+	err := s.db.QueryRow(`
+SELECT id, countdown_title, countdown_end, countdown_enabled, updated_at
+FROM site_config LIMIT 1`).Scan(&cfg.ID, &cfg.CountdownTitle, &countdownEnd, &enabled, &updatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.SiteConfig{ID: "default"}, nil
+	}
+	if err != nil {
+		return models.SiteConfig{}, err
+	}
+	cfg.CountdownEnd = countdownEnd
+	cfg.CountdownEnabled = enabled == 1
+	cfg.UpdatedAt = updatedAt
+	return cfg, nil
+}
+
+func (s *SQLiteStore) UpdateSiteConfig(input models.SiteConfig, now time.Time) (models.SiteConfig, error) {
+	updatedAt := encodeTime(now)
+	_, err := s.db.Exec(`
+INSERT INTO site_config (id, countdown_title, countdown_end, countdown_enabled, updated_at)
+VALUES (?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+  countdown_title = excluded.countdown_title,
+  countdown_end = excluded.countdown_end,
+  countdown_enabled = excluded.countdown_enabled,
+  updated_at = excluded.updated_at
+`, "default", input.CountdownTitle, input.CountdownEnd, boolInt(input.CountdownEnabled), updatedAt)
+	if err != nil {
+		return models.SiteConfig{}, err
+	}
+	return s.GetSiteConfig()
+}
+
+func (s *SQLiteStore) seedSiteConfig() error {
+	var count int
+	if err := s.db.QueryRow(`SELECT COUNT(1) FROM site_config`).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	_, err := s.db.Exec(`
+INSERT INTO site_config (id, countdown_title, countdown_end, countdown_enabled, updated_at)
+VALUES (?, '', '', 0, ?)`, "default", encodeTime(time.Now()))
+	return err
+}
+
 func (s *SQLiteStore) seedNavigationLinks() error {
 	var count int
 	if err := s.db.QueryRow(`SELECT COUNT(1) FROM navigation_links`).Scan(&count); err != nil {
@@ -710,10 +771,10 @@ func (s *SQLiteStore) seedNavigationLinks() error {
 	}
 	now := time.Now()
 	defaults := []models.NavigationLink{
-		{Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/profile", SortOrder: 10},
-		{Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/identity", SortOrder: 20},
-		{Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/resources", SortOrder: 30},
-		{Title: "总览", Description: "返回选手服务工作台", URL: "/dashboard", SortOrder: 40},
+		{Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", SortOrder: 10},
+		{Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", SortOrder: 20},
+		{Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", SortOrder: 30},
+		{Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", SortOrder: 40},
 	}
 	for _, link := range defaults {
 		if _, err := s.CreateNavigationLink(link, now); err != nil {

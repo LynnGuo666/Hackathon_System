@@ -1,6 +1,6 @@
-import { heroui } from "@heroui/react";
+const { heroui } = require("@heroui/theme");
 
-export default heroui({
+module.exports = heroui({
   themes: {
     light: {
       colors: {

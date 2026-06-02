@@ -155,3 +155,11 @@ type NavigationLink struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
+
+type SiteConfig struct {
+	ID               string `json:"id"`
+	CountdownTitle   string `json:"countdownTitle"`
+	CountdownEnd     string `json:"countdownEnd"`
+	CountdownEnabled bool   `json:"countdownEnabled"`
+	UpdatedAt        string `json:"updatedAt"`
+}
