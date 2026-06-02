@@ -26,9 +26,10 @@ def make_client(tmp_path: Path) -> TestClient:
 
 def login(client: TestClient, email: str = "user@example.com") -> None:
     client.post("/api/auth/send-code", json={"email": email})
-    body = client.get(
+    emails = client.get(
         "/api/admin/email-outbox", headers={"X-Admin-Token": "secret"}
-    ).json()[0]["body"]
+    ).json()
+    body = next(row["body"] for row in reversed(emails) if row["to"] == email.lower())
     code = body.split("是 ")[1].split("，")[0]
     client.post("/api/auth/verify-code", json={"email": email, "code": code})
 
@@ -272,17 +273,17 @@ def test_checkin_id_pool_generation_import_and_binding_rules(tmp_path: Path):
     assert "pool-a@example.com" in [row["email"] for row in accounts]
 
     disabled = client.patch(
-        "/api/admin/participants/pool-b%40example.com/status",
+        "/api/admin/participants/status",
         headers={"X-Admin-Token": "secret"},
-        json={"status": "disabled"},
+        json={"email": "pool-b@example.com", "status": "disabled"},
     )
     assert disabled.status_code == 404
 
     login(client, "pool-b@example.com")
     disabled = client.patch(
-        "/api/admin/participants/pool-b%40example.com/status",
+        "/api/admin/participants/status",
         headers={"X-Admin-Token": "secret"},
-        json={"status": "disabled"},
+        json={"email": "pool-b@example.com", "status": "disabled"},
     )
     assert disabled.status_code == 200
     assert client.get("/api/me", headers={"X-Participant-Email": "pool-b@example.com"}).status_code == 401

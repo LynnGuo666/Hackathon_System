@@ -19,29 +19,55 @@ import {
   TableRow,
   useDisclosure,
 } from "@heroui/react";
-import { ExternalLink, MapPin, RefreshCw } from "lucide-react";
+import { CalendarClock, ExternalLink, MapPin, RefreshCw } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
-import { api, type EventLocation, type FeatureLink } from "@/web/lib/api";
+import { api, type EventLocation, type FeatureLink, type SiteConfig } from "@/web/lib/api";
+
+function toDateTimeLocal(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
+}
+
+function fromDateTimeLocal(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString();
+}
 
 export default function AdminFeaturesPage() {
   const [modules, setModules] = useState<FeatureLink[]>([]);
   const [location, setLocation] = useState<EventLocation | null>(null);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig | null>(null);
   const [manualLocationName, setManualLocationName] = useState("");
+  const [countdownTitle, setCountdownTitle] = useState("");
+  const [countdownEnd, setCountdownEnd] = useState("");
+  const [countdownEnabled, setCountdownEnabled] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
+  const [savingCountdown, setSavingCountdown] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
   const { isOpen: isLocationOpen, onOpen: openLocation, onOpenChange: onLocationOpenChange } = useDisclosure();
+  const { isOpen: isCountdownOpen, onOpen: openCountdown, onOpenChange: onCountdownOpenChange } = useDisclosure();
 
   async function refresh() {
     try {
-      const [featureRows, currentLocation] = await Promise.all([
+      const [featureRows, currentLocation, currentConfig] = await Promise.all([
         api.adminFeatureLinks(),
         api.adminEventLocation(),
+        api.siteConfig(),
       ]);
       setModules(featureRows);
       setLocation(currentLocation);
+      setSiteConfig(currentConfig);
       setManualLocationName(currentLocation.name);
+      setCountdownTitle(currentConfig.countdownTitle);
+      setCountdownEnd(toDateTimeLocal(currentConfig.countdownEnd));
+      setCountdownEnabled(currentConfig.countdownEnabled);
     } catch (error) {
       notify.error(errorText(error, "读取模块配置失败"));
     }
@@ -84,6 +110,32 @@ export default function AdminFeaturesPage() {
       notify.error(errorText(error, "保存地点失败"));
     } finally {
       setSavingLocation(false);
+    }
+  }
+
+  async function saveCountdown() {
+    if (countdownEnabled && !countdownEnd) {
+      notify.error("请选择结束时间");
+      return;
+    }
+    setSavingCountdown(true);
+    try {
+      const saved = await api.updateSiteConfig({
+        id: "default",
+        countdownTitle: countdownTitle.trim(),
+        countdownEnd: fromDateTimeLocal(countdownEnd),
+        countdownEnabled,
+        updatedAt: siteConfig?.updatedAt ?? "",
+      });
+      setSiteConfig(saved);
+      setCountdownTitle(saved.countdownTitle);
+      setCountdownEnd(toDateTimeLocal(saved.countdownEnd));
+      setCountdownEnabled(saved.countdownEnabled);
+      notify.success("倒计时已保存");
+    } catch (error) {
+      notify.error(errorText(error, "保存倒计时失败"));
+    } finally {
+      setSavingCountdown(false);
     }
   }
 
@@ -139,6 +191,10 @@ export default function AdminFeaturesPage() {
                       <Button size="sm" variant="flat" startContent={<MapPin size={16} />} onPress={openLocation}>
                         详情
                       </Button>
+                    ) : row.id === "feat_countdown" ? (
+                      <Button size="sm" variant="flat" startContent={<CalendarClock size={16} />} onPress={openCountdown}>
+                        配置
+                      </Button>
                     ) : (
                       <span className="text-sm text-foreground/40">-</span>
                     )}
@@ -190,6 +246,41 @@ export default function AdminFeaturesPage() {
                   <ModalFooter>
                     <Button variant="flat" onPress={onClose}>
                       关闭
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isCountdownOpen} size="2xl" onOpenChange={onCountdownOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex items-start gap-3">
+                    <CalendarClock size={20} className="mt-1 text-foreground/50" />
+                    <div>
+                      <h3 className="font-semibold">倒计时配置</h3>
+                    </div>
+                  </ModalHeader>
+                  <ModalBody className="grid gap-4">
+                    <Input label="标题" placeholder="距离开幕" value={countdownTitle} onValueChange={setCountdownTitle} />
+                    <Input
+                      type="datetime-local"
+                      label="结束时间"
+                      value={countdownEnd}
+                      onValueChange={setCountdownEnd}
+                    />
+                    <Switch isSelected={countdownEnabled} onValueChange={setCountdownEnabled}>
+                      {countdownEnabled ? "启用" : "禁用"}
+                    </Switch>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button variant="flat" onPress={onClose}>
+                      关闭
+                    </Button>
+                    <Button color="primary" isLoading={savingCountdown} onPress={saveCountdown}>
+                      保存
                     </Button>
                   </ModalFooter>
                 </>
