@@ -20,7 +20,8 @@ from app.core.errors import (
     TooManyAttempts,
 )
 from app.core.security import normalize_email
-from app.repositories.sqlite import SQLiteRepository, now_utc
+from app.repositories.common import decode_time, now_utc
+from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
     AccommodationOption,
     AccommodationRequest,
@@ -570,8 +571,6 @@ class HackathonService:
         )
 
     def _decode_deadline(self, value: str):
-        from app.repositories.sqlite import decode_time
-
         try:
             return decode_time(value)
         except ValueError:

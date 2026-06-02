@@ -165,7 +165,7 @@ def retry_email(
     actor: str = Depends(actor_id),
     repo: SQLiteRepository = Depends(repository),
 ) -> EmailOutbox:
-    from app.repositories.sqlite import now_utc
+    from app.repositories.common import now_utc
 
     email = repo.retry_email(email_id, now_utc())
     repo.record_audit(actor, "email.retry", "email_outbox", email_id, "", now_utc())
