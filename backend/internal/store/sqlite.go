@@ -842,10 +842,10 @@ func (s *SQLiteStore) seedNavigationLinks() error {
 	now := time.Now()
 	defaults := []models.NavigationLink{
 		{Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", SortOrder: 10},
-		{Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", SortOrder: 15},
-		{Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", SortOrder: 20},
+		{Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", SortOrder: 20},
 		{Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", SortOrder: 30},
-		{Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", SortOrder: 40},
+		{Title: "赛程安排", Description: "查看活动日程和时间节点", URL: "#", SortOrder: 40},
+		{Title: "组队大厅", Description: "寻找队友、组建团队", URL: "#", SortOrder: 50},
 	}
 	for _, link := range defaults {
 		if _, err := s.CreateNavigationLink(link, now); err != nil {

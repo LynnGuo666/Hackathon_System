@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
-import { Save } from "lucide-react";
-import { api, type ParticipantProfile } from "@/web/lib/api";
+import { Button, Card, CardBody, CardHeader, Chip, Input } from "@heroui/react";
+import { Link as LinkIcon, Save } from "lucide-react";
+import { api, type Participant, type ParticipantProfile } from "@/web/lib/api";
 
 export default function ProfilePage() {
+  const [participant, setParticipant] = useState<Participant | null>(null);
   const [fullName, setFullName] = useState("");
+  const [checkinId, setCheckinId] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bindLoading, setBindLoading] = useState(false);
 
   useEffect(() => {
+    api.me().then(setParticipant).catch(() => {});
     api.profile()
       .then((profile) => setFullName(profile.fullName || ""))
-      .catch(() => {
-        // no existing profile
-      });
+      .catch(() => {});
   }, []);
 
   async function saveProfile() {
@@ -40,13 +42,29 @@ export default function ProfilePage() {
     }
   }
 
+  async function bindCheckinId() {
+    setBindLoading(true);
+    setMessage("");
+    try {
+      const result = await api.bindCheckin(checkinId);
+      setParticipant(result);
+      setCheckinId("");
+      setMessage("CheckinID 绑定成功！");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "绑定失败");
+    } finally {
+      setBindLoading(false);
+    }
+  }
+
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div>
         <p className="text-sm text-foreground/60">参赛信息</p>
-        <h2 className="text-2xl font-semibold">我的参赛资料</h2>
+        <h2 className="text-2xl font-semibold">我的资料</h2>
       </div>
 
+      {/* 基础信息 */}
       <Card className="rounded-md">
         <CardHeader className="block">
           <h3 className="font-semibold">基础信息</h3>
@@ -54,7 +72,6 @@ export default function ProfilePage() {
         </CardHeader>
         <CardBody className="grid gap-4">
           <Input label="姓名" value={fullName} onValueChange={setFullName} isRequired />
-          {message && <p className="text-sm text-foreground/70">{message}</p>}
           <div>
             <Button color="primary" startContent={<Save size={16} />} isLoading={loading} onPress={saveProfile}>
               保存
@@ -62,6 +79,51 @@ export default function ProfilePage() {
           </div>
         </CardBody>
       </Card>
+
+      {/* 签到身份 */}
+      <Card className="rounded-md">
+        <CardHeader className="block">
+          <h3 className="font-semibold">签到身份</h3>
+          <p className="text-sm text-foreground/60">现场签到后绑定 CheckinID。</p>
+        </CardHeader>
+        <CardBody className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1">
+              <p className="text-xs text-foreground/50">邮箱</p>
+              <p className="font-medium">{participant?.email || "—"}</p>
+            </div>
+            <div className="grid gap-1">
+              <p className="text-xs text-foreground/50">CheckinID</p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium">{participant?.checkinId || "未绑定"}</p>
+                {participant?.checkinId && <Chip size="sm" color="success" variant="flat">已绑定</Chip>}
+              </div>
+            </div>
+          </div>
+
+          {!participant?.checkinId && (
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <Input
+                label="CheckinID"
+                placeholder="请输入签到时分配的 ID"
+                value={checkinId}
+                onValueChange={setCheckinId}
+              />
+              <Button
+                color="primary"
+                className="sm:self-end"
+                startContent={<LinkIcon size={16} />}
+                isLoading={bindLoading}
+                onPress={bindCheckinId}
+              >
+                绑定
+              </Button>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      {message && <p className="text-sm text-foreground/70">{message}</p>}
     </section>
   );
 }

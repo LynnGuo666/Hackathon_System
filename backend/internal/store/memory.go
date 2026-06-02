@@ -494,10 +494,10 @@ func defaultNavigationLinks() map[string]*models.NavigationLink {
 	now := time.Now()
 	links := []models.NavigationLink{
 		{ID: NewID("nav"), Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", Enabled: true, SortOrder: 10, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", Enabled: true, SortOrder: 15, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
 		{ID: NewID("nav"), Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", Enabled: true, SortOrder: 30, CreatedAt: now, UpdatedAt: now},
-		{ID: NewID("nav"), Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "赛程安排", Description: "查看活动日程和时间节点", URL: "#", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "组队大厅", Description: "寻找队友、组建团队", URL: "#", Enabled: true, SortOrder: 50, CreatedAt: now, UpdatedAt: now},
 	}
 	out := map[string]*models.NavigationLink{}
 	for index := range links {

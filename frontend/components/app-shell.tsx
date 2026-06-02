@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { Activity, BedDouble, Compass, Home, KeyRound, LogOut, Mail, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
+import { Activity, BedDouble, ClipboardList, Compass, Home, KeyRound, LogOut, Mail, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 const participantNavItems = [
   { href: "/p/dashboard", label: "总览", icon: Home },
+  { href: "/p/services", label: "赛事服务", icon: ClipboardList },
   { href: "/p/profile", label: "我的资料", icon: UserRoundPen },
   { href: "/p/accommodation", label: "住宿需求", icon: BedDouble },
-  { href: "/p/identity", label: "签到身份", icon: ShieldCheck },
   { href: "/p/resources", label: "我的资源", icon: Ticket },
 ];
 
