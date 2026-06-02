@@ -156,6 +156,24 @@ type NavigationLink struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
+type AccommodationOption string
+
+const (
+	AccommodationSleepingBag AccommodationOption = "sleeping_bag"
+	AccommodationTent        AccommodationOption = "tent"
+	AccommodationBlanket     AccommodationOption = "blanket"
+	AccommodationHotel       AccommodationOption = "hotel"
+	AccommodationOther       AccommodationOption = "other"
+)
+
+type AccommodationRequest struct {
+	Email       string                `json:"email"`
+	Selections  []AccommodationOption `json:"selections"`
+	OtherDetail string                `json:"otherDetail"`
+	CreatedAt   time.Time             `json:"createdAt"`
+	UpdatedAt   time.Time             `json:"updatedAt"`
+}
+
 type SiteConfig struct {
 	ID               string `json:"id"`
 	CountdownTitle   string `json:"countdownTitle"`

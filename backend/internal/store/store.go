@@ -40,4 +40,8 @@ type Store interface {
 
 	GetSiteConfig() (models.SiteConfig, error)
 	UpdateSiteConfig(input models.SiteConfig, now time.Time) (models.SiteConfig, error)
+
+	UpsertAccommodation(email string, req models.AccommodationRequest, now time.Time) (models.AccommodationRequest, error)
+	GetAccommodation(email string) (models.AccommodationRequest, error)
+	ListAccommodations() ([]models.AccommodationRequest, error)
 }

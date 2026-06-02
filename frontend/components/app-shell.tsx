@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { Activity, Compass, Home, KeyRound, Mail, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
+import { Activity, BedDouble, Compass, Home, KeyRound, LogOut, Mail, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 const participantNavItems = [
   { href: "/p/dashboard", label: "总览", icon: Home },
   { href: "/p/profile", label: "我的资料", icon: UserRoundPen },
+  { href: "/p/accommodation", label: "住宿需求", icon: BedDouble },
   { href: "/p/identity", label: "签到身份", icon: ShieldCheck },
   { href: "/p/resources", label: "我的资源", icon: Ticket },
 ];
@@ -30,6 +31,7 @@ export function AppShell({
 }) {
   const [apiReady, setApiReady] = useState<"checking" | "online" | "offline">("checking");
   const pathname = usePathname();
+  const router = useRouter();
   const navItems = variant === "admin" ? adminNavItems : participantNavItems;
 
   useEffect(() => {
@@ -82,6 +84,19 @@ export function AppShell({
                 </Button>
               );
             })}
+            {variant === "admin" && (
+              <Button
+                variant="light"
+                className="justify-start text-danger"
+                startContent={<LogOut size={17} />}
+                onPress={() => {
+                  sessionStorage.removeItem("admin_token");
+                  router.push("/admin/login");
+                }}
+              >
+                退出登录
+              </Button>
+            )}
           </nav>
         </aside>
         <main>{children}</main>

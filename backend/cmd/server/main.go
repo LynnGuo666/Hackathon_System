@@ -26,8 +26,9 @@ func main() {
 	}
 	defer sqliteStore.Close()
 
+	adminToken := os.Getenv("ADMIN_TOKEN")
 	service := app.NewService(sqliteStore)
-	server := app.NewServer(service)
+	server := app.NewServer(service, adminToken)
 	handler := server.Handler()
 	if staticDir := os.Getenv("STATIC_DIR"); staticDir != "" {
 		handler = app.WithStaticFrontend(handler, staticDir)

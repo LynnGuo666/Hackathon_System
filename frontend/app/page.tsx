@@ -30,7 +30,7 @@ export default function HomePage() {
           <p className="text-sm font-semibold text-foreground/80">Hackathon</p>
           <div className="flex items-center gap-2">
             <Button as={Link} href="/login?next=/p/profile" variant="flat" size="sm" startContent={<UserRoundPen size={16} />}>
-              填写信息
+              报名
             </Button>
             <Button as={Link} href="/login" color="primary" size="sm" startContent={<LogIn size={16} />}>
               登录
@@ -80,7 +80,7 @@ export default function HomePage() {
             <p className="text-foreground/60">欢迎来到黑客松服务系统</p>
             <div className="flex justify-center gap-3">
               <Button as={Link} href="/login?next=/p/profile" color="primary" startContent={<UserRoundPen size={17} />}>
-                填写信息
+                报名
               </Button>
               <Button as={Link} href="/login" variant="flat" startContent={<LogIn size={17} />}>
                 登录

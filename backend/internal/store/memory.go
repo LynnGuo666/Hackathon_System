@@ -36,6 +36,7 @@ type MemoryStore struct {
 	audits                []*models.AuditLog
 	navigationLinks       map[string]*models.NavigationLink
 	siteConfig            models.SiteConfig
+	accommodations        map[string]*models.AccommodationRequest
 }
 
 func NewMemoryStore() *MemoryStore {
@@ -52,6 +53,7 @@ func NewMemoryStore() *MemoryStore {
 		audits:                []*models.AuditLog{},
 		navigationLinks:       defaultNavigationLinks(),
 		siteConfig:            models.SiteConfig{ID: "default"},
+		accommodations:        map[string]*models.AccommodationRequest{},
 	}
 }
 
@@ -492,6 +494,7 @@ func defaultNavigationLinks() map[string]*models.NavigationLink {
 	now := time.Now()
 	links := []models.NavigationLink{
 		{ID: NewID("nav"), Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", Enabled: true, SortOrder: 10, CreatedAt: now, UpdatedAt: now},
+		{ID: NewID("nav"), Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", Enabled: true, SortOrder: 15, CreatedAt: now, UpdatedAt: now},
 		{ID: NewID("nav"), Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", Enabled: true, SortOrder: 20, CreatedAt: now, UpdatedAt: now},
 		{ID: NewID("nav"), Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", Enabled: true, SortOrder: 30, CreatedAt: now, UpdatedAt: now},
 		{ID: NewID("nav"), Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", Enabled: true, SortOrder: 40, CreatedAt: now, UpdatedAt: now},
@@ -502,6 +505,43 @@ func defaultNavigationLinks() map[string]*models.NavigationLink {
 		out[link.ID] = &link
 	}
 	return out
+}
+
+func (s *MemoryStore) UpsertAccommodation(email string, req models.AccommodationRequest, now time.Time) (models.AccommodationRequest, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	email = NormalizeEmail(email)
+	if existing, ok := s.accommodations[email]; ok {
+		req.CreatedAt = existing.CreatedAt
+	} else {
+		req.CreatedAt = now
+	}
+	req.Email = email
+	req.UpdatedAt = now
+	clone := req
+	s.accommodations[email] = &clone
+	return req, nil
+}
+
+func (s *MemoryStore) GetAccommodation(email string) (models.AccommodationRequest, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	req, ok := s.accommodations[NormalizeEmail(email)]
+	if !ok {
+		return models.AccommodationRequest{}, ErrNotFound
+	}
+	return *req, nil
+}
+
+func (s *MemoryStore) ListAccommodations() ([]models.AccommodationRequest, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make([]models.AccommodationRequest, 0, len(s.accommodations))
+	for _, req := range s.accommodations {
+		out = append(out, *req)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].UpdatedAt.After(out[j].UpdatedAt) })
+	return out, nil
 }
 
 func encryptForMVP(value string) string {

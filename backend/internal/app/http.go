@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/subtle"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -14,12 +15,13 @@ import (
 )
 
 type Server struct {
-	service *Service
-	mux     *http.ServeMux
+	service    *Service
+	mux        *http.ServeMux
+	adminToken string
 }
 
-func NewServer(service *Service) *Server {
-	server := &Server{service: service, mux: http.NewServeMux()}
+func NewServer(service *Service, adminToken string) *Server {
+	server := &Server{service: service, mux: http.NewServeMux(), adminToken: adminToken}
 	server.routes()
 	return server
 }
@@ -43,6 +45,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/me", s.me)
 	s.mux.HandleFunc("GET /api/profile", s.profile)
 	s.mux.HandleFunc("PUT /api/profile", s.profile)
+	s.mux.HandleFunc("GET /api/accommodation", s.accommodation)
+	s.mux.HandleFunc("PUT /api/accommodation", s.accommodation)
 	s.mux.HandleFunc("GET /api/resources", s.resources)
 	s.mux.HandleFunc("POST /api/resources/{poolId}/claim", s.claimResource)
 	s.mux.HandleFunc("POST /api/resources/{assignmentId}/resend-email", s.resendEmail)
@@ -153,6 +157,29 @@ func (s *Server) profile(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, profile)
 }
 
+func (s *Server) accommodation(w http.ResponseWriter, r *http.Request) {
+	email := participantEmail(r)
+	if r.Method == http.MethodGet {
+		req, err := s.service.GetAccommodation(email)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, req)
+		return
+	}
+	var input models.AccommodationRequest
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	req, err := s.service.SaveAccommodation(email, input)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, req)
+}
+
 func (s *Server) resources(w http.ResponseWriter, r *http.Request) {
 	participant, err := s.service.Me(participantEmail(r))
 	if err != nil {
@@ -182,6 +209,9 @@ func (s *Server) claimResource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) adminPools(w http.ResponseWriter, r *http.Request) {
+	if !s.requireAdminToken(w, r) {
+		return
+	}
 	if r.Method == http.MethodGet {
 		pools, err := s.service.ListPools()
 		if err != nil {
@@ -189,9 +219,6 @@ func (s *Server) adminPools(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		writeJSON(w, http.StatusOK, pools)
-		return
-	}
-	if !requireResourceAdmin(w, r) {
 		return
 	}
 	var input models.ResourcePool
@@ -207,7 +234,7 @@ func (s *Server) adminPools(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) importItems(w http.ResponseWriter, r *http.Request) {
-	if !requireResourceAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	var codes []string
@@ -240,6 +267,9 @@ func (s *Server) importItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) listItems(w http.ResponseWriter, r *http.Request) {
+	if !s.requireAdminToken(w, r) {
+		return
+	}
 	items, err := s.service.store.ListResourceItems(r.PathValue("id"))
 	if err != nil {
 		writeError(w, err)
@@ -249,6 +279,9 @@ func (s *Server) listItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) listAssignments(w http.ResponseWriter, r *http.Request) {
+	if !s.requireAdminToken(w, r) {
+		return
+	}
 	assignments, err := s.service.AllResources()
 	if err != nil {
 		writeError(w, err)
@@ -258,7 +291,7 @@ func (s *Server) listAssignments(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) adminAssign(w http.ResponseWriter, r *http.Request) {
-	if !requireResourceAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	var input struct {
@@ -280,6 +313,9 @@ func (s *Server) resendEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) emailOutbox(w http.ResponseWriter, r *http.Request) {
+	if !s.requireAdminToken(w, r) {
+		return
+	}
 	emails, err := s.service.ListEmails()
 	if err != nil {
 		writeError(w, err)
@@ -289,7 +325,7 @@ func (s *Server) emailOutbox(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) retryEmail(w http.ResponseWriter, r *http.Request) {
-	if !requireEmailAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	email, err := s.service.RetryEmail(auth.ActorID(r), r.PathValue("id"))
@@ -301,6 +337,9 @@ func (s *Server) retryEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) auditLogs(w http.ResponseWriter, r *http.Request) {
+	if !s.requireAdminToken(w, r) {
+		return
+	}
 	logs, err := s.service.ListAudits()
 	if err != nil {
 		writeError(w, err)
@@ -310,7 +349,7 @@ func (s *Server) auditLogs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) adminProfiles(w http.ResponseWriter, r *http.Request) {
-	if !requireResourceAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	profiles, err := s.service.ListProfiles()
@@ -331,7 +370,7 @@ func (s *Server) navigationLinks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) adminNavigationLinks(w http.ResponseWriter, r *http.Request) {
-	if !requireResourceAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	if r.Method == http.MethodGet {
@@ -365,7 +404,7 @@ func (s *Server) getSiteConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updateSiteConfig(w http.ResponseWriter, r *http.Request) {
-	if !requireResourceAdmin(w, r) {
+	if !s.requireAdminToken(w, r) {
 		return
 	}
 	var input models.SiteConfig
@@ -390,19 +429,26 @@ func participantEmail(r *http.Request) string {
 	return ""
 }
 
-func requireResourceAdmin(w http.ResponseWriter, r *http.Request) bool {
-	if auth.CanManageResources(auth.RoleFromRequest(r)) {
-		return true
+func (s *Server) requireAdminToken(w http.ResponseWriter, r *http.Request) bool {
+	if s.adminToken == "" {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "admin not configured"})
+		return false
 	}
-	writeError(w, ErrPermissionDenied)
+	token := r.Header.Get("X-Admin-Token")
+	if subtle.ConstantTimeCompare([]byte(token), []byte(s.adminToken)) != 1 {
+		writeError(w, ErrPermissionDenied)
+		return false
+	}
+	return true
+}
+
+func requireResourceAdmin(w http.ResponseWriter, r *http.Request) bool {
+	// Deprecated: kept for reference; all callers now use s.requireAdminToken.
 	return false
 }
 
 func requireEmailAdmin(w http.ResponseWriter, r *http.Request) bool {
-	if auth.CanRetryEmail(auth.RoleFromRequest(r)) {
-		return true
-	}
-	writeError(w, ErrPermissionDenied)
+	// Deprecated: kept for reference; all callers now use s.requireAdminToken.
 	return false
 }
 
@@ -440,7 +486,7 @@ func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Admin-Role, X-Actor-ID, X-Participant-Email")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Admin-Token, X-Admin-Role, X-Actor-ID, X-Participant-Email")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

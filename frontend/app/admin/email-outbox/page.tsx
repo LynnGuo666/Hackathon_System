@@ -3,6 +3,7 @@
 import { Button, Card, CardBody, CardHeader, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { StatusChip } from "@/components/status-chip";
 import { api, type EmailOutbox } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -34,6 +35,7 @@ export default function EmailOutboxPage() {
   }, []);
 
   return (
+    <AdminAuthGuard>
     <AppShell variant="admin">
       <Card className="rounded-md">
         <CardHeader className="justify-between">
@@ -68,5 +70,6 @@ export default function EmailOutboxPage() {
         </CardBody>
       </Card>
     </AppShell>
+    </AdminAuthGuard>
   );
 }

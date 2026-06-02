@@ -78,14 +78,27 @@ export type SiteConfig = {
   updatedAt: string;
 };
 
+export type AccommodationOption = "sleeping_bag" | "tent" | "blanket" | "hotel" | "other";
+
+export type AccommodationRequest = {
+  email: string;
+  selections: AccommodationOption[];
+  otherDetail: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   if (options.admin) {
-    headers.set("X-Admin-Role", "resource_admin");
-    headers.set("X-Actor-ID", "frontend-admin");
+    const token = typeof window !== "undefined" ? sessionStorage.getItem("admin_token") : null;
+    if (token) {
+      headers.set("X-Admin-Token", token);
+    }
+    headers.set("X-Actor-ID", "admin");
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -153,6 +166,12 @@ export const api = {
   updateSiteConfig: (input: Partial<SiteConfig>) =>
     request<SiteConfig>("/api/admin/site-config", {
       admin: true,
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  accommodation: () => request<AccommodationRequest>("/api/accommodation"),
+  updateAccommodation: (input: Pick<AccommodationRequest, "selections" | "otherDetail">) =>
+    request<AccommodationRequest>("/api/accommodation", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -142,6 +143,14 @@ CREATE TABLE IF NOT EXISTS site_config (
   countdown_title TEXT NOT NULL DEFAULT '',
   countdown_end TEXT NOT NULL DEFAULT '',
   countdown_enabled INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS accommodation_requests (
+  email TEXT PRIMARY KEY REFERENCES participants(email) ON DELETE CASCADE,
+  selections TEXT NOT NULL DEFAULT '[]',
+  other_detail TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 `
@@ -747,6 +756,67 @@ ON CONFLICT(id) DO UPDATE SET
 	return s.GetSiteConfig()
 }
 
+func (s *SQLiteStore) UpsertAccommodation(email string, req models.AccommodationRequest, now time.Time) (models.AccommodationRequest, error) {
+	email = NormalizeEmail(email)
+	selectionsJSON, _ := json.Marshal(req.Selections)
+	var createdAt string
+	_ = s.db.QueryRow(`SELECT created_at FROM accommodation_requests WHERE email = ?`, email).Scan(&createdAt)
+	if createdAt == "" {
+		createdAt = encodeTime(now)
+	}
+	req.Email = email
+	req.CreatedAt = decodeTime(createdAt)
+	req.UpdatedAt = now
+	_, err := s.db.Exec(`
+INSERT INTO accommodation_requests (email, selections, other_detail, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)
+ON CONFLICT(email) DO UPDATE SET
+  selections = excluded.selections,
+  other_detail = excluded.other_detail,
+  updated_at = excluded.updated_at
+`, email, string(selectionsJSON), req.OtherDetail, encodeTime(req.CreatedAt), encodeTime(req.UpdatedAt))
+	return req, err
+}
+
+func (s *SQLiteStore) GetAccommodation(email string) (models.AccommodationRequest, error) {
+	var req models.AccommodationRequest
+	var selectionsJSON, createdAt, updatedAt string
+	err := s.db.QueryRow(`
+SELECT email, selections, other_detail, created_at, updated_at
+FROM accommodation_requests WHERE email = ?`, NormalizeEmail(email)).Scan(&req.Email, &selectionsJSON, &req.OtherDetail, &createdAt, &updatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.AccommodationRequest{}, ErrNotFound
+	}
+	if err != nil {
+		return models.AccommodationRequest{}, err
+	}
+	_ = json.Unmarshal([]byte(selectionsJSON), &req.Selections)
+	req.CreatedAt = decodeTime(createdAt)
+	req.UpdatedAt = decodeTime(updatedAt)
+	return req, nil
+}
+
+func (s *SQLiteStore) ListAccommodations() ([]models.AccommodationRequest, error) {
+	rows, err := s.db.Query(`SELECT email, selections, other_detail, created_at, updated_at FROM accommodation_requests ORDER BY updated_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.AccommodationRequest
+	for rows.Next() {
+		var req models.AccommodationRequest
+		var selectionsJSON, createdAt, updatedAt string
+		if err := rows.Scan(&req.Email, &selectionsJSON, &req.OtherDetail, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
+		_ = json.Unmarshal([]byte(selectionsJSON), &req.Selections)
+		req.CreatedAt = decodeTime(createdAt)
+		req.UpdatedAt = decodeTime(updatedAt)
+		out = append(out, req)
+	}
+	return out, rows.Err()
+}
+
 func (s *SQLiteStore) seedSiteConfig() error {
 	var count int
 	if err := s.db.QueryRow(`SELECT COUNT(1) FROM site_config`).Scan(&count); err != nil {
@@ -772,6 +842,7 @@ func (s *SQLiteStore) seedNavigationLinks() error {
 	now := time.Now()
 	defaults := []models.NavigationLink{
 		{Title: "我的资料", Description: "补全赛前信息和联系方式", URL: "/p/profile", SortOrder: 10},
+		{Title: "住宿需求", Description: "填写你的住宿偏好和需求", URL: "/p/accommodation", SortOrder: 15},
 		{Title: "签到身份", Description: "现场绑定 CheckinID", URL: "/p/identity", SortOrder: 20},
 		{Title: "我的资源", Description: "查看已领取的兑换码和物资", URL: "/p/resources", SortOrder: 30},
 		{Title: "总览", Description: "返回选手服务工作台", URL: "/p/dashboard", SortOrder: 40},

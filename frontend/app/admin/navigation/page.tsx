@@ -3,6 +3,7 @@
 import { Button, Card, CardBody, CardHeader, Input, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Plus, RefreshCw, Save } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { api, type NavigationLink, type SiteConfig } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
@@ -78,6 +79,7 @@ export default function AdminNavigationPage() {
   }, []);
 
   return (
+    <AdminAuthGuard>
     <AppShell variant="admin">
       <section className="grid gap-5">
         <div>
@@ -168,5 +170,6 @@ export default function AdminNavigationPage() {
         </Card>
       </section>
     </AppShell>
+    </AdminAuthGuard>
   );
 }

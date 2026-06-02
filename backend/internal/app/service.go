@@ -23,7 +23,7 @@ var (
 	ErrPermissionDenied   = errors.New("permission denied")
 	ErrInvalidCheckinID   = errors.New("invalid checkin id")
 	ErrInvalidResourceCSV = errors.New("resource csv must contain at least one code")
-	ErrInvalidProfile     = errors.New("profile requires full name, team name, school, and phone")
+	ErrInvalidProfile     = errors.New("profile requires full name")
 	ErrInvalidNavigation  = errors.New("navigation link requires title and url")
 )
 
@@ -109,7 +109,7 @@ func (s *Service) SaveProfile(email string, input models.ParticipantProfile) (mo
 		return models.ParticipantProfile{}, ErrLoginRequired
 	}
 	input = trimProfile(input)
-	if input.FullName == "" || input.TeamName == "" || input.School == "" || input.Phone == "" {
+	if input.FullName == "" {
 		return models.ParticipantProfile{}, ErrInvalidProfile
 	}
 	if _, err := s.store.GetParticipantByEmail(email); err != nil {
@@ -250,6 +250,53 @@ func (s *Service) UpdateSiteConfig(actorID string, input models.SiteConfig) (mod
 
 func (s *Service) participantByCheckin(checkinID string) (*models.Participant, error) {
 	return s.store.GetParticipantByCheckinID(checkinID)
+}
+
+func (s *Service) SaveAccommodation(email string, input models.AccommodationRequest) (models.AccommodationRequest, error) {
+	if email == "" {
+		return models.AccommodationRequest{}, ErrLoginRequired
+	}
+	if len(input.Selections) == 0 {
+		return models.AccommodationRequest{}, errors.New("at least one accommodation option is required")
+	}
+	validOptions := map[models.AccommodationOption]bool{
+		models.AccommodationSleepingBag: true,
+		models.AccommodationTent:        true,
+		models.AccommodationBlanket:     true,
+		models.AccommodationHotel:       true,
+		models.AccommodationOther:       true,
+	}
+	for _, sel := range input.Selections {
+		if !validOptions[sel] {
+			return models.AccommodationRequest{}, fmt.Errorf("invalid accommodation option: %s", sel)
+		}
+	}
+	hasOther := false
+	for _, sel := range input.Selections {
+		if sel == models.AccommodationOther {
+			hasOther = true
+			break
+		}
+	}
+	if hasOther && strings.TrimSpace(input.OtherDetail) == "" {
+		input.OtherDetail = ""
+	}
+	if !hasOther {
+		input.OtherDetail = ""
+	}
+	req, err := s.store.UpsertAccommodation(email, input, s.now())
+	if err != nil {
+		return models.AccommodationRequest{}, err
+	}
+	_, _ = s.store.RecordAudit(email, "accommodation.upsert", "accommodation", email, "", s.now())
+	return req, nil
+}
+
+func (s *Service) GetAccommodation(email string) (models.AccommodationRequest, error) {
+	if email == "" {
+		return models.AccommodationRequest{}, ErrLoginRequired
+	}
+	return s.store.GetAccommodation(email)
 }
 
 func hashCode(code string) string {
