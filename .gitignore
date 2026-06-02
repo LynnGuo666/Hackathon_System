@@ -1,7 +1,8 @@
 .DS_Store
+.cache/
 .next/
 node_modules/
-backend/.cache
+backend/.cache/
 frontend/out/
 frontend/.next/
 frontend/web/out/

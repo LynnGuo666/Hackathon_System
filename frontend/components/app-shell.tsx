@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
 import { Activity, Compass, Home, KeyRound, Mail, ShieldCheck, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,6 +29,7 @@ export function AppShell({
   variant?: "participant" | "admin";
 }) {
   const [apiReady, setApiReady] = useState<"checking" | "online" | "offline">("checking");
+  const pathname = usePathname();
   const navItems = variant === "admin" ? adminNavItems : participantNavItems;
 
   useEffect(() => {
@@ -65,12 +67,14 @@ export function AppShell({
           <nav className="grid gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const active = pathname === item.href;
               return (
                 <Button
                   key={item.href}
                   as={Link}
                   href={item.href}
-                  variant="light"
+                  color={active ? "primary" : "default"}
+                  variant={active ? "flat" : "light"}
                   className="justify-start"
                   startContent={<Icon size={17} />}
                 >
