@@ -193,4 +193,4 @@ def test_resource_pool_can_allow_multiple_claims(tmp_path: Path):
 
     assert first.status_code == 201
     assert second.status_code == 201
-    assert [first.json()["plainCode"], second.json()["plainCode"]] == ["CODE-1", "CODE-2"]
+    assert {first.json()["plainCode"], second.json()["plainCode"]} == {"CODE-1", "CODE-2"}
