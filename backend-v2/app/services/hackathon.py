@@ -1,6 +1,7 @@
 import hashlib
 import json
 import secrets
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import timedelta
@@ -14,6 +15,7 @@ from app.core.errors import (
     InvalidProfile,
     InvalidResourceCSV,
     LoginRequired,
+    ServiceUnavailable,
     TooManyAttempts,
 )
 from app.core.security import normalize_email
@@ -273,8 +275,13 @@ class HackathonService:
                 "Accept": "application/json",
             },
         )
-        with urllib.request.urlopen(request, timeout=8) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urllib.request.urlopen(request, timeout=8) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (TimeoutError, urllib.error.URLError, json.JSONDecodeError) as exc:
+            raise ServiceUnavailable(
+                "地图搜索服务暂时不可用，请稍后重试或手动填写地点坐标"
+            ) from exc
         results: list[OSMSearchResult] = []
         for item in payload:
             try:
@@ -295,14 +302,15 @@ class HackathonService:
         return results
 
     def update_event_location(self, actor_id: str, location: EventLocation) -> EventLocation:
-        if not location.name.strip() or location.latitude is None or location.longitude is None:
-            raise InvalidNavigation("event location requires name and coordinates")
+        name = location.name.strip()
+        if not name:
+            raise InvalidNavigation("event location requires name")
         now = now_utc()
         saved = self.repository.update_event_location(
             location.model_copy(
                 update={
-                    "name": location.name.strip(),
-                    "address": location.address.strip(),
+                    "name": name,
+                    "address": location.address.strip() or name,
                     "osm_type": location.osm_type.strip(),
                     "osm_id": location.osm_id.strip(),
                     "osm_url": location.osm_url.strip(),

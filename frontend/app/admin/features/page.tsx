@@ -33,7 +33,10 @@ export default function AdminFeaturesPage() {
   const [location, setLocation] = useState<EventLocation | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
   const [locationResults, setLocationResults] = useState<OSMSearchResult[]>([]);
+  const [manualLocationName, setManualLocationName] = useState("");
+  const [locationSearchError, setLocationSearchError] = useState("");
   const [searching, setSearching] = useState(false);
+  const [savingLocation, setSavingLocation] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
   const { isOpen: isLocationOpen, onOpen: openLocation, onOpenChange: onLocationOpenChange } = useDisclosure();
 
@@ -45,6 +48,7 @@ export default function AdminFeaturesPage() {
       ]);
       setModules(featureRows);
       setLocation(currentLocation);
+      setManualLocationName(currentLocation.name);
     } catch (error) {
       notify.error(errorText(error, "读取模块配置失败"));
     }
@@ -65,10 +69,13 @@ export default function AdminFeaturesPage() {
 
   async function searchLocations() {
     setSearching(true);
+    setLocationSearchError("");
     try {
       setLocationResults(await api.searchLocations(locationQuery));
     } catch (error) {
-      notify.error(errorText(error, "搜索地点失败"));
+      const message = errorText(error, "搜索地点失败");
+      setLocationSearchError(message);
+      notify.error(message);
     } finally {
       setSearching(false);
     }
@@ -91,10 +98,38 @@ export default function AdminFeaturesPage() {
         updatedAt: "",
       });
       setLocation(saved);
+      setManualLocationName(saved.name);
       setLocationResults([]);
       notify.success("赛事地点已保存");
     } catch (error) {
       notify.error(errorText(error, "保存地点失败"));
+    }
+  }
+
+  async function saveManualLocation() {
+    if (!manualLocationName.trim()) {
+      notify.error("请填写地点名称");
+      return;
+    }
+    setSavingLocation(true);
+    try {
+      const saved = await api.updateEventLocation({
+        id: "default",
+        name: manualLocationName.trim(),
+        address: manualLocationName.trim(),
+        latitude: null,
+        longitude: null,
+        osmType: "",
+        osmId: "",
+        osmUrl: "",
+        updatedAt: "",
+      });
+      setLocation(saved);
+      notify.success("赛事地点已保存");
+    } catch (error) {
+      notify.error(errorText(error, "保存地点失败"));
+    } finally {
+      setSavingLocation(false);
     }
   }
 
@@ -224,6 +259,11 @@ export default function AdminFeaturesPage() {
                         搜索
                       </Button>
                     </div>
+                    {locationSearchError && (
+                      <div className="rounded-md border border-warning/35 bg-warning/10 p-3 text-sm text-warning-700">
+                        {locationSearchError}。也可以在下方直接填写地点名称。
+                      </div>
+                    )}
                     {locationResults.length > 0 && (
                       <div className="grid max-h-72 gap-2 overflow-y-auto pr-1">
                         {locationResults.map((result) => (
@@ -241,6 +281,22 @@ export default function AdminFeaturesPage() {
                         ))}
                       </div>
                     )}
+                    <div className="grid gap-3 rounded-md border border-divider bg-content2 p-3">
+                      <div>
+                        <p className="font-medium">直接填写地点</p>
+                        <p className="text-sm text-foreground/60">不需要经纬度；选手端会展示这个地点名称。</p>
+                      </div>
+                      <Input label="地点名称" placeholder="Demo Hall" value={manualLocationName} onValueChange={setManualLocationName} />
+                      <Button
+                        color="primary"
+                        variant="flat"
+                        className="justify-self-start"
+                        isLoading={savingLocation}
+                        onPress={saveManualLocation}
+                      >
+                        保存地点
+                      </Button>
+                    </div>
                   </ModalBody>
                   <ModalFooter>
                     <Button variant="flat" onPress={onClose}>

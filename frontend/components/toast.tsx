@@ -16,9 +16,9 @@ function showToast(title: string, tone: ToastTone) {
   const Icon = toastIcons[tone];
   addToast({
     title: (
-      <span className="flex items-center gap-2">
-        <Icon size={18} />
-        <span>{title}</span>
+      <span className="flex max-w-[560px] items-start gap-2 whitespace-normal leading-snug">
+        <Icon size={18} className="mt-0.5 shrink-0" />
+        <span className="break-words">{title}</span>
       </span>
     ),
     color: tone,

@@ -28,6 +28,8 @@ export default function LocationPage() {
     return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
   }, [location]);
 
+  const hasCoordinates = location?.latitude !== null && location?.longitude !== null;
+
   return (
     <section className="grid gap-5">
       <div>
@@ -37,7 +39,7 @@ export default function LocationPage() {
 
       {loading && <Spinner label="加载地点信息" />}
 
-      {!loading && (!location?.name || location.latitude === null || location.longitude === null) && (
+      {!loading && !location?.name && (
         <Card className="rounded-md">
           <CardBody className="text-sm text-foreground/60">
             暂未配置赛事地点，请等待主办方更新。
@@ -45,7 +47,7 @@ export default function LocationPage() {
         </Card>
       )}
 
-      {location?.name && location.latitude !== null && location.longitude !== null && (
+      {location?.name && (
         <>
           <Card className="rounded-md">
             <CardHeader className="justify-between gap-4">
@@ -57,38 +59,42 @@ export default function LocationPage() {
             </CardHeader>
             <CardBody className="grid gap-3">
               <p className="text-sm text-foreground/70">{location.address}</p>
-              <p className="text-sm text-foreground/50">
-                {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {location.osmUrl && (
-                  <Button
-                    as={Link}
-                    href={location.osmUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    variant="flat"
-                    startContent={<ExternalLink size={16} />}
-                  >
-                    OpenStreetMap
-                  </Button>
-                )}
-                <Button
-                  as={Link}
-                  href={`https://www.openstreetmap.org/directions?to=${location.latitude},${location.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  color="primary"
-                  variant="flat"
-                  startContent={<Navigation size={16} />}
-                >
-                  路线
-                </Button>
-              </div>
+              {hasCoordinates && (
+                <>
+                  <p className="text-sm text-foreground/50">
+                    {location.latitude?.toFixed(6)}, {location.longitude?.toFixed(6)}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {location.osmUrl && (
+                      <Button
+                        as={Link}
+                        href={location.osmUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        variant="flat"
+                        startContent={<ExternalLink size={16} />}
+                      >
+                        OpenStreetMap
+                      </Button>
+                    )}
+                    <Button
+                      as={Link}
+                      href={`https://www.openstreetmap.org/directions?to=${location.latitude},${location.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      color="primary"
+                      variant="flat"
+                      startContent={<Navigation size={16} />}
+                    >
+                      路线
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardBody>
           </Card>
 
-          {mapUrl && (
+          {hasCoordinates && mapUrl && (
             <div className="overflow-hidden rounded-md border border-divider bg-content1">
               <iframe
                 title="赛事地点地图"
