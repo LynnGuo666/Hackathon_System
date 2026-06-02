@@ -268,6 +268,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ checkinId }),
     }),
+  checkinLogin: (input: { checkinId: string; email: string; fullName: string }) =>
+    request<Participant>("/api/auth/checkin-login", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   me: () => request<Participant>("/api/me"),
   profile: () => request<ParticipantProfile>("/api/profile"),
   updateProfile: (profile: ParticipantProfile) =>

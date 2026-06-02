@@ -115,6 +115,38 @@ class HackathonService:
         )
         return participant
 
+    def bind_checkin_with_profile(
+        self, email: str, checkin_id: str, full_name: str
+    ) -> Participant:
+        full_name = full_name.strip()
+        if not full_name:
+            raise InvalidProfile("profile requires full name")
+        participant = self.bind_checkin(email, checkin_id)
+        now = now_utc()
+        self.repository.upsert_participant_profile(
+            participant.email,
+            ParticipantProfile(
+                fullName=full_name,
+                teamName="",
+                school="",
+                phone="",
+                dietaryNeeds="",
+                tshirtSize="",
+                emergencyContact="",
+                notes="",
+            ),
+            now,
+        )
+        self.repository.record_audit(
+            participant.email,
+            "participant.checkin_profile_upsert",
+            "participant_profile",
+            participant.email,
+            "",
+            now,
+        )
+        return participant
+
     def me(self, email: str) -> Participant:
         if not email:
             raise LoginRequired("login required")
@@ -122,11 +154,14 @@ class HackathonService:
             raise LoginRequired("account disabled")
         return self.repository.get_participant_by_email(email)
 
+    def checked_in_participant(self, email: str) -> Participant:
+        participant = self.me(email)
+        if not participant.checkin_id:
+            raise LoginRequired("checkin id required")
+        return participant
+
     def save_profile(self, email: str, profile: ParticipantProfile) -> ParticipantProfile:
-        if not email:
-            raise LoginRequired("login required")
-        if self.repository.participant_is_disabled(email):
-            raise LoginRequired("account disabled")
+        participant = self.checked_in_participant(email)
         trimmed = profile.model_copy(
             update={
                 "full_name": profile.full_name.strip(),
@@ -139,22 +174,23 @@ class HackathonService:
                 "notes": profile.notes.strip(),
             }
         )
-        if not trimmed.full_name or not trimmed.team_name or not trimmed.school or not trimmed.phone:
-            raise InvalidProfile("profile requires full name, team name, school, and phone")
-        self.repository.get_participant_by_email(email)
+        if not trimmed.full_name:
+            raise InvalidProfile("profile requires full name")
         now = now_utc()
-        saved = self.repository.upsert_participant_profile(email, trimmed, now)
+        saved = self.repository.upsert_participant_profile(participant.email, trimmed, now)
         self.repository.record_audit(
-            email, "participant.profile_upsert", "participant_profile", email, "", now
+            participant.checkin_id,
+            "participant.profile_upsert",
+            "participant_profile",
+            participant.email,
+            "",
+            now,
         )
         return saved
 
     def profile(self, email: str) -> ParticipantProfile:
-        if not email:
-            raise LoginRequired("login required")
-        if self.repository.participant_is_disabled(email):
-            raise LoginRequired("account disabled")
-        return self.repository.get_participant_profile(email)
+        participant = self.checked_in_participant(email)
+        return self.repository.get_participant_profile(participant.email)
 
     def generate_checkin_ids(self, actor_id: str, count: int) -> list[CheckinIDRecord]:
         if count < 1 or count > 5000:
@@ -392,8 +428,7 @@ class HackathonService:
     def save_accommodation(
         self, email: str, request: AccommodationRequest
     ) -> AccommodationRequest:
-        if not email:
-            raise LoginRequired("login required")
+        participant = self.checked_in_participant(email)
         if not request.selections:
             raise InvalidProfile("at least one accommodation option is required")
         valid_options = set(AccommodationOption)
@@ -405,14 +440,15 @@ class HackathonService:
             update={"other_detail": request.other_detail.strip() if has_other else ""}
         )
         now = now_utc()
-        saved = self.repository.upsert_accommodation(email, saved_input, now)
-        self.repository.record_audit(email, "accommodation.upsert", "accommodation", email, "", now)
+        saved = self.repository.upsert_accommodation(participant.email, saved_input, now)
+        self.repository.record_audit(
+            participant.checkin_id, "accommodation.upsert", "accommodation", participant.email, "", now
+        )
         return saved
 
     def get_accommodation(self, email: str) -> AccommodationRequest:
-        if not email:
-            raise LoginRequired("login required")
-        return self.repository.get_accommodation(email)
+        participant = self.checked_in_participant(email)
+        return self.repository.get_accommodation(participant.email)
 
     def create_meal_slot(self, actor_id: str, slot: MealOrderSlot) -> MealOrderSlot:
         now = now_utc()
@@ -441,8 +477,7 @@ class HackathonService:
         return saved
 
     def save_meal_order(self, email: str, slot_id: str, order: MealOrder) -> MealOrder:
-        if not email:
-            raise LoginRequired("login required")
+        participant = self.checked_in_participant(email)
         slot = self.repository.get_meal_slot(slot_id)
         self._ensure_slot_open(slot.enabled, slot.is_open, slot.close_at)
         needs = [item.strip() for item in dict.fromkeys(order.dietary_needs) if item.strip()]
@@ -454,7 +489,7 @@ class HackathonService:
         has_other = "其他" in needs or "other" in needs
         now = now_utc()
         saved = self.repository.upsert_meal_order(
-            email,
+            participant.email,
             order.model_copy(
                 update={
                     "slot_id": slot_id,
@@ -465,12 +500,13 @@ class HackathonService:
             ),
             now,
         )
-        self.repository.record_audit(email, "meal_order.upsert", "meal_order", saved.id, "", now)
+        self.repository.record_audit(
+            participant.checkin_id, "meal_order.upsert", "meal_order", saved.id, "", now
+        )
         return saved
 
     def save_drink_order(self, email: str, slot_id: str, order: DrinkOrder) -> DrinkOrder:
-        if not email:
-            raise LoginRequired("login required")
+        participant = self.checked_in_participant(email)
         slot = self.repository.get_drink_slot(slot_id)
         self._ensure_slot_open(slot.enabled, slot.is_open, slot.close_at)
         drink_option = order.drink_option.strip()
@@ -480,13 +516,15 @@ class HackathonService:
             raise InvalidProfile("drink option is not available")
         now = now_utc()
         saved = self.repository.upsert_drink_order(
-            email,
+            participant.email,
             order.model_copy(
                 update={"slot_id": slot_id, "drink_option": drink_option, "notes": order.notes.strip()}
             ),
             now,
         )
-        self.repository.record_audit(email, "drink_order.upsert", "drink_order", saved.id, "", now)
+        self.repository.record_audit(
+            participant.checkin_id, "drink_order.upsert", "drink_order", saved.id, "", now
+        )
         return saved
 
     def _clean_meal_slot(self, slot: MealOrderSlot, now) -> MealOrderSlot:

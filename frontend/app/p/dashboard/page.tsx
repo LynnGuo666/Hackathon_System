@@ -47,12 +47,12 @@ export default function DashboardPage() {
         <Card className="rounded-md">
           <CardBody className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-1">
-              <p className="text-xs text-foreground/50">邮箱</p>
-              <p className="font-medium">{participant.email}</p>
+              <p className="text-xs text-foreground/50">CheckinID</p>
+              <p className="font-medium">{participant.checkinId || "待绑定"}</p>
             </div>
             <div className="grid gap-1">
-              <p className="text-xs text-foreground/50">CheckinID</p>
-              <p className="font-medium">{participant.checkinId || "待现场签到后绑定"}</p>
+              <p className="text-xs text-foreground/50">关联邮箱</p>
+              <p className="font-medium">{participant.email}</p>
             </div>
             <div className="grid gap-1">
               <p className="text-xs text-foreground/50">状态</p>
@@ -69,8 +69,8 @@ export default function DashboardPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { label: "邮箱验证", value: "已通过", ok: true },
-            { label: "签到绑定", value: participant.checkinId ? "已绑定" : "待绑定", ok: !!participant.checkinId },
-            { label: "资源领取", value: participant.checkinId ? "可领取" : "签到后开放", ok: !!participant.checkinId },
+            { label: "CheckinID", value: participant.checkinId ? "已关联" : "待关联", ok: !!participant.checkinId },
+            { label: "资源领取", value: participant.checkinId ? "可领取" : "关联后开放", ok: !!participant.checkinId },
           ].map((item) => (
             <Card key={item.label} className="rounded-md">
               <CardBody className="grid gap-1">

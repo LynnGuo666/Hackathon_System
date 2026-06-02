@@ -137,19 +137,39 @@ def test_profile_requires_login_and_fields(tmp_path: Path):
     client.post("/api/auth/verify-code", json={"email": "Profile@Example.com", "code": code})
 
     invalid = client.put("/api/profile", json={"fullName": "Ada"})
-    assert invalid.status_code == 400
+    assert invalid.status_code == 401
+    import_checkins(client, ["200001"])
+    bound = client.post("/api/auth/bind-checkin", json={"checkinId": "200001"})
+    assert bound.status_code == 200
 
     saved = client.put(
         "/api/profile",
         json={
             "fullName": " Ada Lovelace ",
-            "teamName": " Engines ",
-            "school": " London ",
-            "phone": " 123456 ",
+            "teamName": "",
+            "school": "",
+            "phone": "",
         },
     )
     assert saved.status_code == 200
     assert saved.json()["fullName"] == "Ada Lovelace"
+
+
+def test_checkin_login_links_email_and_profile(tmp_path: Path):
+    client = make_client(tmp_path)
+    import_checkins(client, ["300001"])
+
+    linked = client.post(
+        "/api/auth/checkin-login",
+        json={"checkinId": "300001", "email": "Checkin@Example.com", "fullName": "  Lyn  "},
+    )
+    assert linked.status_code == 200
+    assert linked.json()["email"] == "checkin@example.com"
+    assert linked.json()["checkinId"] == "300001"
+
+    profile = client.get("/api/profile")
+    assert profile.status_code == 200
+    assert profile.json()["fullName"] == "Lyn"
 
 
 def test_checkin_and_resource_claim(tmp_path: Path):
@@ -294,6 +314,9 @@ def test_meal_and_drink_orders_respect_open_windows(tmp_path: Path):
 
     assert client.get("/api/meal-orders").status_code == 401
     login(client, "Meal@Example.com")
+    assert client.get("/api/meal-orders").status_code == 401
+    import_checkins(client, ["400001"])
+    assert client.post("/api/auth/bind-checkin", json={"checkinId": "400001"}).status_code == 200
 
     meal_slot = client.post(
         "/api/admin/meal-slots",

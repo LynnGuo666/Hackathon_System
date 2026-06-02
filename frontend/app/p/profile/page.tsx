@@ -58,18 +58,17 @@ export default function ProfilePage() {
   return (
     <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">参赛信息</p>
+        <p className="text-sm text-foreground/60">CheckinID 关联信息</p>
         <h2 className="text-2xl font-semibold">我的资料</h2>
       </div>
 
       {/* 基础信息 */}
       <Card className="rounded-md">
         <CardHeader className="block">
-          <h3 className="font-semibold">基础信息</h3>
-          <p className="text-sm text-foreground/60">只需填写姓名即可完成报名。</p>
+          <h3 className="font-semibold">昵称</h3>
         </CardHeader>
         <CardBody className="grid gap-4">
-          <Input label="姓名" value={fullName} onValueChange={setFullName} isRequired />
+          <Input label="昵称" value={fullName} onValueChange={setFullName} isRequired />
           <div>
             <Button color="primary" startContent={<Save size={16} />} isLoading={loading} onPress={saveProfile}>
               保存
@@ -81,21 +80,20 @@ export default function ProfilePage() {
       {/* 签到身份 */}
       <Card className="rounded-md">
         <CardHeader className="block">
-          <h3 className="font-semibold">签到身份</h3>
-          <p className="text-sm text-foreground/60">现场签到后绑定 CheckinID。</p>
+          <h3 className="font-semibold">身份关联</h3>
         </CardHeader>
         <CardBody className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-1">
-              <p className="text-xs text-foreground/50">邮箱</p>
-              <p className="font-medium">{participant?.email || "—"}</p>
-            </div>
             <div className="grid gap-1">
               <p className="text-xs text-foreground/50">CheckinID</p>
               <div className="flex items-center gap-2">
                 <p className="font-medium">{participant?.checkinId || "未绑定"}</p>
                 {participant?.checkinId && <Chip size="sm" color="success" variant="flat">已绑定</Chip>}
               </div>
+            </div>
+            <div className="grid gap-1">
+              <p className="text-xs text-foreground/50">关联邮箱</p>
+              <p className="font-medium">{participant?.email || "—"}</p>
             </div>
           </div>
 

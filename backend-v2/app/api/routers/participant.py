@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import service
-from app.core.errors import LoginRequired
 from app.core.security import participant_email
 from app.schemas import (
     AccommodationRequest,
@@ -77,9 +76,8 @@ def meal_orders(
     email: str = Depends(participant_email),
     svc: HackathonService = Depends(service),
 ) -> list[MealOrder]:
-    if not email:
-        raise LoginRequired("login required")
-    return svc.repository.list_meal_orders(email=email)
+    participant = svc.checked_in_participant(email)
+    return svc.repository.list_meal_orders(email=participant.email)
 
 
 @router.put("/meal-orders/{slot_id}", response_model=MealOrder, response_model_by_alias=True)
@@ -98,9 +96,8 @@ def drink_orders(
     email: str = Depends(participant_email),
     svc: HackathonService = Depends(service),
 ) -> list[DrinkOrder]:
-    if not email:
-        raise LoginRequired("login required")
-    return svc.repository.list_drink_orders(email=email)
+    participant = svc.checked_in_participant(email)
+    return svc.repository.list_drink_orders(email=participant.email)
 
 
 @router.put("/drink-orders/{slot_id}", response_model=DrinkOrder, response_model_by_alias=True)
@@ -119,7 +116,7 @@ def resources(
     email: str = Depends(participant_email),
     svc: HackathonService = Depends(service),
 ) -> list[ResourceAssignment]:
-    participant = svc.me(email)
+    participant = svc.checked_in_participant(email)
     return svc.my_resources(participant.checkin_id)
 
 
@@ -134,7 +131,7 @@ def claim_resource(
     email: str = Depends(participant_email),
     svc: HackathonService = Depends(service),
 ) -> ResourceAssignment:
-    participant = svc.me(email)
+    participant = svc.checked_in_participant(email)
     return svc.claim_resource(participant.checkin_id, pool_id, participant.checkin_id)
 
 

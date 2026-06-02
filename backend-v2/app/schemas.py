@@ -339,6 +339,12 @@ class BindCheckinInput(APIModel):
     checkin_id: str = Field(alias="checkinId")
 
 
+class CheckinLoginInput(APIModel):
+    checkin_id: str = Field(alias="checkinId")
+    email: str
+    full_name: str = Field(alias="fullName")
+
+
 class ImportCodesInput(APIModel):
     codes: list[str] = Field(default_factory=list)
     values: list[str] = Field(default_factory=list)
