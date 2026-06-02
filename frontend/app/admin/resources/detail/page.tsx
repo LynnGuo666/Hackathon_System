@@ -155,11 +155,7 @@ function AdminResourcePoolDetailContent() {
               >
                 返回资源条目
               </Button>
-              <p className="text-sm text-foreground/60">resource detail</p>
               <h2 className="text-2xl font-semibold">{pool?.name ?? "资源条目"}</h2>
-              <p className="mt-1 text-sm text-foreground/60">
-                在这里维护库存，一行一个 Key、链接或凭证；发放后会关联到选手 CheckinID。
-              </p>
             </div>
             <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
               刷新
@@ -200,13 +196,9 @@ function AdminResourcePoolDetailContent() {
               <div className="grid gap-5 xl:grid-cols-2">
                 <Card className="rounded-md">
                   <CardHeader>
-                    <div>
-                      <h3 className="font-semibold">添加库存</h3>
-                      <p className="text-sm text-foreground/60">打开导入窗口后，一行一个添加 Key、链接或账号凭证。</p>
-                    </div>
+                    <h3 className="font-semibold">添加库存</h3>
                   </CardHeader>
-                  <CardBody className="gap-3 text-sm text-foreground/65">
-                    <p>当前未使用库存 {stats.available} 条，已使用 {stats.assigned} 条。</p>
+                  <CardBody className="gap-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         color="primary"
@@ -215,22 +207,16 @@ function AdminResourcePoolDetailContent() {
                       >
                         添加库存
                       </Button>
-                      <Chip variant="flat">空行会自动忽略</Chip>
                     </div>
                   </CardBody>
                 </Card>
 
                 <Card className="rounded-md">
                   <CardHeader>
-                    <div>
-                      <h3 className="font-semibold">批准并发放</h3>
-                      <p className="text-sm text-foreground/60">
-                        选手申请通过后，在这里输入 CheckinID 发放一个未使用库存。
-                      </p>
-                    </div>
+                    <h3 className="font-semibold">批准并发放</h3>
                   </CardHeader>
                   <CardBody className="gap-3">
-                    <Input label="CheckinID" placeholder="CHECKIN-001" value={checkinId} onValueChange={setCheckinId} />
+                    <Input label="CheckinID" placeholder="000001" value={checkinId} onValueChange={setCheckinId} />
                     <Button
                       color="primary"
                       startContent={<Send size={16} />}
@@ -239,9 +225,6 @@ function AdminResourcePoolDetailContent() {
                     >
                       批准发放
                     </Button>
-                    <p className="text-xs text-foreground/50">
-                      当前版本使用管理员直发承接批准动作；完整待审批申请队列需要新增申请表。
-                    </p>
                   </CardBody>
                 </Card>
               </div>
@@ -254,9 +237,6 @@ function AdminResourcePoolDetailContent() {
                         <PackagePlus size={20} className="mt-1 text-foreground/50" />
                         <div>
                           <h3 className="font-semibold">添加库存</h3>
-                          <p className="text-sm font-normal text-foreground/60">
-                            每行一条，可粘贴 Key、链接或账号凭证。
-                          </p>
                         </div>
                       </ModalHeader>
                       <ModalBody className="grid gap-3">
@@ -267,9 +247,6 @@ function AdminResourcePoolDetailContent() {
                           value={bulkValues}
                           onValueChange={setBulkValues}
                         />
-                        <div className="rounded-md border border-divider bg-content2 p-3 text-sm text-foreground/60">
-                          空行会自动忽略；导入成功后会刷新库存明细。
-                        </div>
                       </ModalBody>
                       <ModalFooter>
                         <Button variant="flat" onPress={onClose}>
@@ -291,10 +268,7 @@ function AdminResourcePoolDetailContent() {
 
               <Card className="rounded-md">
                 <CardHeader className="justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold">库存明细</h3>
-                    <p className="text-sm text-foreground/60">已使用的资源会显示关联选手和发放记录。</p>
-                  </div>
+                  <h3 className="font-semibold">库存明细</h3>
                   <Chip variant="flat">{stats.total} 条库存</Chip>
                 </CardHeader>
                 <CardBody>

@@ -9,6 +9,7 @@ from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
     AssignInput,
     AuditLog,
+    CheckinIDRecord,
     DrinkOrder,
     DrinkSupplySlot,
     EmailOutbox,
@@ -16,11 +17,16 @@ from app.schemas import (
     FeatureLink,
     FeatureToggleInput,
     ImportCodesInput,
+    GenerateCheckinIDsInput,
+    ImportCheckinIDsInput,
     MealOrder,
     MealOrderSlot,
     NavigationLink,
     OSMSearchResult,
+    Participant,
+    ParticipantAccount,
     ParticipantProfile,
+    ParticipantStatusInput,
     ResourceAssignment,
     ResourceItem,
     ResourcePool,
@@ -184,6 +190,85 @@ def audit_logs(repo: SQLiteRepository = Depends(repository)) -> list[AuditLog]:
 )
 def profiles(repo: SQLiteRepository = Depends(repository)) -> list[ParticipantProfile]:
     return repo.list_participant_profiles()
+
+
+@router.get(
+    "/participants",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[ParticipantAccount],
+    response_model_by_alias=True,
+)
+def participants(repo: SQLiteRepository = Depends(repository)) -> list[ParticipantAccount]:
+    return repo.list_participant_accounts()
+
+
+@router.patch(
+    "/participants/status",
+    dependencies=[Depends(require_admin_token)],
+    response_model=Participant,
+    response_model_by_alias=True,
+)
+def update_participant_status_by_body(
+    input: ParticipantStatusInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> Participant:
+    return svc.set_participant_status(actor, input.email, input.status)
+
+
+@router.patch(
+    "/participants/{email:path}/status",
+    dependencies=[Depends(require_admin_token)],
+    response_model=Participant,
+    response_model_by_alias=True,
+)
+def update_participant_status(
+    email: str,
+    input: ParticipantStatusInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> Participant:
+    return svc.set_participant_status(actor, email, input.status)
+
+
+@router.get(
+    "/checkin-ids",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[CheckinIDRecord],
+    response_model_by_alias=True,
+)
+def checkin_ids(repo: SQLiteRepository = Depends(repository)) -> list[CheckinIDRecord]:
+    return repo.list_checkin_ids()
+
+
+@router.post(
+    "/checkin-ids/generate",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[CheckinIDRecord],
+    response_model_by_alias=True,
+)
+def generate_checkin_ids(
+    input: GenerateCheckinIDsInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> list[CheckinIDRecord]:
+    return svc.generate_checkin_ids(actor, input.count)
+
+
+@router.post(
+    "/checkin-ids/import",
+    status_code=201,
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[CheckinIDRecord],
+    response_model_by_alias=True,
+)
+def import_checkin_ids(
+    input: ImportCheckinIDsInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> list[CheckinIDRecord]:
+    return svc.import_checkin_ids(actor, input.values or input.ids)
 
 
 @router.get(

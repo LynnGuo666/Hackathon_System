@@ -105,19 +105,12 @@ export default function AdminResourcesPage() {
       <AppShell variant="admin">
         <section className="grid gap-5">
           <div>
-            <p className="text-sm text-foreground/60">resource pools</p>
             <h2 className="text-2xl font-semibold">资源条目</h2>
-            <p className="mt-1 text-sm text-foreground/60">
-              先建立一个资源条目，再进入详情页维护一行一个的 Key、链接或凭证。
-            </p>
           </div>
 
           <Card className="rounded-md">
             <CardHeader>
-              <div>
-                <h3 className="font-semibold">创建资源条目</h3>
-                <p className="text-sm text-foreground/60">条目创建后，在详情页导入库存并执行发放。</p>
-              </div>
+              <h3 className="font-semibold">创建资源条目</h3>
             </CardHeader>
             <CardBody className="grid gap-3 md:grid-cols-[1fr_180px]">
               <Input label="资源名称" placeholder="AI 工具兑换码" value={name} onValueChange={setName} />
@@ -138,10 +131,7 @@ export default function AdminResourcesPage() {
 
           <Card className="rounded-md">
             <CardHeader className="justify-between gap-4">
-              <div>
-                <h3 className="font-semibold">已建立条目</h3>
-                <p className="text-sm text-foreground/60">进入详情页后可以添加库存、导入多行内容和批准发放。</p>
-              </div>
+              <h3 className="font-semibold">已建立条目</h3>
               <Chip variant="flat">{pools.length} 个条目</Chip>
             </CardHeader>
             <CardBody>

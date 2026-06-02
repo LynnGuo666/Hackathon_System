@@ -13,6 +13,27 @@ export type Participant = {
   status: "pending" | "active" | "disabled";
 };
 
+export type ParticipantAccount = {
+  email: string;
+  checkinId: string;
+  status: "pending" | "active" | "disabled";
+  fullName: string;
+  teamName: string;
+  school: string;
+  phone: string;
+  profileUpdatedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CheckinIDRecord = {
+  id: string;
+  status: "available" | "bound";
+  assignedEmail: string;
+  boundAt?: string;
+  createdAt?: string;
+};
+
 export type ParticipantProfile = {
   email?: string;
   fullName: string;
@@ -283,6 +304,26 @@ export const api = {
       { admin: true },
     ),
   profiles: () => request<ParticipantProfile[]>("/api/admin/profiles", { admin: true }),
+  participants: () => request<ParticipantAccount[]>("/api/admin/participants", { admin: true }),
+  updateParticipantStatus: (email: string, status: Participant["status"]) =>
+    request<Participant>("/api/admin/participants/status", {
+      admin: true,
+      method: "PATCH",
+      body: JSON.stringify({ email, status }),
+    }),
+  checkinIds: () => request<CheckinIDRecord[]>("/api/admin/checkin-ids", { admin: true }),
+  generateCheckinIds: (count: number) =>
+    request<CheckinIDRecord[]>("/api/admin/checkin-ids/generate", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify({ count }),
+    }),
+  importCheckinIds: (values: string[]) =>
+    request<CheckinIDRecord[]>("/api/admin/checkin-ids/import", {
+      admin: true,
+      method: "POST",
+      body: JSON.stringify({ values }),
+    }),
   emailOutbox: () => request<EmailOutbox[]>("/api/admin/email-outbox", { admin: true }),
   retryEmail: (id: string) =>
     request<EmailOutbox>(`/api/admin/email-outbox/${id}/retry`, {

@@ -103,7 +103,7 @@ export default function ProfilePage() {
             <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <Input
                 label="CheckinID"
-                placeholder="请输入签到时分配的 ID"
+                placeholder="000001"
                 value={checkinId}
                 onValueChange={setCheckinId}
               />

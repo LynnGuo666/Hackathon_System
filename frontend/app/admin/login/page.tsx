@@ -36,7 +36,6 @@ export default function AdminLoginPage() {
     <main className="mx-auto grid min-h-screen max-w-md place-items-center px-5">
       <Card className="w-full rounded-md">
         <CardHeader className="block">
-          <p className="text-sm text-foreground/60">管理后台</p>
           <h1 className="text-2xl font-semibold">管理员登录</h1>
         </CardHeader>
         <CardBody className="gap-4">

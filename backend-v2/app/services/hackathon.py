@@ -24,6 +24,7 @@ from app.repositories.sqlite import SQLiteRepository, now_utc
 from app.schemas import (
     AccommodationOption,
     AccommodationRequest,
+    CheckinIDRecord,
     DrinkOrder,
     DrinkSupplySlot,
     EventLocation,
@@ -33,6 +34,7 @@ from app.schemas import (
     NavigationLink,
     OSMSearchResult,
     Participant,
+    ParticipantStatus,
     ParticipantProfile,
     ResourceAssignment,
     ResourceItem,
@@ -93,10 +95,10 @@ class HackathonService:
         if not email:
             raise LoginRequired("login required")
         checkin_id = checkin_id.strip()
-        if len(checkin_id) < 4 or len(checkin_id) > 64:
+        if len(checkin_id) != 6 or not checkin_id.isdigit():
             raise InvalidCheckinID("invalid checkin id")
         now = now_utc()
-        participant = self.repository.bind_participant(email, checkin_id, now)
+        participant = self.repository.bind_participant_to_checkin_pool(email, checkin_id, now)
         self.repository.enqueue_email(
             participant.email,
             mailer.checkin_bound_subject(),
@@ -116,11 +118,15 @@ class HackathonService:
     def me(self, email: str) -> Participant:
         if not email:
             raise LoginRequired("login required")
+        if self.repository.participant_is_disabled(email):
+            raise LoginRequired("account disabled")
         return self.repository.get_participant_by_email(email)
 
     def save_profile(self, email: str, profile: ParticipantProfile) -> ParticipantProfile:
         if not email:
             raise LoginRequired("login required")
+        if self.repository.participant_is_disabled(email):
+            raise LoginRequired("account disabled")
         trimmed = profile.model_copy(
             update={
                 "full_name": profile.full_name.strip(),
@@ -146,7 +152,62 @@ class HackathonService:
     def profile(self, email: str) -> ParticipantProfile:
         if not email:
             raise LoginRequired("login required")
+        if self.repository.participant_is_disabled(email):
+            raise LoginRequired("account disabled")
         return self.repository.get_participant_profile(email)
+
+    def generate_checkin_ids(self, actor_id: str, count: int) -> list[CheckinIDRecord]:
+        if count < 1 or count > 5000:
+            raise InvalidCheckinID("checkin id count must be between 1 and 5000")
+        existing_count = self.repository.count_checkin_ids()
+        if existing_count + count > 1_000_000:
+            raise Conflict("not enough checkin ids available")
+        generated: set[str] = set()
+        attempts = 0
+        max_attempts = count * 20 + 1000
+        while len(generated) < count and attempts < max_attempts:
+            attempts += 1
+            generated.add(f"{secrets.randbelow(1_000_000):06d}")
+        now = now_utc()
+        inserted = self.repository.add_checkin_ids(sorted(generated), now, limit=count)
+        while len(inserted) < count and attempts < max_attempts * 2:
+            attempts += 1
+            needed = count - len(inserted)
+            next_ids = {f"{secrets.randbelow(1_000_000):06d}" for _ in range(needed * 2)}
+            inserted.extend(
+                self.repository.add_checkin_ids(sorted(next_ids), now, limit=needed)
+            )
+        if len(inserted) < count:
+            raise Conflict("not enough checkin ids available")
+        saved = inserted[:count]
+        self.repository.record_audit(
+            actor_id, "checkin_ids.generate", "checkin_ids", "batch", f"count={len(saved)}", now
+        )
+        return saved
+
+    def import_checkin_ids(self, actor_id: str, values: list[str]) -> list[CheckinIDRecord]:
+        ids = [value.strip() for value in values if value.strip()]
+        if not ids:
+            raise InvalidCheckinID("checkin ids are required")
+        for checkin_id in ids:
+            if len(checkin_id) != 6 or not checkin_id.isdigit():
+                raise InvalidCheckinID("invalid checkin id")
+        now = now_utc()
+        inserted = self.repository.add_checkin_ids(list(dict.fromkeys(ids)), now)
+        self.repository.record_audit(
+            actor_id, "checkin_ids.import", "checkin_ids", "batch", f"count={len(inserted)}", now
+        )
+        return inserted
+
+    def set_participant_status(
+        self, actor_id: str, email: str, status: ParticipantStatus
+    ) -> Participant:
+        now = now_utc()
+        saved = self.repository.set_participant_status(email, status, now)
+        self.repository.record_audit(
+            actor_id, "participant.status", "participant", saved.email, status, now
+        )
+        return saved
 
     def create_pool(self, actor_id: str, pool: ResourcePool) -> ResourcePool:
         saved = self.repository.create_resource_pool(pool)

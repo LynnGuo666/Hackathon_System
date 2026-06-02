@@ -39,6 +39,46 @@ class ParticipantProfile(APIModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class ParticipantAccount(APIModel):
+    email: str
+    checkin_id: str = Field(default="", alias="checkinId")
+    status: ParticipantStatus
+    full_name: str = Field(default="", alias="fullName")
+    team_name: str = Field(default="", alias="teamName")
+    school: str = ""
+    phone: str = ""
+    profile_updated_at: datetime | None = Field(default=None, alias="profileUpdatedAt")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class ParticipantStatusInput(APIModel):
+    email: str = ""
+    status: ParticipantStatus
+
+
+class CheckinIDStatus(StrEnum):
+    available = "available"
+    bound = "bound"
+
+
+class CheckinIDRecord(APIModel):
+    id: str
+    status: CheckinIDStatus
+    assigned_email: str = Field(default="", alias="assignedEmail")
+    bound_at: datetime | None = Field(default=None, alias="boundAt")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+
+
+class GenerateCheckinIDsInput(APIModel):
+    count: int
+
+
+class ImportCheckinIDsInput(APIModel):
+    ids: list[str] = Field(default_factory=list)
+    values: list[str] = Field(default_factory=list)
+
+
 class VerificationCode(APIModel):
     email: str
     code_hash: str

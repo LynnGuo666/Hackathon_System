@@ -72,11 +72,7 @@ export default function AdminMealOrdersPage() {
       <AppShell variant="admin">
         <section className="grid gap-5">
           <div>
-            <p className="text-sm text-foreground/60">餐饮运营</p>
             <h2 className="text-2xl font-semibold">餐饮与饮料补给</h2>
-            <p className="mt-1 text-sm text-foreground/60">
-              管理餐食餐次、饮料补给批次，并查看选手提交情况。
-            </p>
           </div>
 
           <div className="flex justify-end">
@@ -183,10 +179,7 @@ function MealSlotForm({
   return (
     <Card className="rounded-md">
       <CardHeader>
-        <div>
-          <h3 className="font-semibold">新增餐食餐次</h3>
-          <p className="text-sm text-foreground/60">配置选手端可提交的餐食批次和忌口选项。</p>
-        </div>
+        <h3 className="font-semibold">新增餐食餐次</h3>
       </CardHeader>
       <CardBody className="grid gap-4 md:grid-cols-2">
         <Input label="餐次名称" placeholder="Day 1 午餐" value={title} onValueChange={setTitle} />
@@ -265,10 +258,7 @@ function DrinkSlotForm({
   return (
     <Card className="rounded-md">
       <CardHeader>
-        <div>
-          <h3 className="font-semibold">新增饮料补给批次</h3>
-          <p className="text-sm text-foreground/60">配置选手端单选饮料范围和开放状态。</p>
-        </div>
+        <h3 className="font-semibold">新增饮料补给批次</h3>
       </CardHeader>
       <CardBody className="grid gap-4 md:grid-cols-2">
         <Input label="批次名称" placeholder="Day 1 下午补给" value={title} onValueChange={setTitle} />
@@ -299,10 +289,7 @@ function MealSlotsTable({ slots, stats }: { slots: MealSlot[]; stats: Record<str
   return (
     <Card className="rounded-md">
       <CardHeader className="justify-between gap-4">
-        <div>
-          <h3 className="font-semibold">餐食餐次</h3>
-          <p className="text-sm text-foreground/60">查看批次开放状态和订单数。</p>
-        </div>
+        <h3 className="font-semibold">餐食餐次</h3>
         <Chip variant="flat">{slots.length} 个餐次</Chip>
       </CardHeader>
       <CardBody>
@@ -343,10 +330,7 @@ function DrinkSlotsTable({
   return (
     <Card className="rounded-md">
       <CardHeader className="justify-between gap-4">
-        <div>
-          <h3 className="font-semibold">饮料补给批次</h3>
-          <p className="text-sm text-foreground/60">查看批次开放状态、订单数和选择分布。</p>
-        </div>
+        <h3 className="font-semibold">饮料补给批次</h3>
         <Chip variant="flat">{slots.length} 个批次</Chip>
       </CardHeader>
       <CardBody>
@@ -386,10 +370,7 @@ function MealOrdersTable({ orders, slots }: { orders: MealOrder[]; slots: MealSl
   return (
     <Card className="rounded-md">
       <CardHeader className="justify-between gap-4">
-        <div>
-          <h3 className="font-semibold">餐食订单</h3>
-          <p className="text-sm text-foreground/60">查看选手忌口、其他详情和备注。</p>
-        </div>
+        <h3 className="font-semibold">餐食订单</h3>
         <Chip variant="flat">{orders.length} 条订单</Chip>
       </CardHeader>
       <CardBody>
@@ -425,10 +406,7 @@ function DrinkOrdersTable({ orders, slots }: { orders: DrinkOrder[]; slots: Drin
   return (
     <Card className="rounded-md">
       <CardHeader className="justify-between gap-4">
-        <div>
-          <h3 className="font-semibold">饮料订单</h3>
-          <p className="text-sm text-foreground/60">查看选手饮料选择和备注。</p>
-        </div>
+        <h3 className="font-semibold">饮料订单</h3>
         <Chip variant="flat">{orders.length} 条订单</Chip>
       </CardHeader>
       <CardBody>

@@ -7,8 +7,10 @@ from typing import Any, Iterator
 
 from app.core.errors import Conflict, NoResource, NotFound
 from app.core.security import normalize_email
+from app.repositories.checkins import CheckinRepositoryMixin
 from app.repositories.common import bool_int, decode_time, encode_time, new_id, now_utc
 from app.repositories.meal_orders import MealOrderRepositoryMixin
+from app.repositories.participants import ParticipantRepositoryMixin
 from app.schemas import (
     AccommodationRequest,
     AuditLog,
@@ -40,7 +42,7 @@ def decrypt_for_mvp(value: str) -> str:
         return ""
 
 
-class SQLiteRepository(MealOrderRepositoryMixin):
+class SQLiteRepository(CheckinRepositoryMixin, MealOrderRepositoryMixin, ParticipantRepositoryMixin):
     def __init__(self, path: str):
         self.path = path
         db_path = Path(path)

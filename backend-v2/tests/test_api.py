@@ -33,6 +33,15 @@ def login(client: TestClient, email: str = "user@example.com") -> None:
     client.post("/api/auth/verify-code", json={"email": email, "code": code})
 
 
+def import_checkins(client: TestClient, values: list[str]) -> None:
+    response = client.post(
+        "/api/admin/checkin-ids/import",
+        headers={"X-Admin-Token": "secret"},
+        json={"values": values},
+    )
+    assert response.status_code == 201
+
+
 def test_public_seeded_feature_links_and_health(tmp_path: Path):
     client = make_client(tmp_path)
 
@@ -151,7 +160,8 @@ def test_checkin_and_resource_claim(tmp_path: Path):
     ]
     code = body.split("是 ")[1].split("，")[0]
     client.post("/api/auth/verify-code", json={"email": "a@example.com", "code": code})
-    bound = client.post("/api/auth/bind-checkin", json={"checkinId": "CHECKIN-001"})
+    import_checkins(client, ["100001"])
+    bound = client.post("/api/auth/bind-checkin", json={"checkinId": "100001"})
     assert bound.status_code == 200
 
     pool = client.post(
@@ -183,7 +193,8 @@ def test_resource_pool_can_allow_multiple_claims(tmp_path: Path):
     ]
     code = body.split("是 ")[1].split("，")[0]
     client.post("/api/auth/verify-code", json={"email": "multi@example.com", "code": code})
-    client.post("/api/auth/bind-checkin", json={"checkinId": "CHECKIN-MULTI"})
+    import_checkins(client, ["100002"])
+    client.post("/api/auth/bind-checkin", json={"checkinId": "100002"})
 
     pool = client.post(
         "/api/admin/resources/pools",
@@ -203,6 +214,78 @@ def test_resource_pool_can_allow_multiple_claims(tmp_path: Path):
     assert first.status_code == 201
     assert second.status_code == 201
     assert {first.json()["plainCode"], second.json()["plainCode"]} == {"CODE-1", "CODE-2"}
+
+
+def test_checkin_id_pool_generation_import_and_binding_rules(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    assert client.get("/api/admin/checkin-ids").status_code == 403
+
+    generated = client.post(
+        "/api/admin/checkin-ids/generate",
+        headers={"X-Admin-Token": "secret"},
+        json={"count": 5},
+    )
+    assert generated.status_code == 201
+    generated_ids = [row["id"] for row in generated.json()]
+    assert len(generated_ids) == 5
+    assert len(set(generated_ids)) == 5
+    assert all(re.fullmatch(r"\d{6}", checkin_id) for checkin_id in generated_ids)
+
+    invalid_import = client.post(
+        "/api/admin/checkin-ids/import",
+        headers={"X-Admin-Token": "secret"},
+        json={"values": ["ABC123"]},
+    )
+    assert invalid_import.status_code == 400
+
+    imported = client.post(
+        "/api/admin/checkin-ids/import",
+        headers={"X-Admin-Token": "secret"},
+        json={"values": ["000001", "000001", "000002"]},
+    )
+    assert imported.status_code == 201
+    assert [row["id"] for row in imported.json()] == ["000001", "000002"]
+
+    login(client, "pool-a@example.com")
+    unknown = client.post("/api/auth/bind-checkin", json={"checkinId": "999999"})
+    assert unknown.status_code == 404
+
+    bound = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
+    assert bound.status_code == 200
+    assert bound.json()["checkinId"] == "000001"
+
+    same_again = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
+    assert same_again.status_code == 200
+
+    switch = client.post("/api/auth/bind-checkin", json={"checkinId": "000002"})
+    assert switch.status_code == 409
+
+    duplicate = client.post(
+        "/api/auth/bind-checkin",
+        headers={"X-Participant-Email": "pool-b@example.com"},
+        json={"checkinId": "000001"},
+    )
+    assert duplicate.status_code == 409
+
+    accounts = client.get("/api/admin/participants", headers={"X-Admin-Token": "secret"}).json()
+    assert "pool-a@example.com" in [row["email"] for row in accounts]
+
+    disabled = client.patch(
+        "/api/admin/participants/pool-b%40example.com/status",
+        headers={"X-Admin-Token": "secret"},
+        json={"status": "disabled"},
+    )
+    assert disabled.status_code == 404
+
+    login(client, "pool-b@example.com")
+    disabled = client.patch(
+        "/api/admin/participants/pool-b%40example.com/status",
+        headers={"X-Admin-Token": "secret"},
+        json={"status": "disabled"},
+    )
+    assert disabled.status_code == 200
+    assert client.get("/api/me", headers={"X-Participant-Email": "pool-b@example.com"}).status_code == 401
 
 
 def test_meal_and_drink_orders_respect_open_windows(tmp_path: Path):

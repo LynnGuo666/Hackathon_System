@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { BedDouble, ClipboardList, Coffee, Compass, Home, KeyRound, LayoutDashboard, LogOut, Mail, MapPin, Settings2, Ticket, UserRoundPen, Utensils } from "lucide-react";
+import { BedDouble, ClipboardList, Coffee, Compass, Home, IdCard, KeyRound, LayoutDashboard, LogOut, Mail, MapPin, Settings2, Ticket, UserRoundPen, UsersRound, Utensils } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, type FeatureLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -25,6 +25,8 @@ const adminNavItems = [
   {
     title: "运营功能",
     items: [
+      { href: "/admin/accounts", label: "账号管理", icon: UsersRound },
+      { href: "/admin/checkins", label: "CheckinID", icon: IdCard },
       { href: "/admin/resources", label: "资源发放", icon: KeyRound },
       { href: "/admin/meal-orders", label: "餐饮补给", icon: Coffee },
       { href: "/admin/email-outbox", label: "邮件队列", icon: Mail },

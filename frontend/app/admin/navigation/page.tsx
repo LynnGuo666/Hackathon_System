@@ -48,19 +48,12 @@ export default function AdminNavigationPage() {
     <AppShell variant="admin">
       <section className="grid gap-5">
         <div>
-          <p className="text-sm text-foreground/60">front-stage entries</p>
           <h2 className="text-2xl font-semibold">赛事导航</h2>
-          <p className="mt-1 text-sm text-foreground/60">
-            添加赛事文档、规则、日程、资料包等链接；功能模块请到功能模块页启用或禁用。
-          </p>
         </div>
 
         <Card className="rounded-md">
           <CardHeader>
-            <div>
-              <h3 className="font-semibold">新增导航链接</h3>
-              <p className="text-sm text-foreground/60">适合放赛程、规则、直播、资料包等选手需要查看的链接。</p>
-            </div>
+            <h3 className="font-semibold">新增导航链接</h3>
           </CardHeader>
           <CardBody className="grid gap-3 md:grid-cols-[1fr_1fr]">
             <Input label="链接名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
@@ -79,10 +72,7 @@ export default function AdminNavigationPage() {
 
         <Card className="rounded-md">
           <CardHeader className="justify-between gap-4">
-            <div>
-              <h3 className="font-semibold">已配置导航</h3>
-              <p className="text-sm text-foreground/60">当前后端支持新增和查看；编辑、停用、排序后续可补接口。</p>
-            </div>
+            <h3 className="font-semibold">已配置导航</h3>
             <Chip variant="flat">{links.length} 个链接</Chip>
           </CardHeader>
           <CardBody>
