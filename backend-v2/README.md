@@ -17,6 +17,29 @@ app/
 
 ## 本地运行
 
+推荐直接使用启动脚本：
+
+```bash
+cd backend-v2
+./start-backend.sh
+```
+
+脚本会自动创建/使用 `.venv`，安装依赖，并启动 `uvicorn`。默认配置：
+
+- `ADMIN_TOKEN=secret`
+- `DATABASE_PATH=./hackathon.sqlite`
+- `CORS_ORIGIN=http://localhost:3000`
+- `HOST=0.0.0.0`
+- `PORT=8080`
+
+也可以覆盖配置：
+
+```bash
+ADMIN_TOKEN=your-token PORT=8081 ./start-backend.sh
+```
+
+手动启动方式：
+
 ```bash
 cd backend-v2
 python -m venv .venv

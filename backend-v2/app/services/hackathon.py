@@ -45,6 +45,7 @@ class HackathonService:
             raise InvalidEmail("invalid email")
         now = now_utc()
         code = f"{secrets.randbelow(1_000_000):06d}"
+        print(f"[auth] verification code for {email}: {code}", flush=True)
         self.repository.upsert_verification_code(
             VerificationCode(
                 email=email,

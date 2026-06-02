@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from fastapi.testclient import TestClient
 
@@ -30,6 +31,19 @@ def test_public_seeded_navigation_and_health(tmp_path: Path):
     links = client.get("/api/navigation-links").json()
 
     assert [link["url"] for link in links][:2] == ["/p/profile", "/p/accommodation"]
+
+
+def test_send_code_prints_debug_log(tmp_path: Path, capfd):
+    client = make_client(tmp_path)
+
+    response = client.post("/api/auth/send-code", json={"email": "Debug@Example.com"})
+    captured = capfd.readouterr()
+
+    assert response.status_code == 202
+    assert re.search(
+        r"\[auth\] verification code for debug@example\.com: \d{6}",
+        captured.out,
+    )
 
 
 def test_profile_requires_login_and_fields(tmp_path: Path):
