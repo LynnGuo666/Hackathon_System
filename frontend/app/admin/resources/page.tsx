@@ -4,6 +4,7 @@ import { Button, Card, CardBody, CardHeader, Input, Table, TableBody, TableCell,
 import { AppShell } from "@/components/app-shell";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { StatusChip } from "@/components/status-chip";
+import { errorText, notify } from "@/components/toast";
 import { api, type ResourceAssignment } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
@@ -11,25 +12,23 @@ export default function AdminResourcesPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState("code");
   const [assignments, setAssignments] = useState<ResourceAssignment[]>([]);
-  const [message, setMessage] = useState("");
 
   async function refresh() {
     try {
       setAssignments(await api.assignments());
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "读取发放记录失败");
+      notify.error(errorText(error, "读取发放记录失败"));
     }
   }
 
   async function createPool() {
-    setMessage("");
     try {
       const pool = await api.createPool(name, type);
-      setMessage(`已创建资源池：${pool.name}`);
+      notify.success(`已创建资源池：${pool.name}`);
       setName("");
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "创建失败");
+      notify.error(errorText(error, "创建失败"));
     }
   }
 
@@ -51,7 +50,6 @@ export default function AdminResourcesPage() {
             <Input label="资源名称" placeholder="AI 兑换码" value={name} onValueChange={setName} />
             <Input label="类型" placeholder="code / link / credential" value={type} onValueChange={setType} />
             <Button color="primary" className="self-end" onPress={createPool}>创建</Button>
-            {message && <p className="text-sm text-foreground/70 md:col-span-3">{message}</p>}
           </CardBody>
         </Card>
         <Card className="rounded-md">

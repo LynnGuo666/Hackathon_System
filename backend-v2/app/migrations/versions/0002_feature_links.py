@@ -18,9 +18,7 @@ depends_on = None
 FEATURE_NAV_IDS = (
     "nav_profile",
     "nav_accommodation",
-    "nav_identity",
     "nav_resources",
-    "nav_dashboard",
 )
 
 
@@ -49,13 +47,13 @@ SELECT
   created_at,
   updated_at
 FROM navigation_links
-WHERE id IN ('nav_profile', 'nav_accommodation', 'nav_identity', 'nav_resources', 'nav_dashboard')
+WHERE id IN ('nav_profile', 'nav_accommodation', 'nav_resources')
 """
     )
     op.execute(
         """
 DELETE FROM navigation_links
-WHERE id IN ('nav_profile', 'nav_accommodation', 'nav_identity', 'nav_resources', 'nav_dashboard')
+WHERE id IN ('nav_profile', 'nav_accommodation', 'nav_resources')
 """
     )
 
@@ -74,7 +72,7 @@ SELECT
   created_at,
   updated_at
 FROM feature_links
-WHERE id IN ('feat_profile', 'feat_accommodation', 'feat_identity', 'feat_resources', 'feat_dashboard')
+WHERE id IN ('feat_profile', 'feat_accommodation', 'feat_resources')
 """
     )
     op.drop_table("feature_links")

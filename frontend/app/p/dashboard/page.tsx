@@ -1,20 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import { Button, Card, CardBody, Chip, Spinner } from "@heroui/react";
+import { Card, CardBody, Chip, Spinner } from "@heroui/react";
 import { Countdown } from "@/components/countdown";
+import { errorText, notify } from "@/components/toast";
 import { api, type Participant, type SiteConfig } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [config, setConfig] = useState<SiteConfig | null>(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      api.me().catch((err) => { setError(err instanceof Error ? err.message : "无法读取身份信息"); return null; }),
+      api.me().catch((err) => {
+        notify.error(errorText(err, "无法读取身份信息"));
+        return null;
+      }),
       api.siteConfig().catch(() => null),
     ]).then(([p, cfg]) => {
       setParticipant(p);
@@ -30,15 +32,6 @@ export default function DashboardPage() {
       </div>
 
       {loading && <Spinner label="加载中" />}
-
-      {error && (
-        <Card className="rounded-md border-danger">
-          <CardBody className="flex-row items-center justify-between gap-3">
-            <p className="text-sm text-danger">{error}</p>
-            <Button as={Link} href="/login" color="primary" size="sm">去登录</Button>
-          </CardBody>
-        </Card>
-      )}
 
       {/* 倒计时卡片 */}
       {!loading && config?.countdownEnabled && config.countdownEnd && (

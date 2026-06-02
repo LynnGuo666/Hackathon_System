@@ -166,6 +166,10 @@ class FeatureLink(APIModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class FeatureToggleInput(APIModel):
+    enabled: bool
+
+
 class AccommodationOption(StrEnum):
     sleeping_bag = "sleeping_bag"
     tent = "tent"
@@ -188,6 +192,29 @@ class SiteConfig(APIModel):
     countdown_end: str = Field(default="", alias="countdownEnd")
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
     updated_at: str = Field(default="", alias="updatedAt")
+
+
+class EventLocation(APIModel):
+    id: str = "default"
+    name: str = ""
+    address: str = ""
+    latitude: float | None = None
+    longitude: float | None = None
+    osm_type: str = Field(default="", alias="osmType")
+    osm_id: str = Field(default="", alias="osmId")
+    osm_url: str = Field(default="", alias="osmUrl")
+    updated_at: str = Field(default="", alias="updatedAt")
+
+
+class OSMSearchResult(APIModel):
+    place_id: str = Field(default="", alias="placeId")
+    display_name: str = Field(default="", alias="displayName")
+    latitude: float = Field(alias="latitude")
+    longitude: float = Field(alias="longitude")
+    osm_type: str = Field(default="", alias="osmType")
+    osm_id: str = Field(default="", alias="osmId")
+    category: str = ""
+    type: str = ""
 
 
 class SendCodeInput(APIModel):

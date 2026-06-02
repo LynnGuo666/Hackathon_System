@@ -4,21 +4,20 @@ import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
 import { KeyRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { errorText, notify } from "@/components/toast";
 import { api } from "@/web/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [token, setToken] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
     if (!token.trim()) {
-      setMessage("请输入管理员令牌");
+      notify.warning("请输入管理员令牌");
       return;
     }
     setLoading(true);
-    setMessage("");
     try {
       // Test the token by calling an admin endpoint
       sessionStorage.setItem("admin_token", token.trim());
@@ -27,7 +26,7 @@ export default function AdminLoginPage() {
       router.push(next.startsWith("/") && next.startsWith("/admin") ? next : "/admin/resources");
     } catch (error) {
       sessionStorage.removeItem("admin_token");
-      setMessage(error instanceof Error ? error.message : "验证失败，请检查令牌");
+      notify.error(errorText(error, "验证失败，请检查令牌"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +51,6 @@ export default function AdminLoginPage() {
           <Button color="primary" isLoading={loading} onPress={handleLogin}>
             登录
           </Button>
-          {message && <p className="text-sm text-danger">{message}</p>}
         </CardBody>
       </Card>
     </main>

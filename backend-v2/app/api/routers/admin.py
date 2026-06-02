@@ -10,9 +10,12 @@ from app.schemas import (
     AssignInput,
     AuditLog,
     EmailOutbox,
+    EventLocation,
     FeatureLink,
+    FeatureToggleInput,
     ImportCodesInput,
     NavigationLink,
+    OSMSearchResult,
     ParticipantProfile,
     ResourceAssignment,
     ResourceItem,
@@ -214,6 +217,58 @@ def create_feature_link(
     svc: HackathonService = Depends(service),
 ) -> FeatureLink:
     return svc.create_feature_link(actor, input)
+
+
+@router.patch(
+    "/feature-links/{feature_id}",
+    dependencies=[Depends(require_admin_token)],
+    response_model=FeatureLink,
+    response_model_by_alias=True,
+)
+def update_feature_link(
+    feature_id: str,
+    input: FeatureToggleInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> FeatureLink:
+    return svc.set_feature_enabled(actor, feature_id, input.enabled)
+
+
+@router.get(
+    "/locations/search",
+    dependencies=[Depends(require_admin_token)],
+    response_model=list[OSMSearchResult],
+    response_model_by_alias=True,
+)
+def search_locations(
+    q: str,
+    svc: HackathonService = Depends(service),
+) -> list[OSMSearchResult]:
+    return svc.search_locations(q)
+
+
+@router.get(
+    "/event-location",
+    dependencies=[Depends(require_admin_token)],
+    response_model=EventLocation,
+    response_model_by_alias=True,
+)
+def admin_event_location(repo: SQLiteRepository = Depends(repository)) -> EventLocation:
+    return repo.get_event_location()
+
+
+@router.put(
+    "/event-location",
+    dependencies=[Depends(require_admin_token)],
+    response_model=EventLocation,
+    response_model_by_alias=True,
+)
+def update_event_location(
+    input: EventLocation,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> EventLocation:
+    return svc.update_event_location(actor, input)
 
 
 @router.put(

@@ -89,6 +89,29 @@ export type SiteConfig = {
   updatedAt: string;
 };
 
+export type EventLocation = {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  osmType: string;
+  osmId: string;
+  osmUrl: string;
+  updatedAt: string;
+};
+
+export type OSMSearchResult = {
+  placeId: string;
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  osmType: string;
+  osmId: string;
+  category: string;
+  type: string;
+};
+
 export type AccommodationOption = "sleeping_bag" | "tent" | "blanket" | "hotel" | "other";
 
 export type AccommodationRequest = {
@@ -175,15 +198,25 @@ export const api = {
     }),
   featureLinks: () => request<FeatureLink[]>("/api/feature-links"),
   adminFeatureLinks: () => request<FeatureLink[]>("/api/admin/feature-links", { admin: true }),
-  createFeatureLink: (input: Pick<FeatureLink, "title" | "description" | "url"> & { sortOrder?: number }) =>
-    request<FeatureLink>("/api/admin/feature-links", {
+  updateFeatureEnabled: (id: string, enabled: boolean) =>
+    request<FeatureLink>(`/api/admin/feature-links/${id}`, {
       admin: true,
-      method: "POST",
-      body: JSON.stringify(input),
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
     }),
   siteConfig: () => request<SiteConfig>("/api/site-config"),
   updateSiteConfig: (input: Partial<SiteConfig>) =>
     request<SiteConfig>("/api/admin/site-config", {
+      admin: true,
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  eventLocation: () => request<EventLocation>("/api/event-location"),
+  adminEventLocation: () => request<EventLocation>("/api/admin/event-location", { admin: true }),
+  searchLocations: (query: string) =>
+    request<OSMSearchResult[]>(`/api/admin/locations/search?q=${encodeURIComponent(query)}`, { admin: true }),
+  updateEventLocation: (input: EventLocation) =>
+    request<EventLocation>("/api/admin/event-location", {
       admin: true,
       method: "PUT",
       body: JSON.stringify(input),

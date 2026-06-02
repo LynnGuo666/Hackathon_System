@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Checkbox, CheckboxGroup, Input, Spinner } from "@heroui/react";
 import { Save } from "lucide-react";
+import { errorText, notify } from "@/components/toast";
 import { api, type AccommodationOption, type AccommodationRequest } from "@/web/lib/api";
 
 const OPTIONS: { value: AccommodationOption; label: string }[] = [
@@ -16,7 +17,6 @@ const OPTIONS: { value: AccommodationOption; label: string }[] = [
 export default function AccommodationPage() {
   const [selections, setSelections] = useState<AccommodationOption[]>([]);
   const [otherDetail, setOtherDetail] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -34,12 +34,11 @@ export default function AccommodationPage() {
 
   async function save() {
     setLoading(true);
-    setMessage("");
     try {
       await api.updateAccommodation({ selections, otherDetail });
-      setMessage("住宿需求已保存。");
+      notify.success("住宿需求已保存");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "保存失败");
+      notify.error(errorText(error, "保存失败"));
     } finally {
       setLoading(false);
     }
@@ -81,8 +80,6 @@ export default function AccommodationPage() {
               onValueChange={setOtherDetail}
             />
           )}
-
-          {message && <p className="text-sm text-foreground/70">{message}</p>}
 
           <div>
             <Button color="primary" startContent={<Save size={16} />} isLoading={loading} onPress={save}>

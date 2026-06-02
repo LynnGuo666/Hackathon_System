@@ -1,5 +1,8 @@
 import hashlib
+import json
 import secrets
+import urllib.parse
+import urllib.request
 from datetime import timedelta
 from email.utils import parseaddr
 
@@ -18,8 +21,10 @@ from app.repositories.sqlite import SQLiteRepository, now_utc
 from app.schemas import (
     AccommodationOption,
     AccommodationRequest,
+    EventLocation,
     FeatureLink,
     NavigationLink,
+    OSMSearchResult,
     Participant,
     ParticipantProfile,
     ResourceAssignment,
@@ -226,6 +231,21 @@ class HackathonService:
         )
         return saved
 
+    def set_feature_enabled(
+        self, actor_id: str, feature_id: str, enabled: bool
+    ) -> FeatureLink:
+        now = now_utc()
+        saved = self.repository.set_feature_link_enabled(feature_id, enabled, now)
+        self.repository.record_audit(
+            actor_id,
+            "feature_link.enable" if enabled else "feature_link.disable",
+            "feature_link",
+            saved.id,
+            "",
+            now,
+        )
+        return saved
+
     def update_site_config(self, actor_id: str, config: SiteConfig) -> SiteConfig:
         now = now_utc()
         saved = self.repository.update_site_config(config.model_dump(), now)
@@ -233,6 +253,67 @@ class HackathonService:
             actor_id, "site_config.update", "site_config", saved["id"], "", now
         )
         return SiteConfig(**saved)
+
+    def search_locations(self, query: str) -> list[OSMSearchResult]:
+        query = query.strip()
+        if not query:
+            return []
+        params = urllib.parse.urlencode(
+            {
+                "q": query,
+                "format": "jsonv2",
+                "limit": "5",
+                "addressdetails": "1",
+            }
+        )
+        request = urllib.request.Request(
+            f"https://nominatim.openstreetmap.org/search?{params}",
+            headers={
+                "User-Agent": "Hackathon_System/0.1 contact:admin@example.com",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=8) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        results: list[OSMSearchResult] = []
+        for item in payload:
+            try:
+                results.append(
+                    OSMSearchResult(
+                        placeId=str(item.get("place_id", "")),
+                        displayName=item.get("display_name", ""),
+                        latitude=float(item["lat"]),
+                        longitude=float(item["lon"]),
+                        osmType=item.get("osm_type", ""),
+                        osmId=str(item.get("osm_id", "")),
+                        category=item.get("category", ""),
+                        type=item.get("type", ""),
+                    )
+                )
+            except (KeyError, TypeError, ValueError):
+                continue
+        return results
+
+    def update_event_location(self, actor_id: str, location: EventLocation) -> EventLocation:
+        if not location.name.strip() or location.latitude is None or location.longitude is None:
+            raise InvalidNavigation("event location requires name and coordinates")
+        now = now_utc()
+        saved = self.repository.update_event_location(
+            location.model_copy(
+                update={
+                    "name": location.name.strip(),
+                    "address": location.address.strip(),
+                    "osm_type": location.osm_type.strip(),
+                    "osm_id": location.osm_id.strip(),
+                    "osm_url": location.osm_url.strip(),
+                }
+            ),
+            now,
+        )
+        self.repository.record_audit(
+            actor_id, "event_location.update", "event_location", saved.id, "", now
+        )
+        return saved
 
     def save_accommodation(
         self, email: str, request: AccommodationRequest

@@ -5,19 +5,18 @@ import { RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { StatusChip } from "@/components/status-chip";
+import { errorText, notify } from "@/components/toast";
 import { api, type EmailOutbox } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 export default function EmailOutboxPage() {
   const [emailRows, setEmailRows] = useState<EmailOutbox[]>([]);
-  const [message, setMessage] = useState("");
 
   async function refresh() {
     try {
       setEmailRows(await api.emailOutbox());
-      setMessage("");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "读取邮件队列失败");
+      notify.error(errorText(error, "读取邮件队列失败"));
     }
   }
 
@@ -25,8 +24,9 @@ export default function EmailOutboxPage() {
     try {
       await api.retryEmail(id);
       await refresh();
+      notify.success("已重新加入邮件队列");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "重试失败");
+      notify.error(errorText(error, "重试失败"));
     }
   }
 
@@ -46,7 +46,6 @@ export default function EmailOutboxPage() {
           <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>刷新</Button>
         </CardHeader>
         <CardBody>
-          {message && <p className="mb-3 text-sm text-danger">{message}</p>}
           <Table aria-label="邮件队列">
             <TableHeader>
               <TableColumn>收件人</TableColumn>

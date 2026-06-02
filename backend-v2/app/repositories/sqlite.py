@@ -13,6 +13,7 @@ from app.schemas import (
     AuditLog,
     EmailOutbox,
     EmailStatus,
+    EventLocation,
     FeatureLink,
     NavigationLink,
     Participant,
@@ -659,6 +660,24 @@ FROM audit_logs ORDER BY created_at ASC
     def list_feature_links(self, include_disabled: bool) -> list[FeatureLink]:
         return self._list_links("feature_links", FeatureLink, include_disabled)
 
+    def set_feature_link_enabled(
+        self, feature_id: str, enabled: bool, now: datetime
+    ) -> FeatureLink:
+        result = self.db.execute(
+            """
+UPDATE feature_links
+SET enabled = ?, updated_at = ?
+WHERE id = ?
+""",
+            (bool_int(enabled), encode_time(now), feature_id),
+        )
+        if result.rowcount == 0:
+            raise NotFound("feature module not found")
+        for link in self.list_feature_links(include_disabled=True):
+            if link.id == feature_id:
+                return link
+        raise NotFound("feature module not found")
+
     def _create_link(
         self,
         table: str,
@@ -765,6 +784,56 @@ ON CONFLICT(id) DO UPDATE SET
             ),
         )
         return self.get_site_config()
+
+    def get_event_location(self) -> EventLocation:
+        row = self.db.execute(
+            """
+SELECT id, name, address, latitude, longitude, osm_type, osm_id, osm_url, updated_at
+FROM event_location WHERE id = 'default' LIMIT 1
+"""
+        ).fetchone()
+        if not row:
+            return EventLocation()
+        return EventLocation(
+            id=row["id"],
+            name=row["name"],
+            address=row["address"],
+            latitude=row["latitude"],
+            longitude=row["longitude"],
+            osmType=row["osm_type"],
+            osmId=row["osm_id"],
+            osmUrl=row["osm_url"],
+            updatedAt=row["updated_at"],
+        )
+
+    def update_event_location(self, location: EventLocation, now: datetime) -> EventLocation:
+        updated_at = encode_time(now)
+        self.db.execute(
+            """
+INSERT INTO event_location (id, name, address, latitude, longitude, osm_type, osm_id, osm_url, updated_at)
+VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+  name = excluded.name,
+  address = excluded.address,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  osm_type = excluded.osm_type,
+  osm_id = excluded.osm_id,
+  osm_url = excluded.osm_url,
+  updated_at = excluded.updated_at
+""",
+            (
+                location.name,
+                location.address,
+                location.latitude,
+                location.longitude,
+                location.osm_type,
+                location.osm_id,
+                location.osm_url,
+                updated_at,
+            ),
+        )
+        return self.get_event_location()
 
     def upsert_accommodation(
         self, email: str, request: AccommodationRequest, now: datetime

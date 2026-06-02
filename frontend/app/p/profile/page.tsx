@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Input } from "@heroui/react";
 import { Link as LinkIcon, Save } from "lucide-react";
+import { errorText, notify } from "@/components/toast";
 import { api, type Participant, type ParticipantProfile } from "@/web/lib/api";
 
 export default function ProfilePage() {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [fullName, setFullName] = useState("");
   const [checkinId, setCheckinId] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [bindLoading, setBindLoading] = useState(false);
 
@@ -22,7 +22,6 @@ export default function ProfilePage() {
 
   async function saveProfile() {
     setLoading(true);
-    setMessage("");
     try {
       await api.updateProfile({
         fullName,
@@ -34,9 +33,9 @@ export default function ProfilePage() {
         emergencyContact: "",
         notes: "",
       });
-      setMessage("已保存。");
+      notify.success("资料已保存");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "保存失败");
+      notify.error(errorText(error, "保存失败"));
     } finally {
       setLoading(false);
     }
@@ -44,14 +43,13 @@ export default function ProfilePage() {
 
   async function bindCheckinId() {
     setBindLoading(true);
-    setMessage("");
     try {
       const result = await api.bindCheckin(checkinId);
       setParticipant(result);
       setCheckinId("");
-      setMessage("CheckinID 绑定成功！");
+      notify.success("CheckinID 绑定成功");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "绑定失败");
+      notify.error(errorText(error, "绑定失败"));
     } finally {
       setBindLoading(false);
     }
@@ -122,8 +120,6 @@ export default function ProfilePage() {
           )}
         </CardBody>
       </Card>
-
-      {message && <p className="text-sm text-foreground/70">{message}</p>}
     </section>
   );
 }

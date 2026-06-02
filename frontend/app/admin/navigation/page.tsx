@@ -4,6 +4,7 @@ import { Button, Card, CardBody, CardHeader, Chip, Input, Table, TableBody, Tabl
 import { ExternalLink, Plus, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
+import { errorText, notify } from "@/components/toast";
 import { api, type NavigationLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
@@ -12,30 +13,27 @@ export default function AdminNavigationPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function refresh() {
     try {
       setLinks(await api.adminNavigationLinks());
-      setMessage("");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "读取导航配置失败");
+      notify.error(errorText(error, "读取导航配置失败"));
     }
   }
 
   async function createLink() {
     setLoading(true);
-    setMessage("");
     try {
       const link = await api.createNavigationLink({ title, description, url });
-      setMessage(`已添加导航入口：${link.title}`);
+      notify.success(`已添加导航链接：${link.title}`);
       setTitle("");
       setDescription("");
       setUrl("");
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "添加失败");
+      notify.error(errorText(error, "添加失败"));
     } finally {
       setLoading(false);
     }
@@ -51,42 +49,41 @@ export default function AdminNavigationPage() {
       <section className="grid gap-5">
         <div>
           <p className="text-sm text-foreground/60">front-stage entries</p>
-          <h2 className="text-2xl font-semibold">入口导航</h2>
+          <h2 className="text-2xl font-semibold">赛事导航</h2>
           <p className="mt-1 text-sm text-foreground/60">
-            管理选手端和公开首页展示的快捷入口；后台左侧菜单由系统固定维护。
+            添加赛事文档、规则、日程、资料包等链接；功能模块请到功能模块页启用或禁用。
           </p>
         </div>
 
         <Card className="rounded-md">
           <CardHeader>
             <div>
-              <h3 className="font-semibold">新增前台入口</h3>
-              <p className="text-sm text-foreground/60">适合放赛程、直播、资料包、地图等选手需要快速访问的链接。</p>
+              <h3 className="font-semibold">新增导航链接</h3>
+              <p className="text-sm text-foreground/60">适合放赛程、规则、直播、资料包等选手需要查看的链接。</p>
             </div>
           </CardHeader>
           <CardBody className="grid gap-3 md:grid-cols-[1fr_1fr]">
-            <Input label="入口名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
+            <Input label="链接名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
             <Input label="跳转地址" placeholder="/p/dashboard 或 https://example.com" value={url} onValueChange={setUrl} />
-            <Input className="md:col-span-2" label="说明" placeholder="显示在入口卡片上的简短说明" value={description} onValueChange={setDescription} />
+            <Input className="md:col-span-2" label="说明" placeholder="显示在导航卡片上的简短说明" value={description} onValueChange={setDescription} />
             <div className="flex gap-2 md:col-span-2">
               <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createLink}>
-                添加入口
+                添加导航链接
               </Button>
               <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
                 刷新
               </Button>
             </div>
-            {message && <p className="text-sm text-foreground/70 md:col-span-2">{message}</p>}
           </CardBody>
         </Card>
 
         <Card className="rounded-md">
           <CardHeader className="justify-between gap-4">
             <div>
-              <h3 className="font-semibold">已配置入口</h3>
+              <h3 className="font-semibold">已配置导航</h3>
               <p className="text-sm text-foreground/60">当前后端支持新增和查看；编辑、停用、排序后续可补接口。</p>
             </div>
-            <Chip variant="flat">{links.length} 个入口</Chip>
+            <Chip variant="flat">{links.length} 个链接</Chip>
           </CardHeader>
           <CardBody>
             <Table aria-label="导航按钮配置">

@@ -35,23 +35,18 @@ def test_public_seeded_feature_links_and_health(tmp_path: Path):
     assert "/p/profile" not in [link["url"] for link in links]
 
 
-def test_admin_feature_links_are_separate_from_navigation(tmp_path: Path):
+def test_admin_feature_modules_can_be_disabled_and_navigation_stays_separate(tmp_path: Path):
     client = make_client(tmp_path)
 
     assert client.get("/api/admin/feature-links").status_code == 403
 
-    feature = client.post(
-        "/api/admin/feature-links",
+    disabled = client.patch(
+        "/api/admin/feature-links/feat_profile",
         headers={"X-Admin-Token": "secret"},
-        json={
-            "title": " 点餐登记 ",
-            "description": "提交午餐偏好",
-            "url": " https://example.com/order ",
-        },
+        json={"enabled": False},
     )
-    assert feature.status_code == 201
-    assert feature.json()["title"] == "点餐登记"
-    assert feature.json()["url"] == "https://example.com/order"
+    assert disabled.status_code == 200
+    assert disabled.json()["enabled"] is False
 
     navigation = client.post(
         "/api/admin/navigation-links",
@@ -67,9 +62,35 @@ def test_admin_feature_links_are_separate_from_navigation(tmp_path: Path):
     public_features = client.get("/api/feature-links").json()
     public_navigation = client.get("/api/navigation-links").json()
 
-    assert "https://example.com/order" in [link["url"] for link in public_features]
-    assert "https://example.com/order" not in [link["url"] for link in public_navigation]
+    assert "/p/profile" not in [link["url"] for link in public_features]
     assert "https://example.com/rules" in [link["url"] for link in public_navigation]
+
+
+def test_admin_event_location_can_be_saved_and_read_publicly(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    empty = client.get("/api/event-location").json()
+    assert empty["name"] == ""
+
+    saved = client.put(
+        "/api/admin/event-location",
+        headers={"X-Admin-Token": "secret"},
+        json={
+            "name": "Demo Hall",
+            "address": "Demo Hall, Example Street",
+            "latitude": 31.2304,
+            "longitude": 121.4737,
+            "osmType": "node",
+            "osmId": "123",
+            "osmUrl": "https://www.openstreetmap.org/node/123",
+        },
+    )
+    assert saved.status_code == 200
+    assert saved.json()["name"] == "Demo Hall"
+
+    public_location = client.get("/api/event-location").json()
+    assert public_location["latitude"] == 31.2304
+    assert public_location["osmUrl"] == "https://www.openstreetmap.org/node/123"
 
 
 def test_send_code_prints_debug_log(tmp_path: Path, capfd):

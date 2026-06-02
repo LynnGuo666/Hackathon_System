@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { Activity, BedDouble, ClipboardList, Compass, Home, KeyRound, LayoutDashboard, LogOut, Mail, Settings2, Ticket, UserRoundPen } from "lucide-react";
+import { Activity, BedDouble, ClipboardList, Compass, Home, KeyRound, LayoutDashboard, LogOut, Mail, MapPin, Settings2, Ticket, UserRoundPen } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { api } from "@/web/lib/api";
+import { api, type FeatureLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 const participantNavItems = [
   { href: "/p/dashboard", label: "总览", icon: Home },
   { href: "/p/services", label: "赛事服务", icon: ClipboardList },
-  { href: "/p/profile", label: "我的资料", icon: UserRoundPen },
-  { href: "/p/accommodation", label: "住宿需求", icon: BedDouble },
-  { href: "/p/resources", label: "我的资源", icon: Ticket },
 ];
+
+const featureNavIcons = {
+  "/p/profile": UserRoundPen,
+  "/p/accommodation": BedDouble,
+  "/p/location": MapPin,
+  "/p/resources": Ticket,
+};
 
 const adminNavItems = [
   {
@@ -27,7 +31,7 @@ const adminNavItems = [
   {
     title: "体验配置",
     items: [
-      { href: "/admin/features", label: "功能入口", icon: Settings2 },
+      { href: "/admin/features", label: "功能模块", icon: Settings2 },
       { href: "/admin/navigation", label: "入口导航", icon: Compass },
     ],
   },
@@ -41,15 +45,34 @@ export function AppShell({
   variant?: "participant" | "admin";
 }) {
   const [apiReady, setApiReady] = useState<"checking" | "online" | "offline">("checking");
+  const [featureItems, setFeatureItems] = useState<FeatureLink[]>([]);
   const pathname = usePathname();
   const router = useRouter();
-  const participantItems = variant === "participant" ? participantNavItems : [];
+  const participantItems = variant === "participant"
+    ? [
+      ...participantNavItems,
+      ...featureItems.map((item) => ({
+        href: item.url,
+        label: item.title,
+        icon: featureNavIcons[item.url as keyof typeof featureNavIcons] ?? ClipboardList,
+      })),
+    ]
+    : [];
 
   useEffect(() => {
     api.health()
       .then(() => setApiReady("online"))
       .catch(() => setApiReady("offline"));
   }, []);
+
+  useEffect(() => {
+    if (variant !== "participant") {
+      return;
+    }
+    api.featureLinks()
+      .then(setFeatureItems)
+      .catch(() => setFeatureItems([]));
+  }, [variant]);
 
   return (
     <div className="min-h-screen">

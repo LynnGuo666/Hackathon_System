@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository
 from app.repositories.sqlite import SQLiteRepository
-from app.schemas import FeatureLink, NavigationLink, SiteConfig
+from app.schemas import EventLocation, FeatureLink, NavigationLink, SiteConfig
 
 router = APIRouter(prefix="/api")
 
@@ -25,3 +25,8 @@ def feature_links(repo: SQLiteRepository = Depends(repository)) -> list[FeatureL
 @router.get("/site-config", response_model=SiteConfig, response_model_by_alias=True)
 def site_config(repo: SQLiteRepository = Depends(repository)) -> SiteConfig:
     return SiteConfig(**repo.get_site_config())
+
+
+@router.get("/event-location", response_model=EventLocation, response_model_by_alias=True)
+def event_location(repo: SQLiteRepository = Depends(repository)) -> EventLocation:
+    return repo.get_event_location()

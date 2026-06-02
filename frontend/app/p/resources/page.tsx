@@ -3,18 +3,18 @@
 import { Button, Card, CardBody, CardHeader, Input, Spinner } from "@heroui/react";
 import { Copy } from "lucide-react";
 import { StatusChip } from "@/components/status-chip";
+import { errorText, notify } from "@/components/toast";
 import { api, type ResourceAssignment } from "@/web/lib/api";
 import { useEffect, useState } from "react";
 
 export default function ResourcesPage() {
   const [resources, setResources] = useState<ResourceAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     api.resources()
       .then(setResources)
-      .catch((err) => setError(err instanceof Error ? err.message : "无法读取资源"))
+      .catch((err) => notify.error(errorText(err, "无法读取资源")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -25,8 +25,7 @@ export default function ResourcesPage() {
         <h2 className="text-2xl font-semibold">我的兑换码与领取凭证</h2>
       </div>
       {loading && <Spinner label="正在读取后端资源" />}
-      {error && <p className="text-sm text-danger">{error}</p>}
-      {!loading && !error && resources.length === 0 && (
+      {!loading && resources.length === 0 && (
         <Card className="rounded-md">
           <CardBody className="text-sm text-foreground/65">暂无资源发放记录。</CardBody>
         </Card>

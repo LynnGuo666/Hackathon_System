@@ -23,8 +23,8 @@ const adminModules = [
   },
   {
     href: "/admin/features",
-    title: "功能入口",
-    description: "维护需求收集、点餐、资源发放等可办理事项。",
+    title: "功能模块",
+    description: "启用或禁用资料、住宿、资源、赛事地点等内置模块。",
     group: "体验配置",
     icon: Settings2,
   },

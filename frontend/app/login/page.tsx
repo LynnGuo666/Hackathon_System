@@ -4,23 +4,22 @@ import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
 import { Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { errorText, notify } from "@/components/toast";
 import { api } from "@/web/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function sendCode() {
     setLoading(true);
-    setMessage("");
     try {
       await api.sendCode(email);
-      setMessage("验证码已写入邮件队列，请在后台邮件队列中查看或等待发送。");
+      notify.success("验证码已写入邮件队列，请等待发送");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "发送失败");
+      notify.error(errorText(error, "发送失败"));
     } finally {
       setLoading(false);
     }
@@ -28,13 +27,12 @@ export default function LoginPage() {
 
   async function verifyCode() {
     setLoading(true);
-    setMessage("");
     try {
       await api.verifyCode(email, code);
       const next = new URLSearchParams(window.location.search).get("next") || "/p/dashboard";
       router.push(next.startsWith("/") ? next : "/p/dashboard");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "验证失败");
+      notify.error(errorText(error, "验证失败"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +50,6 @@ export default function LoginPage() {
           <Input label="验证码" placeholder="6 位数字" value={code} onValueChange={setCode} />
           <Button color="primary" isLoading={loading} onPress={sendCode}>发送验证码</Button>
           <Button color="success" isLoading={loading} onPress={verifyCode}>验证并进入</Button>
-          {message && <p className="text-sm text-foreground/70">{message}</p>}
           <p className="text-sm text-foreground/60">
             赛前用邮箱填写需求；现场签到后，CheckinID 将成为资源发放和核销身份。
           </p>
