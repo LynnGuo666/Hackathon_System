@@ -33,7 +33,7 @@ export default function MealOrderPage() {
       setMealOrders(nextMealOrders);
       setDrinkOrders(nextDrinkOrders);
     } catch (error) {
-      notify.error(errorText(error, "读取餐饮补给失败"));
+      notify.error(errorText(error, "读取餐饮补给相关信息失败"));
     } finally {
       setLoading(false);
     }
@@ -52,20 +52,20 @@ export default function MealOrderPage() {
   }, [drinkOrders]);
 
   if (loading) {
-    return <Spinner label="加载中" />;
+    return <Spinner label="加载中..." />;
   }
 
   return (
     <section className="grid gap-5">
       <div>
         <p className="text-sm text-foreground/60">餐饮补给</p>
-        <h2 className="text-2xl font-semibold">餐食与饮料补给</h2>
+        <h2 className="text-2xl font-semibold">餐食与饮料补给相关信息</h2>
       </div>
 
       <Tabs aria-label="餐饮补给类型" variant="underlined">
         <Tab key="meals" title={<TabTitle icon={<Utensils size={16} />} label="餐食" />}>
           <div className="grid gap-4 pt-4">
-            {mealSlots.length === 0 && <EmptyState text="暂无开放或可查看的餐食餐次。" />}
+            {mealSlots.length === 0 && <EmptyState text="暂无开放或可查看的餐食餐次数据。" />}
             {mealSlots.map((slot) => (
               <MealSlotCard
                 key={slot.id}

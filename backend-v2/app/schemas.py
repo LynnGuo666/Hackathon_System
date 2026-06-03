@@ -303,6 +303,62 @@ class SiteConfig(APIModel):
     updated_at: str = Field(default="", alias="updatedAt")
 
 
+class AdminOverviewParticipants(APIModel):
+    total: int = 0
+    pending: int = 0
+    active: int = 0
+    disabled: int = 0
+    checked_in: int = Field(default=0, alias="checkedIn")
+
+
+class AdminOverviewCheckinIDs(APIModel):
+    total: int = 0
+    available: int = 0
+    bound: int = 0
+
+
+class AdminOverviewResources(APIModel):
+    pools: int = 0
+    items: int = 0
+    available_items: int = Field(default=0, alias="availableItems")
+    assigned_items: int = Field(default=0, alias="assignedItems")
+    assignments: int = 0
+
+
+class AdminOverviewEmails(APIModel):
+    total: int = 0
+    pending: int = 0
+    sending: int = 0
+    sent: int = 0
+    failed: int = 0
+
+
+class AdminOverviewMeals(APIModel):
+    meal_slots: int = Field(default=0, alias="mealSlots")
+    drink_slots: int = Field(default=0, alias="drinkSlots")
+    meal_orders: int = Field(default=0, alias="mealOrders")
+    drink_orders: int = Field(default=0, alias="drinkOrders")
+
+
+class AdminOverviewConfiguration(APIModel):
+    site_config: SiteConfig = Field(default_factory=SiteConfig, alias="siteConfig")
+    navigation_links: int = Field(default=0, alias="navigationLinks")
+    feature_links: int = Field(default=0, alias="featureLinks")
+
+
+class AdminOverview(APIModel):
+    participants: AdminOverviewParticipants = Field(default_factory=AdminOverviewParticipants)
+    checkin_ids: AdminOverviewCheckinIDs = Field(
+        default_factory=AdminOverviewCheckinIDs, alias="checkinIds"
+    )
+    resources: AdminOverviewResources = Field(default_factory=AdminOverviewResources)
+    emails: AdminOverviewEmails = Field(default_factory=AdminOverviewEmails)
+    meals: AdminOverviewMeals = Field(default_factory=AdminOverviewMeals)
+    configuration: AdminOverviewConfiguration = Field(
+        default_factory=AdminOverviewConfiguration
+    )
+
+
 class EventLocation(APIModel):
     id: str = "default"
     name: str = ""

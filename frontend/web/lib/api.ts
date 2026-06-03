@@ -154,6 +154,46 @@ export type AccommodationRequest = {
   updatedAt: string;
 };
 
+export type AdminOverview = {
+  participants: {
+    total: number;
+    pending: number;
+    active: number;
+    disabled: number;
+    checkedIn: number;
+  };
+  checkinIds: {
+    total: number;
+    available: number;
+    bound: number;
+  };
+  resources: {
+    pools: number;
+    items: number;
+    availableItems: number;
+    assignedItems: number;
+    assignments: number;
+  };
+  emails: {
+    total: number;
+    pending: number;
+    sending: number;
+    sent: number;
+    failed: number;
+  };
+  meals: {
+    mealSlots: number;
+    drinkSlots: number;
+    mealOrders: number;
+    drinkOrders: number;
+  };
+  configuration: {
+    siteConfig: SiteConfig;
+    navigationLinks: number;
+    featureLinks: number;
+  };
+};
+
 export type MealSlot = {
   id: string;
   title: string;
@@ -281,6 +321,7 @@ export const api = {
       body: JSON.stringify(profile),
     }),
   resources: () => request<ResourceAssignment[]>("/api/resources"),
+  adminOverview: () => request<AdminOverview>("/api/admin/overview", { admin: true }),
   pools: () => request<ResourcePool[]>("/api/admin/resources/pools", { admin: true }),
   pool: (poolId: string) => request<ResourcePool>(`/api/admin/resources/pools/${poolId}`, { admin: true }),
   createPool: (input: Pick<ResourcePool, "name" | "type"> & { allowMultipleClaims?: boolean }) =>
@@ -369,6 +410,8 @@ export const api = {
       body: JSON.stringify(input),
     }),
   accommodation: () => request<AccommodationRequest>("/api/accommodation"),
+  adminAccommodationRequests: () =>
+    request<AccommodationRequest[]>("/api/admin/accommodation-requests", { admin: true }),
   updateAccommodation: (input: Pick<AccommodationRequest, "selections" | "otherDetail">) =>
     request<AccommodationRequest>("/api/accommodation", {
       method: "PUT",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Chip, useDisclosure } from "@heroui/react";
+import { Button, Card, CardBody, Chip, useDisclosure } from "@heroui/react";
 import { RefreshCw } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
@@ -23,10 +23,14 @@ export default function AdminFeaturesPage() {
   const [savingLocation, setSavingLocation] = useState(false);
   const [savingCountdown, setSavingCountdown] = useState(false);
   const [updatingId, setUpdatingId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const { isOpen: isLocationOpen, onOpen: openLocation, onOpenChange: onLocationOpenChange } = useDisclosure();
   const { isOpen: isCountdownOpen, onOpen: openCountdown, onOpenChange: onCountdownOpenChange } = useDisclosure();
 
   async function refresh() {
+    setLoading(true);
+    setLoadError("");
     try {
       const [featureRows, currentLocation, currentConfig] = await Promise.all([
         api.adminFeatureLinks(),
@@ -41,7 +45,11 @@ export default function AdminFeaturesPage() {
       setCountdownEnd(toDateTimeLocal(currentConfig.countdownEnd));
       setCountdownEnabled(currentConfig.countdownEnabled);
     } catch (error) {
-      notify.error(errorText(error, "读取模块配置失败"));
+      const message = errorText(error, "读取模块配置失败");
+      setLoadError(message);
+      notify.error(message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -66,15 +74,15 @@ export default function AdminFeaturesPage() {
     setSavingLocation(true);
     try {
       const saved = await api.updateEventLocation({
-        id: "default",
+        id: location?.id || "default",
         name: manualLocationName.trim(),
-        address: manualLocationName.trim(),
-        latitude: null,
-        longitude: null,
-        osmType: "",
-        osmId: "",
-        osmUrl: "",
-        updatedAt: "",
+        address: location?.address || manualLocationName.trim(),
+        latitude: location?.latitude ?? null,
+        longitude: location?.longitude ?? null,
+        osmType: location?.osmType || "",
+        osmId: location?.osmId || "",
+        osmUrl: location?.osmUrl || "",
+        updatedAt: location?.updatedAt || "",
       });
       setLocation(saved);
       notify.success("赛事地点已保存");
@@ -125,13 +133,21 @@ export default function AdminFeaturesPage() {
 
           <div className="flex items-center justify-between gap-3">
             <Chip variant="flat">{modules.filter((item) => item.enabled).length} 个启用</Chip>
-            <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
+            <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
           </div>
 
+          {loadError && (
+            <Card className="rounded-md">
+              <CardBody className="text-sm text-danger">{loadError}</CardBody>
+            </Card>
+          )}
+
           <FeaturesTable
             modules={modules}
+            loading={loading}
+            loadError={loadError}
             updatingId={updatingId}
             onToggle={toggleModule}
             onOpenLocation={openLocation}

@@ -22,7 +22,7 @@ export default function ResourcesPage() {
     <section className="grid gap-5">
       <div>
         <p className="text-sm text-foreground/60">唯一资源</p>
-        <h2 className="text-2xl font-semibold">我的兑换码与领取凭证</h2>
+        <h2 className="text-2xl font-semibold">兑换码与领取凭证</h2>
       </div>
       {loading && <Spinner label="正在读取后端资源" />}
       {!loading && resources.length === 0 && (

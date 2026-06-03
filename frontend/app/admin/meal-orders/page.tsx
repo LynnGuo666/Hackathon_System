@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Tab, Tabs } from "@heroui/react";
+import { Button, Card, CardBody, Tab, Tabs } from "@heroui/react";
 import { Coffee, RefreshCw, Utensils } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
@@ -28,21 +28,29 @@ export default function AdminMealOrdersPage() {
   const [mealOrders, setMealOrders] = useState<MealOrder[]>([]);
   const [drinkOrders, setDrinkOrders] = useState<DrinkOrder[]>([]);
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   async function refresh() {
+    setListLoading(true);
+    setLoadError("");
     try {
       const [nextMealSlots, nextDrinkSlots, nextMealOrders, nextDrinkOrders] = await Promise.all([
-        api.adminMealSlots().catch(() => []),
-        api.adminDrinkSlots().catch(() => []),
-        api.adminMealOrders().catch(() => []),
-        api.adminDrinkOrders().catch(() => []),
+        api.adminMealSlots(),
+        api.adminDrinkSlots(),
+        api.adminMealOrders(),
+        api.adminDrinkOrders(),
       ]);
       setMealSlots(nextMealSlots);
       setDrinkSlots(nextDrinkSlots);
       setMealOrders(nextMealOrders);
       setDrinkOrders(nextDrinkOrders);
     } catch (error) {
-      notify.error(errorText(error, "读取餐饮订单失败"));
+      const message = errorText(error, "读取餐饮订单失败");
+      setLoadError(message);
+      notify.error(message);
+    } finally {
+      setListLoading(false);
     }
   }
 
@@ -62,24 +70,30 @@ export default function AdminMealOrdersPage() {
           </div>
 
           <div className="flex justify-end">
-            <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
+            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
               刷新
             </Button>
           </div>
+
+          {loadError && (
+            <Card className="rounded-md">
+              <CardBody className="text-sm text-danger">{loadError}</CardBody>
+            </Card>
+          )}
 
           <Tabs aria-label="餐饮补给管理" variant="underlined">
             <Tab key="meals" title={<TabTitle icon={<Utensils size={16} />} label="餐食餐次" />}>
               <div className="grid gap-5 pt-4">
                 <MealSlotForm loading={loading} setLoading={setLoading} onSaved={refresh} />
-                <MealSlotsTable slots={mealSlots} stats={mealStats} />
-                <MealOrdersTable orders={mealOrders} slots={mealSlots} />
+                <MealSlotsTable slots={mealSlots} stats={mealStats} loading={listLoading} loadError={loadError} />
+                <MealOrdersTable orders={mealOrders} slots={mealSlots} loading={listLoading} loadError={loadError} />
               </div>
             </Tab>
             <Tab key="drinks" title={<TabTitle icon={<Coffee size={16} />} label="饮料补给" />}>
               <div className="grid gap-5 pt-4">
                 <DrinkSlotForm loading={loading} setLoading={setLoading} onSaved={refresh} />
-                <DrinkSlotsTable slots={drinkSlots} stats={drinkStats} orders={drinkOrders} />
-                <DrinkOrdersTable orders={drinkOrders} slots={drinkSlots} />
+                <DrinkSlotsTable slots={drinkSlots} stats={drinkStats} orders={drinkOrders} loading={listLoading} loadError={loadError} />
+                <DrinkOrdersTable orders={drinkOrders} slots={drinkSlots} loading={listLoading} loadError={loadError} />
               </div>
             </Tab>
           </Tabs>

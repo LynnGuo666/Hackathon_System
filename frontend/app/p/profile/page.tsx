@@ -101,7 +101,7 @@ export default function ProfilePage() {
             <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <Input
                 label="CheckinID"
-                placeholder="000001"
+                placeholder="000000"
                 value={checkinId}
                 onValueChange={setCheckinId}
               />

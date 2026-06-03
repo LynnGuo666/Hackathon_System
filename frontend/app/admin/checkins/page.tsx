@@ -10,6 +10,9 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem,
+  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -28,15 +31,25 @@ import { api, type CheckinIDRecord } from "@/web/lib/api";
 export default function AdminCheckinsPage() {
   const [rows, setRows] = useState<CheckinIDRecord[]>([]);
   const [count, setCount] = useState("100");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
   const [bulkValues, setBulkValues] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   async function refresh() {
+    setLoading(true);
+    setLoadError("");
     try {
       setRows(await api.checkinIds());
     } catch (error) {
-      notify.error(errorText(error, "读取 CheckinID 失败"));
+      const message = errorText(error, "读取 CheckinID 失败");
+      setLoadError(message);
+      notify.error(message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -88,13 +101,23 @@ export default function AdminCheckinsPage() {
     bound: rows.filter((row) => row.status === "bound").length,
   }), [rows]);
 
+  const filteredRows = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    return rows.filter((row) => {
+      const matchesQuery = !keyword || [row.id, row.assignedEmail]
+        .some((value) => value.toLowerCase().includes(keyword));
+      const matchesFilter = filter === "all" || row.status === filter;
+      return matchesQuery && matchesFilter;
+    });
+  }, [filter, query, rows]);
+
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
         <section className="grid gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold">CheckinID</h2>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>刷新</Button>
+            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>刷新</Button>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[180px_auto_auto_1fr]">
@@ -112,6 +135,19 @@ export default function AdminCheckinsPage() {
             </div>
           </div>
 
+          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+            <Input label="搜索" value={query} onValueChange={setQuery} />
+            <Select
+              label="状态"
+              selectedKeys={[filter]}
+              onSelectionChange={(keys) => setFilter(Array.from(keys)[0]?.toString() || "all")}
+            >
+              <SelectItem key="all">全部</SelectItem>
+              <SelectItem key="available">未使用</SelectItem>
+              <SelectItem key="bound">已绑定</SelectItem>
+            </Select>
+          </div>
+
           <Table aria-label="CheckinID 列表">
             <TableHeader>
               <TableColumn>CheckinID</TableColumn>
@@ -120,7 +156,12 @@ export default function AdminCheckinsPage() {
               <TableColumn>绑定时间</TableColumn>
               <TableColumn>创建时间</TableColumn>
             </TableHeader>
-            <TableBody items={rows}>
+            <TableBody
+              items={filteredRows}
+              isLoading={loading}
+              loadingContent={<Spinner size="sm" label="正在读取 CheckinID..." />}
+              emptyContent={loadError || (query || filter !== "all" ? "没有匹配的 CheckinID" : "暂无 CheckinID 数据")}
+            >
               {(row) => (
                 <TableRow key={row.id}>
                   <TableCell>{row.id}</TableCell>

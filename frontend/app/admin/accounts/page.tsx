@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Chip, Input, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import { Button, Chip, Input, Select, SelectItem, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { RefreshCw } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
@@ -22,12 +22,20 @@ export default function AdminAccountsPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [updatingEmail, setUpdatingEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   async function refresh() {
+    setLoading(true);
+    setLoadError("");
     try {
       setAccounts(await api.participants());
     } catch (error) {
-      notify.error(errorText(error, "读取账号失败"));
+      const message = errorText(error, "读取账号失败");
+      setLoadError(message);
+      notify.error(message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -57,6 +65,7 @@ export default function AdminAccountsPage() {
         account.fullName,
         account.teamName,
         account.school,
+        account.phone,
       ].some((value) => value.toLowerCase().includes(keyword));
       const matchesFilter =
         filter === "all" ||
@@ -73,7 +82,7 @@ export default function AdminAccountsPage() {
         <section className="grid gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold">账号管理</h2>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>刷新</Button>
+            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>刷新</Button>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_220px]">
@@ -93,11 +102,20 @@ export default function AdminAccountsPage() {
               <TableColumn>CheckinID</TableColumn>
               <TableColumn>状态</TableColumn>
               <TableColumn>姓名</TableColumn>
+              <TableColumn>手机号</TableColumn>
               <TableColumn>队伍</TableColumn>
               <TableColumn>学校</TableColumn>
+              <TableColumn>资料更新</TableColumn>
+              <TableColumn>创建时间</TableColumn>
+              <TableColumn>更新时间</TableColumn>
               <TableColumn>操作</TableColumn>
             </TableHeader>
-            <TableBody items={rows}>
+            <TableBody
+              items={rows}
+              isLoading={loading}
+              loadingContent={<Spinner size="sm" label="正在读取账号..." />}
+              emptyContent={loadError || (query || filter !== "all" ? "没有匹配的账号" : "暂无账号数据")}
+            >
               {(row) => (
                 <TableRow key={row.email}>
                   <TableCell>{row.email}</TableCell>
@@ -108,8 +126,12 @@ export default function AdminAccountsPage() {
                     </Chip>
                   </TableCell>
                   <TableCell>{row.fullName || "-"}</TableCell>
+                  <TableCell>{row.phone || "-"}</TableCell>
                   <TableCell>{row.teamName || "-"}</TableCell>
                   <TableCell>{row.school || "-"}</TableCell>
+                  <TableCell>{formatDateTime(row.profileUpdatedAt)}</TableCell>
+                  <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                  <TableCell>{formatDateTime(row.updatedAt)}</TableCell>
                   <TableCell>
                     <Select
                       className="w-32"
@@ -137,4 +159,15 @@ export default function AdminAccountsPage() {
       </AppShell>
     </AdminAuthGuard>
   );
+}
+
+function formatDateTime(value?: string) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString("zh-CN", { hour12: false });
 }

@@ -9,6 +9,7 @@ import {
   CardHeader,
   Chip,
   Input,
+  Spinner,
   Switch,
   Table,
   TableBody,
@@ -37,6 +38,18 @@ const typeLabels: Record<string, string> = {
   physical: "实体物资",
 };
 
+const distributionLabels: Record<string, string> = {
+  one_per_participant: "每人一次",
+  role_based: "按角色",
+  manual: "手动发放",
+};
+
+const phaseLabels: Record<string, string> = {
+  pre_event: "赛前",
+  in_event: "赛中",
+  all: "全阶段",
+};
+
 export default function AdminResourcesPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState("code");
@@ -44,6 +57,8 @@ export default function AdminResourcesPage() {
   const [pools, setPools] = useState<ResourcePool[]>([]);
   const [itemsByPool, setItemsByPool] = useState<Record<string, ResourceItem[]>>({});
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const statsByPool = useMemo(() => {
     return Object.fromEntries(
@@ -60,6 +75,8 @@ export default function AdminResourcesPage() {
   }, [itemsByPool, pools]);
 
   async function refresh() {
+    setListLoading(true);
+    setLoadError("");
     try {
       const nextPools = await api.pools();
       setPools(nextPools);
@@ -68,7 +85,11 @@ export default function AdminResourcesPage() {
       );
       setItemsByPool(Object.fromEntries(entries));
     } catch (error) {
-      notify.error(errorText(error, "读取资源池失败"));
+      const message = errorText(error, "读取资源池失败");
+      setLoadError(message);
+      notify.error(message);
+    } finally {
+      setListLoading(false);
     }
   }
 
@@ -122,7 +143,7 @@ export default function AdminResourcesPage() {
                 <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createPool}>
                   创建条目
                 </Button>
-                <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
+                <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
                   刷新
                 </Button>
               </div>
@@ -139,12 +160,20 @@ export default function AdminResourcesPage() {
                 <TableHeader>
                   <TableColumn>名称</TableColumn>
                   <TableColumn>类型</TableColumn>
+                  <TableColumn>规则</TableColumn>
+                  <TableColumn>阶段</TableColumn>
                   <TableColumn>库存</TableColumn>
                   <TableColumn>重复申请</TableColumn>
                   <TableColumn>状态</TableColumn>
+                  <TableColumn>创建时间</TableColumn>
                   <TableColumn>操作</TableColumn>
                 </TableHeader>
-                <TableBody items={pools}>
+                <TableBody
+                  items={pools}
+                  isLoading={listLoading}
+                  loadingContent={<Spinner size="sm" label="正在读取资源条目..." />}
+                  emptyContent={loadError || "暂无资源条目"}
+                >
                   {(row) => {
                     const stats = statsByPool[row.id] ?? { total: 0, available: 0, assigned: 0 };
                     return (
@@ -156,6 +185,8 @@ export default function AdminResourcesPage() {
                           </div>
                         </TableCell>
                         <TableCell>{typeLabels[row.type] ?? row.type}</TableCell>
+                        <TableCell>{distributionLabels[row.distributionRule] ?? row.distributionRule}</TableCell>
+                        <TableCell>{phaseLabels[row.visiblePhase] ?? row.visiblePhase}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-2">
                             <Chip size="sm" variant="flat">未使用 {stats.available}</Chip>
@@ -165,6 +196,7 @@ export default function AdminResourcesPage() {
                         </TableCell>
                         <TableCell>{row.allowMultipleClaims ? "允许" : "不允许"}</TableCell>
                         <TableCell><StatusChip status={row.enabled ? "active" : "disabled"} /></TableCell>
+                        <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                         <TableCell>
                           <Button
                             as={Link}
@@ -187,4 +219,15 @@ export default function AdminResourcesPage() {
       </AppShell>
     </AdminAuthGuard>
   );
+}
+
+function formatDateTime(value?: string) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString("zh-CN", { hour12: false });
 }

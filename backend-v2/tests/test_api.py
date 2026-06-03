@@ -112,6 +112,82 @@ def test_admin_event_location_can_be_saved_and_read_publicly(tmp_path: Path):
     assert public_location["osmUrl"] == "https://www.openstreetmap.org/node/123"
 
 
+def test_admin_overview_requires_token_and_returns_aggregates(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    assert client.get("/api/admin/overview").status_code == 403
+
+    login(client, "Overview@Example.com")
+    import_checkins(client, ["510001"])
+    assert client.post("/api/auth/bind-checkin", json={"checkinId": "510001"}).status_code == 200
+
+    pool = client.post(
+        "/api/admin/resources/pools",
+        headers={"X-Admin-Token": "secret"},
+        json={"name": "后台首页资源", "type": "code"},
+    ).json()
+    imported = client.post(
+        f"/api/admin/resources/pools/{pool['id']}/items/import",
+        headers={"X-Admin-Token": "secret"},
+        json={"values": ["OVERVIEW-CODE"]},
+    )
+    assert imported.status_code == 201
+
+    overview = client.get(
+        "/api/admin/overview", headers={"X-Admin-Token": "secret"}
+    )
+    assert overview.status_code == 200
+    payload = overview.json()
+
+    assert payload["participants"]["total"] == 1
+    assert payload["participants"]["checkedIn"] == 1
+    assert payload["checkinIds"]["total"] == 1
+    assert payload["checkinIds"]["bound"] == 1
+    assert payload["resources"]["pools"] == 1
+    assert payload["resources"]["items"] == 1
+    assert payload["resources"]["availableItems"] == 1
+    assert payload["emails"]["total"] >= 1
+    assert payload["meals"]["mealSlots"] == 0
+    assert "siteConfig" in payload["configuration"]
+    assert payload["configuration"]["featureLinks"] >= 1
+
+
+def test_admin_accommodation_requests_list_empty_data_and_auth(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    assert client.get("/api/admin/accommodation-requests").status_code == 403
+
+    empty = client.get(
+        "/api/admin/accommodation-requests", headers={"X-Admin-Token": "secret"}
+    )
+    assert empty.status_code == 200
+    assert empty.json() == []
+
+    login(client, "Stay@Example.com")
+    import_checkins(client, ["520001"])
+    assert client.post("/api/auth/bind-checkin", json={"checkinId": "520001"}).status_code == 200
+
+    saved = client.put(
+        "/api/accommodation",
+        json={"selections": ["sleeping_bag", "other"], "otherDetail": "  近插座  "},
+    )
+    assert saved.status_code == 200
+
+    requests = client.get(
+        "/api/admin/accommodation-requests", headers={"X-Admin-Token": "secret"}
+    )
+    assert requests.status_code == 200
+    assert requests.json() == [
+        {
+            "email": "stay@example.com",
+            "selections": ["sleeping_bag", "other"],
+            "otherDetail": "近插座",
+            "createdAt": saved.json()["createdAt"],
+            "updatedAt": saved.json()["updatedAt"],
+        }
+    ]
+
+
 def test_send_code_prints_debug_log(tmp_path: Path, capfd):
     client = make_client(tmp_path)
 

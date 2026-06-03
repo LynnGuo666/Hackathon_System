@@ -39,6 +39,18 @@ const typeLabels: Record<string, string> = {
   physical: "实体物资",
 };
 
+const distributionLabels: Record<string, string> = {
+  one_per_participant: "每人一次",
+  role_based: "按角色",
+  manual: "手动发放",
+};
+
+const phaseLabels: Record<string, string> = {
+  pre_event: "赛前",
+  in_event: "赛中",
+  all: "全阶段",
+};
+
 function displayItemStatus(status: string) {
   if (status === "available") {
     return "未使用";
@@ -58,6 +70,7 @@ function AdminResourcePoolDetailContent() {
   const [bulkValues, setBulkValues] = useState("");
   const [checkinId, setCheckinId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const { isOpen: isImportOpen, onOpen: openImport, onOpenChange: onImportOpenChange } = useDisclosure();
 
@@ -78,6 +91,8 @@ function AdminResourcePoolDetailContent() {
       setLoading(false);
       return;
     }
+    setLoading(true);
+    setLoadError("");
     try {
       const [nextPool, nextItems, nextAssignments] = await Promise.all([
         api.pool(poolId),
@@ -88,7 +103,9 @@ function AdminResourcePoolDetailContent() {
       setItems(nextItems);
       setAssignments(nextAssignments);
     } catch (error) {
-      notify.error(errorText(error, "读取资源条目失败"));
+      const message = errorText(error, "读取资源条目失败");
+      setLoadError(message);
+      notify.error(message);
     } finally {
       setLoading(false);
     }
@@ -157,12 +174,18 @@ function AdminResourcePoolDetailContent() {
               </Button>
               <h2 className="text-2xl font-semibold">{pool?.name ?? "资源条目"}</h2>
             </div>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} onPress={refresh}>
+            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
           </div>
 
           {loading && <Spinner label="正在读取资源详情" />}
+
+          {!loading && loadError && (
+            <Card className="rounded-md">
+              <CardBody className="text-sm text-danger">{loadError}</CardBody>
+            </Card>
+          )}
 
           {!loading && pool && (
             <>
@@ -192,6 +215,18 @@ function AdminResourcePoolDetailContent() {
                   </CardBody>
                 </Card>
               </div>
+
+              <Card className="rounded-md">
+                <CardHeader>
+                  <h3 className="font-semibold">资源池信息</h3>
+                </CardHeader>
+                <CardBody className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
+                  <InfoItem label="启用状态" value={pool.enabled ? "启用" : "停用"} />
+                  <InfoItem label="发放规则" value={distributionLabels[pool.distributionRule] ?? pool.distributionRule} />
+                  <InfoItem label="可见阶段" value={phaseLabels[pool.visiblePhase] ?? pool.visiblePhase} />
+                  <InfoItem label="创建时间" value={formatDateTime(pool.createdAt)} />
+                </CardBody>
+              </Card>
 
               <div className="grid gap-5 xl:grid-cols-2">
                 <Card className="rounded-md">
@@ -278,9 +313,14 @@ function AdminResourcePoolDetailContent() {
                       <TableColumn>状态</TableColumn>
                       <TableColumn>关联选手</TableColumn>
                       <TableColumn>发放时间</TableColumn>
+                      <TableColumn>过期时间</TableColumn>
                       <TableColumn>发放记录</TableColumn>
+                      <TableColumn>发放状态</TableColumn>
+                      <TableColumn>邮件送达</TableColumn>
+                      <TableColumn>记录创建</TableColumn>
+                      <TableColumn>明文码</TableColumn>
                     </TableHeader>
-                    <TableBody items={items}>
+                    <TableBody items={items} emptyContent="暂无库存数据">
                       {(row) => {
                         const assignment = assignmentByItem[row.id];
                         return (
@@ -296,9 +336,14 @@ function AdminResourcePoolDetailContent() {
                             </TableCell>
                             <TableCell>{row.assignedCheckinId || assignment?.checkinId || "-"}</TableCell>
                             <TableCell>
-                              {row.assignedAt ? new Date(row.assignedAt).toLocaleString() : "-"}
+                              {formatDateTime(row.assignedAt)}
                             </TableCell>
+                            <TableCell>{formatDateTime(row.expiresAt)}</TableCell>
                             <TableCell>{assignment?.id ?? "-"}</TableCell>
+                            <TableCell>{assignment ? <StatusChip status={assignment.status} /> : "-"}</TableCell>
+                            <TableCell>{assignment ? (assignment.deliveredByEmail ? "已送达" : "未送达") : "-"}</TableCell>
+                            <TableCell>{formatDateTime(assignment?.createdAt)}</TableCell>
+                            <TableCell>{assignment?.plainCode || "-"}</TableCell>
                           </TableRow>
                         );
                       }}
@@ -309,7 +354,7 @@ function AdminResourcePoolDetailContent() {
             </>
           )}
 
-          {!loading && !pool && (
+          {!loading && !loadError && !pool && (
             <Card className="rounded-md">
               <CardBody className="text-sm text-foreground/65">
                 未找到资源条目，请从资源条目列表进入详情页。
@@ -320,6 +365,26 @@ function AdminResourcePoolDetailContent() {
       </AppShell>
     </AdminAuthGuard>
   );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-foreground/55">{label}</p>
+      <p className="mt-1 font-medium">{value || "-"}</p>
+    </div>
+  );
+}
+
+function formatDateTime(value?: string) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString("zh-CN", { hour12: false });
 }
 
 export default function AdminResourcePoolDetailPage() {

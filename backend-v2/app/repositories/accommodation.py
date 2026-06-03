@@ -58,3 +58,22 @@ FROM accommodation_requests WHERE email = ?
             createdAt=decode_time(row["created_at"]),
             updatedAt=decode_time(row["updated_at"]),
         )
+
+    def list_accommodation_requests(self) -> list[AccommodationRequest]:
+        rows = self.db.execute(
+            """
+SELECT email, selections, other_detail, created_at, updated_at
+FROM accommodation_requests
+ORDER BY updated_at DESC
+"""
+        ).fetchall()
+        return [
+            AccommodationRequest(
+                email=row["email"],
+                selections=json.loads(row["selections"] or "[]"),
+                otherDetail=row["other_detail"],
+                createdAt=decode_time(row["created_at"]),
+                updatedAt=decode_time(row["updated_at"]),
+            )
+            for row in rows
+        ]
