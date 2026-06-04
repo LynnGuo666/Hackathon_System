@@ -1,0 +1,56 @@
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import type { ResourcePool } from "@/web/lib/api";
+import { distributionLabels, formatDateTime, phaseLabels, typeLabels } from "./utils";
+
+export function PoolStatsCards({
+  pool,
+  stats,
+}: {
+  pool: ResourcePool;
+  stats: { available: number; assigned: number };
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-4">
+      <StatCard label="类型" value={typeLabels[pool.type] ?? pool.type} />
+      <StatCard label="未使用" value={stats.available} />
+      <StatCard label="已使用" value={stats.assigned} />
+      <StatCard label="重复申请" value={pool.allowMultipleClaims ? "允许" : "不允许"} />
+    </div>
+  );
+}
+
+export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
+  return (
+    <Card className="rounded-md">
+      <CardHeader>
+        <h3 className="font-semibold">资源池信息</h3>
+      </CardHeader>
+      <CardBody className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
+        <InfoItem label="启用状态" value={pool.enabled ? "启用" : "停用"} />
+        <InfoItem label="发放规则" value={distributionLabels[pool.distributionRule] ?? pool.distributionRule} />
+        <InfoItem label="可见阶段" value={phaseLabels[pool.visiblePhase] ?? pool.visiblePhase} />
+        <InfoItem label="创建时间" value={formatDateTime(pool.createdAt)} />
+      </CardBody>
+    </Card>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <Card className="rounded-md">
+      <CardBody>
+        <p className="text-sm text-foreground/60">{label}</p>
+        <p className="mt-1 text-lg font-semibold">{value}</p>
+      </CardBody>
+    </Card>
+  );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-foreground/55">{label}</p>
+      <p className="mt-1 font-medium">{value || "-"}</p>
+    </div>
+  );
+}
