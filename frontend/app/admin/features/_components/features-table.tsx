@@ -12,8 +12,45 @@ import {
   TableHeader,
   TableRow,
 } from "@heroui/react";
-import { CalendarClock, ExternalLink, ListChecks, MapPin } from "lucide-react";
-import type { FeatureLink } from "@/web/lib/api";
+import { ArrowRight, BedDouble, CalendarClock, Coffee, IdCard, KeyRound, Mail, MapPin, Navigation, UsersRound } from "lucide-react";
+
+export type ModuleAction =
+  | { type: "link"; href: string }
+  | { type: "modal"; modal: "location" | "countdown" }
+  | { type: "none" };
+
+export type ModuleRow = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  sortOrder: number;
+  updatedAt: string;
+  enabled: boolean;
+  /** 始终启用，不显示开关（仅账号管理、CheckinID） */
+  alwaysOn?: boolean;
+  action: ModuleAction;
+  /** 对应的 API FeatureLink id，用于调用 toggle API */
+  featureId?: string;
+};
+
+const moduleIcons: Record<string, typeof UsersRound> = {
+  accounts: UsersRound,
+  checkins: IdCard,
+  resources: KeyRound,
+  "meal-orders": Coffee,
+  "email-outbox": Mail,
+  accommodation: BedDouble,
+  navigation: Navigation,
+  location: MapPin,
+  countdown: CalendarClock,
+};
+
+function actionLabel(action: ModuleAction): string {
+  if (action.type === "link") return "查看";
+  if (action.type === "modal") return action.modal === "location" ? "详情" : "配置";
+  return "";
+}
 
 export function FeaturesTable({
   modules,
@@ -24,19 +61,40 @@ export function FeaturesTable({
   onOpenLocation,
   onOpenCountdown,
 }: {
-  modules: FeatureLink[];
+  modules: ModuleRow[];
   loading: boolean;
   loadError: string;
   updatingId: string;
-  onToggle: (module: FeatureLink, enabled: boolean) => void;
+  onToggle: (module: ModuleRow, enabled: boolean) => void;
   onOpenLocation: () => void;
   onOpenCountdown: () => void;
 }) {
+  function renderAction(row: ModuleRow) {
+    const { action } = row;
+    if (action.type === "none") {
+      return <span className="text-sm text-foreground/40">-</span>;
+    }
+    if (action.type === "modal") {
+      const onPress = action.modal === "location" ? onOpenLocation : onOpenCountdown;
+      const Icon = action.modal === "location" ? MapPin : CalendarClock;
+      return (
+        <Button size="sm" variant="flat" startContent={<Icon size={16} />} onPress={onPress}>
+          {actionLabel(action)}
+        </Button>
+      );
+    }
+    // link
+    return (
+      <Button as={Link} href={action.href} size="sm" variant="flat" endContent={<ArrowRight size={15} />}>
+        {actionLabel(action)}
+      </Button>
+    );
+  }
+
   return (
     <Table aria-label="功能模块配置">
       <TableHeader>
         <TableColumn>模块</TableColumn>
-        <TableColumn>地址</TableColumn>
         <TableColumn>说明</TableColumn>
         <TableColumn>排序</TableColumn>
         <TableColumn>更新时间</TableColumn>
@@ -49,46 +107,37 @@ export function FeaturesTable({
         loadingContent={<Spinner size="sm" label="正在读取功能模块..." />}
         emptyContent={loadError || "暂无功能模块"}
       >
-        {(row) => (
-          <TableRow key={row.id}>
-            <TableCell>{row.title}</TableCell>
-            <TableCell>
-              <span className="inline-flex items-center gap-1 text-sm">
-                {row.url}
-                {row.url.startsWith("http") && <ExternalLink size={14} className="text-foreground/45" />}
-              </span>
-            </TableCell>
-            <TableCell>{row.description || "-"}</TableCell>
-            <TableCell>{row.sortOrder}</TableCell>
-            <TableCell>{formatDateTime(row.updatedAt)}</TableCell>
-            <TableCell>
-              <Switch
-                isSelected={row.enabled}
-                isDisabled={updatingId === row.id}
-                onValueChange={(enabled) => onToggle(row, enabled)}
-              >
-                {row.enabled ? "启用" : "禁用"}
-              </Switch>
-            </TableCell>
-            <TableCell>
-              {row.id === "feat_location" ? (
-                <Button size="sm" variant="flat" startContent={<MapPin size={16} />} onPress={onOpenLocation}>
-                  详情
-                </Button>
-              ) : row.id === "feat_countdown" ? (
-                <Button size="sm" variant="flat" startContent={<CalendarClock size={16} />} onPress={onOpenCountdown}>
-                  配置
-                </Button>
-              ) : row.id === "feat_accommodation" || row.url === "/p/accommodation" ? (
-                <Button as={Link} href="/admin/accommodation" size="sm" variant="flat" startContent={<ListChecks size={16} />}>
-                  查看
-                </Button>
-              ) : (
-                <span className="text-sm text-foreground/40">-</span>
-              )}
-            </TableCell>
-          </TableRow>
-        )}
+        {(row) => {
+          const Icon = moduleIcons[row.id];
+          return (
+            <TableRow key={row.id}>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {Icon && <Icon size={16} className="text-foreground/50" />}
+                  <span className="font-medium">{row.title}</span>
+                </div>
+              </TableCell>
+              <TableCell>{row.description || "-"}</TableCell>
+              <TableCell>{row.sortOrder}</TableCell>
+              <TableCell>{formatDateTime(row.updatedAt)}</TableCell>
+              <TableCell>
+                {row.alwaysOn ? (
+                  <span className="text-sm text-foreground/60">始终启用</span>
+                ) : (
+                  <Switch
+                    size="sm"
+                    isSelected={row.enabled}
+                    isDisabled={updatingId === row.id}
+                    onValueChange={(enabled) => onToggle(row, enabled)}
+                  >
+                    {row.enabled ? "启用" : "禁用"}
+                  </Switch>
+                )}
+              </TableCell>
+              <TableCell>{renderAction(row)}</TableCell>
+            </TableRow>
+          );
+        }}
       </TableBody>
     </Table>
   );

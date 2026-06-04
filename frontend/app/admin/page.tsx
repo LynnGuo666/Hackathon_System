@@ -49,13 +49,13 @@ const adminModules = [
   {
     href: "/admin/features",
     title: "功能模块",
-    group: "体验配置",
+    group: "系统配置",
     icon: Settings2,
   },
   {
     href: "/admin/navigation",
     title: "入口导航",
-    group: "配置信息",
+    group: "系统配置",
     icon: Compass,
   },
 ];

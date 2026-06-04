@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Card,
@@ -61,9 +61,9 @@ function displayItemStatus(status: string) {
   return status;
 }
 
-function AdminResourcePoolDetailContent() {
-  const searchParams = useSearchParams();
-  const poolId = searchParams.get("poolId") ?? "";
+export default function AdminResourcePoolDetailPage() {
+  const params = useParams();
+  const poolId = (params.poolId as string) ?? "";
   const [pool, setPool] = useState<ResourcePool | null>(null);
   const [items, setItems] = useState<ResourceItem[]>([]);
   const [assignments, setAssignments] = useState<ResourceAssignment[]>([]);
@@ -385,12 +385,4 @@ function formatDateTime(value?: string) {
     return value;
   }
   return date.toLocaleString("zh-CN", { hour12: false });
-}
-
-export default function AdminResourcePoolDetailPage() {
-  return (
-    <Suspense fallback={null}>
-      <AdminResourcePoolDetailContent />
-    </Suspense>
-  );
 }

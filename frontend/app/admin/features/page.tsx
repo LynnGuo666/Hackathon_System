@@ -8,9 +8,77 @@ import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
 import { api, type EventLocation, type FeatureLink, type SiteConfig } from "@/web/lib/api";
 import { CountdownModal } from "./_components/countdown-modal";
-import { FeaturesTable } from "./_components/features-table";
+import { FeaturesTable, type ModuleRow } from "./_components/features-table";
 import { LocationModal } from "./_components/location-modal";
 import { fromDateTimeLocal, toDateTimeLocal } from "./_components/datetime";
+
+/** 始终存在的固定模块 */
+const FIXED_MODULES: Omit<ModuleRow, "enabled" | "updatedAt">[] = [
+  {
+    id: "accounts",
+    title: "账号管理",
+    description: "管理选手账号的创建、激活和禁用",
+    url: "/admin/accounts",
+    sortOrder: 10,
+    alwaysOn: true,
+    action: { type: "link", href: "/admin/accounts" },
+  },
+  {
+    id: "checkins",
+    title: "CheckinID",
+    description: "管理 CheckinID 的生成和绑定",
+    url: "/admin/checkins",
+    sortOrder: 20,
+    alwaysOn: true,
+    action: { type: "link", href: "/admin/checkins" },
+  },
+  {
+    id: "resources",
+    title: "资源发放",
+    description: "管理兑换码、链接等资源的发放",
+    url: "/admin/resources",
+    sortOrder: 30,
+    action: { type: "link", href: "/admin/resources" },
+  },
+  {
+    id: "meal-orders",
+    title: "餐饮补给",
+    description: "管理选手的餐饮和饮料订单",
+    url: "/admin/meal-orders",
+    sortOrder: 40,
+    action: { type: "link", href: "/admin/meal-orders" },
+  },
+  {
+    id: "email-outbox",
+    title: "邮件队列",
+    description: "查看和管理邮件发送队列",
+    url: "/admin/email-outbox",
+    sortOrder: 50,
+    action: { type: "link", href: "/admin/email-outbox" },
+  },
+  {
+    id: "accommodation",
+    title: "赛前需求",
+    description: "管理选手的住宿和赛前需求",
+    url: "/admin/accommodation",
+    sortOrder: 60,
+    action: { type: "link", href: "/admin/accommodation" },
+  },
+];
+
+/** API FeatureLink 中，这些 id 有专属弹窗或跳转，需要映射 action */
+function resolveAction(feature: FeatureLink): ModuleRow["action"] {
+  if (feature.id === "feat_location" || feature.url === "/p/location") {
+    return { type: "modal", modal: "location" };
+  }
+  if (feature.id === "feat_countdown") {
+    return { type: "modal", modal: "countdown" };
+  }
+  if (feature.id === "feat_navigation" || feature.url === "/p/navigation") {
+    return { type: "link", href: "/admin/navigation" };
+  }
+  return { type: "none" };
+}
 
 export default function AdminFeaturesPage() {
   const [modules, setModules] = useState<FeatureLink[]>([]);
@@ -53,10 +121,11 @@ export default function AdminFeaturesPage() {
     }
   }
 
-  async function toggleModule(module: FeatureLink, enabled: boolean) {
+  async function toggleModule(module: ModuleRow, enabled: boolean) {
+    const apiId = module.featureId ?? module.id;
     setUpdatingId(module.id);
     try {
-      const saved = await api.updateFeatureEnabled(module.id, enabled);
+      const saved = await api.updateFeatureEnabled(apiId, enabled);
       setModules((current) => current.map((item) => item.id === saved.id ? saved : item));
       notify.success(`${saved.title} 已${saved.enabled ? "启用" : "禁用"}`);
     } catch (error) {
@@ -119,9 +188,50 @@ export default function AdminFeaturesPage() {
     }
   }
 
+  /** 将固定模块和 API 模块合并为统一列表 */
+  function buildModuleList(): ModuleRow[] {
+    const fixedIds = new Set(FIXED_MODULES.map((m) => m.id));
+
+    // 构建 API FeatureLink 查找表（按 url 匹配）
+    const apiByUrl = new Map<string, FeatureLink>();
+    for (const f of modules) {
+      apiByUrl.set(f.url, f);
+    }
+
+    const fixedRows: ModuleRow[] = FIXED_MODULES.map((m) => {
+      const matched = apiByUrl.get(m.url);
+      return {
+        ...m,
+        enabled: m.alwaysOn ? true : (matched?.enabled ?? true),
+        updatedAt: "",
+        featureId: matched?.id,
+      };
+    });
+
+    // API 模块：跳过已作为固定模块展示的
+    const apiRows: ModuleRow[] = modules
+      .filter((f) => !fixedIds.has(f.id) && !fixedIds.has(f.url.replace("/admin/", "").replace("/p/", "")))
+      .map((f) => ({
+        id: f.id,
+        title: f.title,
+        description: f.description,
+        url: f.url,
+        sortOrder: f.sortOrder,
+        updatedAt: f.updatedAt,
+        enabled: f.enabled,
+        featureId: f.id,
+        action: resolveAction(f),
+      }));
+
+    return [...fixedRows, ...apiRows].sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
   useEffect(() => {
     refresh();
   }, []);
+
+  const rows = buildModuleList();
+  const enabledCount = rows.filter((r) => r.enabled).length;
 
   return (
     <AdminAuthGuard>
@@ -132,7 +242,7 @@ export default function AdminFeaturesPage() {
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <Chip variant="flat">{modules.filter((item) => item.enabled).length} 个启用</Chip>
+            <Chip variant="flat">{enabledCount} 个启用</Chip>
             <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
@@ -145,7 +255,7 @@ export default function AdminFeaturesPage() {
           )}
 
           <FeaturesTable
-            modules={modules}
+            modules={rows}
             loading={loading}
             loadError={loadError}
             updatingId={updatingId}

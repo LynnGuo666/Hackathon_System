@@ -200,7 +200,7 @@ export default function AdminResourcesPage() {
                         <TableCell>
                           <Button
                             as={Link}
-                            href={`/admin/resources/detail?poolId=${encodeURIComponent(row.id)}`}
+                            href={`/admin/resources/${encodeURIComponent(row.id)}`}
                             size="sm"
                             variant="flat"
                             endContent={<ArrowRight size={15} />}
