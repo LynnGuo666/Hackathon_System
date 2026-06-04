@@ -295,11 +295,20 @@ class DrinkOrder(APIModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class CountdownStage(APIModel):
+    id: str = ""
+    label: str = ""
+    time: str = ""
+
+
 class SiteConfig(APIModel):
     id: str = "default"
+    event_name: str = Field(default="Hackathon", alias="eventName")
+    timezone: str = "Asia/Shanghai"
     countdown_title: str = Field(default="", alias="countdownTitle")
     countdown_end: str = Field(default="", alias="countdownEnd")
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
+    countdown_stages: list[CountdownStage] = Field(default_factory=list, alias="countdownStages")
     updated_at: str = Field(default="", alias="updatedAt")
 
 

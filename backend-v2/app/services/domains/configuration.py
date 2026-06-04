@@ -4,8 +4,19 @@ import urllib.parse
 import urllib.request
 
 from app.core.errors import InvalidNavigation, ServiceUnavailable
-from app.repositories.common import now_utc
-from app.schemas import EventLocation, FeatureLink, NavigationLink, OSMSearchResult, SiteConfig
+from app.repositories.common import decode_time, encode_time, new_id, now_utc
+from app.schemas import CountdownStage, EventLocation, FeatureLink, NavigationLink, OSMSearchResult, SiteConfig
+
+
+ALLOWED_TIMEZONES = {
+    "Asia/Shanghai",
+    "UTC",
+    "Asia/Tokyo",
+    "Asia/Singapore",
+    "Europe/London",
+    "America/Los_Angeles",
+    "America/New_York",
+}
 
 
 class ConfigurationServiceMixin:
@@ -60,7 +71,39 @@ class ConfigurationServiceMixin:
 
     def update_site_config(self, actor_id: str, config: SiteConfig) -> SiteConfig:
         now = now_utc()
-        saved = self.repository.update_site_config(config.model_dump(), now)
+        event_name = config.event_name.strip()
+        if not event_name:
+            raise InvalidNavigation("event name is required")
+        if config.timezone not in ALLOWED_TIMEZONES:
+            raise InvalidNavigation("unsupported timezone")
+
+        stages: list[CountdownStage] = []
+        for stage in config.countdown_stages:
+            label = stage.label.strip()
+            if not label:
+                raise InvalidNavigation("countdown stage requires label")
+            time = encode_time(decode_time(stage.time))
+            if not time:
+                raise InvalidNavigation("countdown stage requires time")
+            stages.append(
+                CountdownStage(
+                    id=stage.id.strip() or new_id("stage"),
+                    label=label,
+                    time=time,
+                )
+            )
+        stages.sort(key=lambda item: item.time)
+
+        normalized = config.model_copy(
+            update={
+                "event_name": event_name,
+                "timezone": config.timezone,
+                "countdown_title": stages[0].label if stages else "",
+                "countdown_end": stages[0].time if stages else "",
+                "countdown_stages": stages,
+            }
+        )
+        saved = self.repository.update_site_config(normalized.model_dump(), now)
         self.repository.record_audit(
             actor_id, "site_config.update", "site_config", saved["id"], "", now
         )

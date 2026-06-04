@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { CountdownStage } from "@/web/lib/api";
 
 function calcRemaining(endISO: string) {
   const end = new Date(endISO).getTime();
@@ -13,13 +14,42 @@ function calcRemaining(endISO: string) {
   return { days, hours, minutes, seconds, finished: diff === 0 };
 }
 
-export function Countdown({ endISO, title }: { endISO: string; title?: string }) {
-  const [remaining, setRemaining] = useState(() => calcRemaining(endISO));
+function findCurrentStage(stages: CountdownStage[]) {
+  const now = Date.now();
+  return stages
+    .filter((stage) => stage.time && new Date(stage.time).getTime() > now)
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())[0] ?? null;
+}
+
+export function Countdown({
+  eventName = "Hackathon",
+  stages,
+  endISO = "",
+  title,
+}: {
+  eventName?: string;
+  stages?: CountdownStage[];
+  endISO?: string;
+  title?: string;
+}) {
+  const normalizedStages = stages?.length
+    ? stages
+    : endISO
+      ? [{ id: "legacy", label: title || "开赛", time: endISO }]
+      : [];
+  const [currentStage, setCurrentStage] = useState(() => findCurrentStage(normalizedStages));
+  const [remaining, setRemaining] = useState(() => calcRemaining(currentStage?.time ?? ""));
 
   useEffect(() => {
-    const timer = setInterval(() => setRemaining(calcRemaining(endISO)), 1000);
+    const tick = () => {
+      const nextStage = findCurrentStage(normalizedStages);
+      setCurrentStage(nextStage);
+      setRemaining(calcRemaining(nextStage?.time ?? ""));
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [endISO]);
+  }, [JSON.stringify(normalizedStages)]);
 
   const blocks = [
     { value: remaining.days, label: "天" },
@@ -28,9 +58,23 @@ export function Countdown({ endISO, title }: { endISO: string; title?: string })
     { value: remaining.seconds, label: "秒" },
   ];
 
+  if (normalizedStages.length === 0) {
+    return null;
+  }
+
+  if (!currentStage) {
+    return (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <p className="text-lg font-medium text-foreground/70">{eventName} 已完赛</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-4">
-      {title && <p className="text-lg font-medium text-foreground/70">{title}</p>}
+      <p className="text-lg font-medium text-foreground/70">
+        距离 {eventName}@{currentStage.label} 还有
+      </p>
       <div className="flex items-center gap-3 sm:gap-5">
         {blocks.map((block, i) => (
           <div key={block.label} className="flex items-center gap-3 sm:gap-5">

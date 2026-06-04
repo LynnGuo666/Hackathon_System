@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@heroui/react";
-import { ArrowRight, Bed, Coffee, Compass, IdCard, KeyRound, Mail, RefreshCw, Settings2, UsersRound } from "lucide-react";
+import { ArrowRight, Bed, Coffee, Compass, IdCard, KeyRound, Mail, RefreshCw, Settings2, SlidersHorizontal, UsersRound } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
@@ -45,6 +45,12 @@ const adminModules = [
     title: "赛前需求",
     group: "运营功能",
     icon: Bed,
+  },
+  {
+    href: "/admin/settings",
+    title: "比赛基础信息",
+    group: "系统配置",
+    icon: SlidersHorizontal,
   },
   {
     href: "/admin/features",
@@ -156,6 +162,9 @@ export default function AdminPage() {
                 title="配置"
                 value={overview.configuration.featureLinks + overview.configuration.navigationLinks}
                 details={[
+                  overview.configuration.siteConfig.eventName,
+                  overview.configuration.siteConfig.timezone,
+                  `倒计时阶段 ${overview.configuration.siteConfig.countdownStages.length}`,
                   `功能模块 ${overview.configuration.featureLinks}`,
                   `导航入口 ${overview.configuration.navigationLinks}`,
                   overview.configuration.siteConfig.countdownEnabled ? "倒计时启用" : "倒计时停用",

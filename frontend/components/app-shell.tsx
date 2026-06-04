@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
-import { BedDouble, ClipboardList, Home, LayoutDashboard, LogOut, MapPin, Settings2, Ticket, UserRoundPen, Utensils } from "lucide-react";
+import { BedDouble, ClipboardList, Home, LayoutDashboard, LogOut, MapPin, Settings2, SlidersHorizontal, Ticket, UserRoundPen, Utensils } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api, type FeatureLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
@@ -23,6 +23,7 @@ const featureNavIcons = {
 
 const adminNavItems = [
   { href: "/admin", label: "后台首页", icon: LayoutDashboard },
+  { href: "/admin/settings", label: "比赛基础信息", icon: SlidersHorizontal },
   { href: "/admin/features", label: "功能模块", icon: Settings2 },
 ];
 
@@ -37,6 +38,7 @@ export function AppShell({
 }) {
   const [apiReady, setApiReady] = useState<"checking" | "online" | "offline">("checking");
   const [featureItems, setFeatureItems] = useState<FeatureLink[]>([]);
+  const [eventName, setEventName] = useState("Hackathon");
   const pathname = usePathname();
   const router = useRouter();
   const participantItems = variant === "participant"
@@ -54,6 +56,9 @@ export function AppShell({
     api.health()
       .then(() => setApiReady("online"))
       .catch(() => setApiReady("offline"));
+    api.siteConfig()
+      .then((config) => setEventName(config.eventName || "Hackathon"))
+      .catch(() => setEventName("Hackathon"));
   }, []);
 
   useEffect(() => {
@@ -70,7 +75,7 @@ export function AppShell({
       <header className="sticky top-0 z-20 border-b border-divider bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-3">
           <div className="shrink-0">
-            <p className="text-sm text-foreground/60">Hackathon</p>
+            <p className="text-sm text-foreground/60">{eventName}</p>
             <h1 className="text-lg font-semibold text-foreground">
               {variant === "admin" ? "管理后台" : "选手服务系统"}
             </h1>
@@ -82,7 +87,7 @@ export function AppShell({
                 const Icon = item.icon;
                 const active = item.href === "/admin"
                   ? pathname === "/admin"
-                  : pathname.startsWith("/admin") && pathname !== "/admin";
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Button
                     key={item.href}

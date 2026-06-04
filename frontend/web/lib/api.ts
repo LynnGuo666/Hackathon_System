@@ -115,10 +115,19 @@ export type FeatureLink = {
 
 export type SiteConfig = {
   id: string;
+  eventName: string;
+  timezone: string;
   countdownTitle: string;
   countdownEnd: string;
   countdownEnabled: boolean;
+  countdownStages: CountdownStage[];
   updatedAt: string;
+};
+
+export type CountdownStage = {
+  id: string;
+  label: string;
+  time: string;
 };
 
 export type EventLocation = {

@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import sqlite3
 from typing import Any
 
@@ -111,37 +112,66 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     def get_site_config(self) -> dict[str, Any]:
         row = self.db.execute(
             """
-SELECT id, countdown_title, countdown_end, countdown_enabled, updated_at
+SELECT id, event_name, timezone, countdown_title, countdown_end, countdown_enabled,
+       countdown_stages, updated_at
 FROM site_config LIMIT 1
 """
         ).fetchone()
         if not row:
-            return {"id": "default"}
+            return {
+                "id": "default",
+                "eventName": "Hackathon",
+                "timezone": "Asia/Shanghai",
+                "countdownStages": [],
+            }
+        countdown_stages = decode_countdown_stages(row["countdown_stages"])
+        if not countdown_stages and row["countdown_end"]:
+            countdown_stages = [
+                {
+                    "id": "stage_legacy",
+                    "label": row["countdown_title"] or "开赛",
+                    "time": row["countdown_end"],
+                }
+            ]
         return {
             "id": row["id"],
+            "eventName": row["event_name"] or "Hackathon",
+            "timezone": row["timezone"] or "Asia/Shanghai",
             "countdownTitle": row["countdown_title"],
             "countdownEnd": row["countdown_end"],
             "countdownEnabled": bool(row["countdown_enabled"]),
+            "countdownStages": countdown_stages,
             "updatedAt": row["updated_at"],
         }
 
     def update_site_config(self, config: dict[str, Any], now: datetime) -> dict[str, Any]:
         updated_at = encode_time(now)
+        countdown_stages = config.get("countdown_stages", [])
+        first_stage = countdown_stages[0] if countdown_stages else {}
         self.db.execute(
             """
-INSERT INTO site_config (id, countdown_title, countdown_end, countdown_enabled, updated_at)
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO site_config (
+  id, event_name, timezone, countdown_title, countdown_end,
+  countdown_enabled, countdown_stages, updated_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
+  event_name = excluded.event_name,
+  timezone = excluded.timezone,
   countdown_title = excluded.countdown_title,
   countdown_end = excluded.countdown_end,
   countdown_enabled = excluded.countdown_enabled,
+  countdown_stages = excluded.countdown_stages,
   updated_at = excluded.updated_at
 """,
             (
                 "default",
-                config.get("countdown_title", ""),
-                config.get("countdown_end", ""),
+                config.get("event_name", "Hackathon"),
+                config.get("timezone", "Asia/Shanghai"),
+                first_stage.get("label", config.get("countdown_title", "")),
+                first_stage.get("time", config.get("countdown_end", "")),
                 bool_int(config.get("countdown_enabled", False)),
+                json.dumps(countdown_stages, ensure_ascii=False),
                 updated_at,
             ),
         )
@@ -196,3 +226,26 @@ ON CONFLICT(id) DO UPDATE SET
             ),
         )
         return self.get_event_location()
+
+
+def decode_countdown_stages(value: str | None) -> list[dict[str, str]]:
+    if not value:
+        return []
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(payload, list):
+        return []
+    stages: list[dict[str, str]] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        stages.append(
+            {
+                "id": str(item.get("id", "")),
+                "label": str(item.get("label", "")),
+                "time": str(item.get("time", "")),
+            }
+        )
+    return stages

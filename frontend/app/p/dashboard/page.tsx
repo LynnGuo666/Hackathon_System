@@ -34,10 +34,10 @@ export default function DashboardPage() {
       {loading && <Spinner label="加载中" />}
 
       {/* 倒计时卡片 */}
-      {!loading && config?.countdownEnabled && config.countdownEnd && (
+      {!loading && config?.countdownEnabled && config.countdownStages.length > 0 && (
         <Card className="rounded-md">
           <CardBody className="flex items-center justify-center py-6">
-            <Countdown endISO={config.countdownEnd} title={config.countdownTitle} />
+            <Countdown eventName={config.eventName} stages={config.countdownStages} />
           </CardBody>
         </Card>
       )}

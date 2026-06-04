@@ -112,6 +112,56 @@ def test_admin_event_location_can_be_saved_and_read_publicly(tmp_path: Path):
     assert public_location["osmUrl"] == "https://www.openstreetmap.org/node/123"
 
 
+def test_site_config_defaults_and_staged_countdown_validation(tmp_path: Path):
+    client = make_client(tmp_path)
+
+    defaults = client.get("/api/site-config")
+    assert defaults.status_code == 200
+    assert defaults.json()["eventName"] == "Hackathon"
+    assert defaults.json()["timezone"] == "Asia/Shanghai"
+    assert defaults.json()["countdownStages"] == []
+
+    saved = client.put(
+        "/api/admin/site-config",
+        headers={"X-Admin-Token": "secret"},
+        json={
+            "eventName": "HackHub 2026",
+            "timezone": "Asia/Tokyo",
+            "countdownEnabled": True,
+            "countdownStages": [
+                {"id": "submit", "label": "提交", "time": "2026-06-10T04:00:00+09:00"},
+                {"id": "start", "label": "开赛", "time": "2026-06-09T10:00:00+09:00"},
+            ],
+        },
+    )
+    assert saved.status_code == 200
+    payload = saved.json()
+    assert payload["eventName"] == "HackHub 2026"
+    assert payload["timezone"] == "Asia/Tokyo"
+    assert payload["countdownEnabled"] is True
+    assert [stage["id"] for stage in payload["countdownStages"]] == ["start", "submit"]
+    assert payload["countdownStages"][0]["time"] == "2026-06-09T01:00:00Z"
+    assert payload["countdownStages"][1]["time"] == "2026-06-09T19:00:00Z"
+
+    public_config = client.get("/api/site-config").json()
+    assert public_config["eventName"] == "HackHub 2026"
+    assert public_config["countdownStages"] == payload["countdownStages"]
+
+    invalid_timezone = client.put(
+        "/api/admin/site-config",
+        headers={"X-Admin-Token": "secret"},
+        json={"eventName": "HackHub", "timezone": "UTC+8", "countdownStages": []},
+    )
+    assert invalid_timezone.status_code == 400
+
+    empty_name = client.put(
+        "/api/admin/site-config",
+        headers={"X-Admin-Token": "secret"},
+        json={"eventName": "  ", "timezone": "UTC", "countdownStages": []},
+    )
+    assert empty_name.status_code == 400
+
+
 def test_admin_overview_requires_token_and_returns_aggregates(tmp_path: Path):
     client = make_client(tmp_path)
 

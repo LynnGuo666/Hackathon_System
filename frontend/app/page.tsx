@@ -30,7 +30,7 @@ export default function HomePage() {
     <main className="min-h-screen">
       <header className="border-b border-divider bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
-          <p className="text-sm font-semibold text-foreground/80">Hackathon</p>
+          <p className="text-sm font-semibold text-foreground/80">{config?.eventName || "Hackathon"}</p>
           <div className="flex items-center gap-2">
             <Button as={Link} href="/login" color="primary" size="sm" startContent={<LogIn size={16} />}>
               进入
@@ -43,8 +43,8 @@ export default function HomePage() {
       <section className="mx-auto flex max-w-5xl flex-col items-center gap-10 px-5 py-16">
         {loading && <Spinner label="加载中" />}
 
-        {!loading && config?.countdownEnabled && config.countdownEnd && (
-          <Countdown endISO={config.countdownEnd} title={config.countdownTitle} />
+        {!loading && config?.countdownEnabled && config.countdownStages.length > 0 && (
+          <Countdown eventName={config.eventName} stages={config.countdownStages} />
         )}
 
         {!loading && features.length > 0 && (
