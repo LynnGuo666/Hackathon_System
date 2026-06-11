@@ -104,6 +104,9 @@ export function AppShell({
             >
               {apiReady === "online" ? "在线" : apiReady === "offline" ? "离线" : "..."}
             </Chip>
+            <Chip variant="flat" size="sm" className="hidden sm:inline-flex">
+              v{process.env.NEXT_PUBLIC_APP_VERSION || "0.2.0"}
+            </Chip>
             <ThemeToggle />
             <MobileNav
               items={variant === "admin" ? adminNavItems : participantItems}

@@ -7,7 +7,7 @@ import { ArrowRight, Bed, Coffee, Compass, FileText, IdCard, KeyRound, Mail, Ref
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
-import { api, type AdminOverview } from "@/web/lib/api";
+import { api, type AdminOverview, type SystemVersion } from "@/web/lib/api";
 
 const adminModules = [
   {
@@ -84,6 +84,7 @@ const adminModules = [
 
 export default function AdminPage() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [version, setVersion] = useState<SystemVersion | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -91,7 +92,12 @@ export default function AdminPage() {
     setLoading(true);
     setLoadError("");
     try {
-      setOverview(await api.adminOverview());
+      const [ov, ver] = await Promise.all([
+        api.adminOverview(),
+        api.version().catch(() => null),
+      ]);
+      setOverview(ov);
+      setVersion(ver);
     } catch (error) {
       const message = errorText(error, "读取后台概览失败");
       setLoadError(message);
@@ -199,6 +205,34 @@ export default function AdminPage() {
             </section>
           )}
 
+          {version && (
+            <section className="grid gap-4">
+              <h3 className="text-sm font-semibold text-foreground/60">系统版本</h3>
+              <div className="grid gap-3 md:grid-cols-3">
+                <Card classNames={{ base: "rounded-card shadow-sm" }}>
+                  <CardBody className="gap-2 p-4">
+                    <p className="text-xs font-medium text-foreground/40">后端版本</p>
+                    <p className="text-lg font-bold text-foreground">{version.backend}</p>
+                  </CardBody>
+                </Card>
+                <Card classNames={{ base: "rounded-card shadow-sm" }}>
+                  <CardBody className="gap-2 p-4">
+                    <p className="text-xs font-medium text-foreground/40">前端版本</p>
+                    <p className="text-lg font-bold text-foreground">{version.frontend}</p>
+                  </CardBody>
+                </Card>
+                <Card classNames={{ base: "rounded-card shadow-sm" }}>
+                  <CardBody className="gap-2 p-4">
+                    <p className="text-xs font-medium text-foreground/40">构建时间</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {version.buildTime ? formatDateTime(version.buildTime) : "-"}
+                    </p>
+                  </CardBody>
+                </Card>
+              </div>
+            </section>
+          )}
+
           <section className="grid gap-4">
             <h3 className="text-sm font-semibold text-foreground/60">功能模块</h3>
             <div className="grid gap-3 md:grid-cols-2">
@@ -252,4 +286,11 @@ function OverviewCard({ title, value, details }: { title: string; value: number;
       </CardBody>
     </Card>
   );
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("zh-CN", { hour12: false });
 }

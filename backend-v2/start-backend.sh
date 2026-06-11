@@ -32,6 +32,7 @@ fi
 export ADMIN_TOKEN="${ADMIN_TOKEN:-secret}"
 export DATABASE_PATH="${DATABASE_PATH:-./hackathon.sqlite}"
 export CORS_ORIGIN="${CORS_ORIGIN:-http://localhost:3000}"
+export BUILD_TIME="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 
 FRONTEND_DIR="$(cd "$ROOT_DIR/../frontend" && pwd)"
 if [ -f "$FRONTEND_DIR/package.json" ]; then

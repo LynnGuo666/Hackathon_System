@@ -18,7 +18,7 @@ export const adminEnrollmentApi = {
       { admin: true },
     ),
 
-  getEnrollment: (id: string) =>
+  getEnrollmentById: (id: string) =>
     request<Enrollment>(`/api/admin/enrollments/${id}`, { admin: true }),
 
   initialReview: (id: string, approve: boolean, note: string) =>

@@ -314,3 +314,9 @@ export type EnrollmentInput = {
 export type EnrollmentReviewInput = {
   note: string;
 };
+
+export type SystemVersion = {
+  backend: string;
+  frontend: string;
+  buildTime: string;
+};

@@ -1,3 +1,6 @@
+import os
+from importlib.metadata import version as get_version
+
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository
@@ -10,6 +13,15 @@ router = APIRouter(prefix="/api")
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get("/version")
+def version() -> dict[str, str]:
+    return {
+        "backend": get_version("hackathon-backend-v2"),
+        "frontend": os.environ.get("NEXT_PUBLIC_APP_VERSION", "0.0.0"),
+        "buildTime": os.environ.get("BUILD_TIME", ""),
+    }
 
 
 @router.get("/navigation-links", response_model=list[NavigationLink], response_model_by_alias=True)

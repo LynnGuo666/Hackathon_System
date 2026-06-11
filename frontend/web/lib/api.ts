@@ -6,6 +6,7 @@ import { configurationApi } from "./api/configuration";
 import { enrollmentApi, adminEnrollmentApi } from "./api/enrollment";
 import { foodApi } from "./api/food";
 import { resourcesApi } from "./api/resources";
+import { versionApi } from "./api/version";
 
 export * from "./api/types";
 
@@ -17,4 +18,5 @@ export const api = {
   ...foodApi,
   ...enrollmentApi,
   ...adminEnrollmentApi,
+  ...versionApi,
 };
