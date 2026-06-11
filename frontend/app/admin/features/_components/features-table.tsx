@@ -27,7 +27,7 @@ export type ModuleRow = {
   sortOrder: number;
   updatedAt: string;
   enabled: boolean;
-  /** 始终启用，不显示开关（仅账号管理、CheckinID） */
+  /** 始终启用，显示灰色只读开关（仅账号管理、CheckinID） */
   alwaysOn?: boolean;
   action: ModuleAction;
   /** 对应的 API FeatureLink id，用于调用 toggle API */
@@ -121,18 +121,19 @@ export function FeaturesTable({
               <TableCell>{row.sortOrder}</TableCell>
               <TableCell>{formatDateTime(row.updatedAt)}</TableCell>
               <TableCell>
-                {row.alwaysOn ? (
-                  <span className="text-sm text-foreground/60">始终启用</span>
-                ) : (
-                  <Switch
-                    size="sm"
-                    isSelected={row.enabled}
-                    isDisabled={updatingId === row.id}
-                    onValueChange={(enabled) => onToggle(row, enabled)}
-                  >
-                    {row.enabled ? "启用" : "禁用"}
-                  </Switch>
-                )}
+                <Switch
+                  size="sm"
+                  color={row.alwaysOn ? "default" : "primary"}
+                  isSelected={row.alwaysOn ? true : row.enabled}
+                  isReadOnly={row.alwaysOn}
+                  isDisabled={updatingId === row.id}
+                  onValueChange={(enabled) => onToggle(row, enabled)}
+                  classNames={{
+                    wrapper: row.alwaysOn ? "bg-default-400" : undefined,
+                  }}
+                >
+                  {row.alwaysOn ? "始终启用" : row.enabled ? "启用" : "禁用"}
+                </Switch>
               </TableCell>
               <TableCell>{renderAction(row)}</TableCell>
             </TableRow>

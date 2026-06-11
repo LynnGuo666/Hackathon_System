@@ -4,6 +4,22 @@ from app.schemas import FeatureLink
 
 FEATURE_MODULES: list[FeatureLink] = [
     FeatureLink(
+        id="feat_dashboard",
+        title="总览",
+        description="选手服务系统总览",
+        url="/p/dashboard",
+        enabled=True,
+        sortOrder=1,
+    ),
+    FeatureLink(
+        id="feat_countdown",
+        title="倒计时",
+        description="比赛倒计时",
+        url="/p/dashboard",
+        enabled=True,
+        sortOrder=2,
+    ),
+    FeatureLink(
         id="feat_enrollment",
         title="报名",
         description="提交参赛报名信息",
@@ -13,7 +29,7 @@ FEATURE_MODULES: list[FeatureLink] = [
     ),
     FeatureLink(
         id="feat_profile",
-        title="个人资料",
+        title="我的资料",
         description="补全赛前信息和联系方式",
         url="/p/profile",
         enabled=True,
@@ -28,6 +44,14 @@ FEATURE_MODULES: list[FeatureLink] = [
         sortOrder=15,
     ),
     FeatureLink(
+        id="feat_identity",
+        title="签到身份",
+        description="现场绑定 CheckinID",
+        url="/p/identity",
+        enabled=True,
+        sortOrder=20,
+    ),
+    FeatureLink(
         id="feat_meal_order",
         title="餐饮补给",
         description="提交餐食忌口和饮料补给需求",
@@ -36,12 +60,20 @@ FEATURE_MODULES: list[FeatureLink] = [
         sortOrder=25,
     ),
     FeatureLink(
+        id="feat_resources",
+        title="我的资源",
+        description="查看已领取的兑换码和物资",
+        url="/p/resources",
+        enabled=True,
+        sortOrder=30,
+    ),
+    FeatureLink(
         id="feat_location",
         title="赛事地点",
         description="查看比赛场地位置和交通",
         url="/p/location",
         enabled=True,
-        sortOrder=30,
+        sortOrder=35,
     ),
 ]
 
