@@ -6,7 +6,10 @@ def test_public_seeded_feature_links_and_health(client: TestClient):
     features = client.get("/api/feature-links").json()
     links = client.get("/api/navigation-links").json()
 
-    assert [link["url"] for link in features][:2] == ["/p/profile", "/p/accommodation"]
+    feature_urls = [link["url"] for link in features]
+    assert "/p/enrollment" in feature_urls
+    assert "/p/profile" in feature_urls
+    assert "/p/accommodation" in feature_urls
     assert "/p/profile" not in [link["url"] for link in links]
 
 

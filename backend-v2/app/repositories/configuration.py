@@ -5,7 +5,7 @@ from typing import Any
 
 from app.core.errors import NotFound
 from app.repositories.common import bool_int, decode_time, encode_time, new_id
-from app.schemas import EventLocation, FeatureLink, NavigationLink
+from app.schemas import EventLocation, NavigationLink
 
 
 class ConfigurationRepositoryMixin:
@@ -17,38 +17,14 @@ class ConfigurationRepositoryMixin:
     def list_navigation_links(self, include_disabled: bool) -> list[NavigationLink]:
         return self._list_links("navigation_links", NavigationLink, include_disabled)
 
-    def create_feature_link(self, link: FeatureLink, now: datetime) -> FeatureLink:
-        return self._create_link("feature_links", "feat", FeatureLink, link, now)
-
-    def list_feature_links(self, include_disabled: bool) -> list[FeatureLink]:
-        return self._list_links("feature_links", FeatureLink, include_disabled)
-
-    def set_feature_link_enabled(
-        self, feature_id: str, enabled: bool, now: datetime
-    ) -> FeatureLink:
-        result = self.db.execute(
-            """
-UPDATE feature_links
-SET enabled = ?, updated_at = ?
-WHERE id = ?
-""",
-            (bool_int(enabled), encode_time(now), feature_id),
-        )
-        if result.rowcount == 0:
-            raise NotFound("feature module not found")
-        for link in self.list_feature_links(include_disabled=True):
-            if link.id == feature_id:
-                return link
-        raise NotFound("feature module not found")
-
     def _create_link(
         self,
         table: str,
         id_prefix: str,
-        model: type[NavigationLink] | type[FeatureLink],
-        link: NavigationLink | FeatureLink,
+        model: type[NavigationLink],
+        link: NavigationLink,
         now: datetime,
-    ) -> NavigationLink | FeatureLink:
+    ) -> NavigationLink:
         sort_order = link.sort_order
         if sort_order == 0:
             row = self.db.execute(
@@ -85,9 +61,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     def _list_links(
         self,
         table: str,
-        model: type[NavigationLink] | type[FeatureLink],
+        model: type[NavigationLink],
         include_disabled: bool,
-    ) -> list[NavigationLink] | list[FeatureLink]:
+    ) -> list[NavigationLink]:
         query = f"SELECT id, title, description, url, enabled, sort_order, created_at, updated_at FROM {table}"
         params: tuple[Any, ...] = ()
         if not include_disabled:

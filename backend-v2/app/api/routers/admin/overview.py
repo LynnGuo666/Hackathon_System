@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository
+from app.core.features import get_all_feature_links
 from app.core.security import require_admin_token
 from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
@@ -67,6 +68,6 @@ def overview(repo: SQLiteRepository = Depends(repository)) -> AdminOverview:
         configuration=AdminOverviewConfiguration(
             siteConfig=SiteConfig(**repo.get_site_config()),
             navigationLinks=len(repo.list_navigation_links(include_disabled=True)),
-            featureLinks=len(repo.list_feature_links(include_disabled=True)),
+            featureLinks=len(get_all_feature_links()),
         ),
     )

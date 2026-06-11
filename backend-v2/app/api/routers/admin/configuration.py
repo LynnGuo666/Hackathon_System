@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository, service
+from app.core.features import get_all_feature_links, toggle_feature
 from app.core.security import actor_id, require_admin_token
 from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
@@ -36,22 +37,8 @@ def create_navigation_link(
 
 
 @router.get("/feature-links", response_model=list[FeatureLink], response_model_by_alias=True)
-def admin_feature_links(repo: SQLiteRepository = Depends(repository)) -> list[FeatureLink]:
-    return repo.list_feature_links(include_disabled=True)
-
-
-@router.post(
-    "/feature-links",
-    status_code=201,
-    response_model=FeatureLink,
-    response_model_by_alias=True,
-)
-def create_feature_link(
-    input: FeatureLink,
-    actor: str = Depends(actor_id),
-    svc: HackathonService = Depends(service),
-) -> FeatureLink:
-    return svc.create_feature_link(actor, input)
+def admin_feature_links() -> list[FeatureLink]:
+    return get_all_feature_links()
 
 
 @router.patch(
@@ -62,10 +49,8 @@ def create_feature_link(
 def update_feature_link(
     feature_id: str,
     input: FeatureToggleInput,
-    actor: str = Depends(actor_id),
-    svc: HackathonService = Depends(service),
 ) -> FeatureLink:
-    return svc.set_feature_enabled(actor, feature_id, input.enabled)
+    return toggle_feature(feature_id, input.enabled)
 
 
 @router.get("/locations/search", response_model=list[OSMSearchResult], response_model_by_alias=True)

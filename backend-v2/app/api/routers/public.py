@@ -4,6 +4,7 @@ from importlib.metadata import version as get_version
 from fastapi import APIRouter, Depends
 
 from app.core.dependencies import repository
+from app.core.features import get_feature_links
 from app.repositories.sqlite import SQLiteRepository
 from app.schemas import EventLocation, FeatureLink, NavigationLink, SiteConfig
 
@@ -30,8 +31,8 @@ def navigation_links(repo: SQLiteRepository = Depends(repository)) -> list[Navig
 
 
 @router.get("/feature-links", response_model=list[FeatureLink], response_model_by_alias=True)
-def feature_links(repo: SQLiteRepository = Depends(repository)) -> list[FeatureLink]:
-    return repo.list_feature_links(include_disabled=False)
+def feature_links() -> list[FeatureLink]:
+    return get_feature_links()
 
 
 @router.get("/site-config", response_model=SiteConfig, response_model_by_alias=True)

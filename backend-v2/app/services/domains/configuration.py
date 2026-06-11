@@ -5,7 +5,7 @@ import urllib.request
 
 from app.core.errors import InvalidNavigation, ServiceUnavailable
 from app.repositories.common import decode_time, encode_time, new_id, now_utc
-from app.schemas import CountdownStage, EventLocation, FeatureLink, NavigationLink, OSMSearchResult, SiteConfig
+from app.schemas import CountdownStage, EventLocation, NavigationLink, OSMSearchResult, SiteConfig
 
 
 ALLOWED_TIMEZONES = {
@@ -34,38 +34,6 @@ class ConfigurationServiceMixin:
         saved = self.repository.create_navigation_link(trimmed, now)
         self.repository.record_audit(
             actor_id, "navigation_link.create", "navigation_link", saved.id, "", now
-        )
-        return saved
-
-    def create_feature_link(self, actor_id: str, link: FeatureLink) -> FeatureLink:
-        trimmed = link.model_copy(
-            update={
-                "title": link.title.strip(),
-                "description": link.description.strip(),
-                "url": link.url.strip(),
-            }
-        )
-        if not trimmed.title or not trimmed.url:
-            raise InvalidNavigation("feature link requires title and url")
-        now = now_utc()
-        saved = self.repository.create_feature_link(trimmed, now)
-        self.repository.record_audit(
-            actor_id, "feature_link.create", "feature_link", saved.id, "", now
-        )
-        return saved
-
-    def set_feature_enabled(
-        self, actor_id: str, feature_id: str, enabled: bool
-    ) -> FeatureLink:
-        now = now_utc()
-        saved = self.repository.set_feature_link_enabled(feature_id, enabled, now)
-        self.repository.record_audit(
-            actor_id,
-            "feature_link.enable" if enabled else "feature_link.disable",
-            "feature_link",
-            saved.id,
-            "",
-            now,
         )
         return saved
 
