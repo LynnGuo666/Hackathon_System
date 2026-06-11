@@ -123,14 +123,10 @@ export function FeaturesTable({
               <TableCell>
                 <Switch
                   size="sm"
-                  color={row.alwaysOn ? "default" : "primary"}
                   isSelected={row.alwaysOn ? true : row.enabled}
                   isReadOnly={row.alwaysOn}
                   isDisabled={updatingId === row.id}
                   onValueChange={(enabled) => onToggle(row, enabled)}
-                  classNames={{
-                    wrapper: row.alwaysOn ? "bg-default-400" : undefined,
-                  }}
                 >
                   {row.alwaysOn ? "始终启用" : row.enabled ? "启用" : "禁用"}
                 </Switch>

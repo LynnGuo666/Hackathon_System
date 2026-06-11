@@ -11,14 +11,14 @@ import { api, type EventLocation, type FeatureLink } from "@/web/lib/api";
 import { FeaturesTable, type ModuleRow } from "./_components/features-table";
 import { LocationModal } from "./_components/location-modal";
 
-/** 始终存在的固定模块 */
+/** 始终存在的固定模块，按赛事生命周期分组 */
 const FIXED_MODULES: Omit<ModuleRow, "enabled" | "updatedAt">[] = [
   {
     id: "accounts",
     title: "账号管理",
     description: "管理选手账号的创建、激活和禁用",
     url: "/admin/accounts",
-    sortOrder: 10,
+    sortOrder: 100,
     alwaysOn: true,
     action: { type: "link", href: "/admin/accounts" },
   },
@@ -27,41 +27,41 @@ const FIXED_MODULES: Omit<ModuleRow, "enabled" | "updatedAt">[] = [
     title: "CheckinID",
     description: "管理 CheckinID 的生成和绑定",
     url: "/admin/checkins",
-    sortOrder: 20,
+    sortOrder: 200,
     alwaysOn: true,
     action: { type: "link", href: "/admin/checkins" },
-  },
-  {
-    id: "resources",
-    title: "资源发放",
-    description: "管理兑换码、链接等资源的发放",
-    url: "/admin/resources",
-    sortOrder: 30,
-    action: { type: "link", href: "/admin/resources" },
-  },
-  {
-    id: "meal-orders",
-    title: "餐饮补给",
-    description: "管理选手的餐饮和饮料订单",
-    url: "/admin/meal-orders",
-    sortOrder: 40,
-    action: { type: "link", href: "/admin/meal-orders" },
-  },
-  {
-    id: "email-outbox",
-    title: "邮件队列",
-    description: "查看和管理邮件发送队列",
-    url: "/admin/email-outbox",
-    sortOrder: 50,
-    action: { type: "link", href: "/admin/email-outbox" },
   },
   {
     id: "accommodation",
     title: "赛前需求",
     description: "管理选手的住宿和赛前需求",
     url: "/admin/accommodation",
-    sortOrder: 60,
+    sortOrder: 300,
     action: { type: "link", href: "/admin/accommodation" },
+  },
+  {
+    id: "meal-orders",
+    title: "餐饮补给",
+    description: "管理选手的餐饮和饮料订单",
+    url: "/admin/meal-orders",
+    sortOrder: 400,
+    action: { type: "link", href: "/admin/meal-orders" },
+  },
+  {
+    id: "resources",
+    title: "资源发放",
+    description: "管理兑换码、链接等资源的发放",
+    url: "/admin/resources",
+    sortOrder: 500,
+    action: { type: "link", href: "/admin/resources" },
+  },
+  {
+    id: "email-outbox",
+    title: "邮件队列",
+    description: "查看和管理邮件发送队列",
+    url: "/admin/email-outbox",
+    sortOrder: 600,
+    action: { type: "link", href: "/admin/email-outbox" },
   },
 ];
 
@@ -208,12 +208,6 @@ export default function AdminFeaturesPage() {
               刷新
             </Button>
           </div>
-
-          {loadError && (
-            <Card classNames={{ base: "rounded-card" }}>
-              <CardBody className="text-sm text-danger">{loadError}</CardBody>
-            </Card>
-          )}
 
           <FeaturesTable
             modules={rows}

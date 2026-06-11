@@ -3,13 +3,14 @@ from datetime import UTC, datetime
 from app.schemas import FeatureLink
 
 FEATURE_MODULES: list[FeatureLink] = [
+    # 入口
     FeatureLink(
         id="feat_dashboard",
         title="总览",
         description="选手服务系统总览",
         url="/p/dashboard",
         enabled=True,
-        sortOrder=1,
+        sortOrder=1100,
     ),
     FeatureLink(
         id="feat_countdown",
@@ -17,15 +18,16 @@ FEATURE_MODULES: list[FeatureLink] = [
         description="比赛倒计时",
         url="/p/dashboard",
         enabled=True,
-        sortOrder=2,
+        sortOrder=1200,
     ),
+    # 报名阶段
     FeatureLink(
         id="feat_enrollment",
         title="报名",
         description="提交参赛报名信息",
         url="/p/enrollment",
         enabled=True,
-        sortOrder=5,
+        sortOrder=1300,
     ),
     FeatureLink(
         id="feat_profile",
@@ -33,15 +35,16 @@ FEATURE_MODULES: list[FeatureLink] = [
         description="补全赛前信息和联系方式",
         url="/p/profile",
         enabled=True,
-        sortOrder=10,
+        sortOrder=1400,
     ),
+    # 赛前收集
     FeatureLink(
         id="feat_accommodation",
         title="住宿需求",
         description="填写你的住宿偏好和需求",
         url="/p/accommodation",
         enabled=True,
-        sortOrder=15,
+        sortOrder=1500,
     ),
     FeatureLink(
         id="feat_identity",
@@ -49,7 +52,7 @@ FEATURE_MODULES: list[FeatureLink] = [
         description="现场绑定 CheckinID",
         url="/p/identity",
         enabled=True,
-        sortOrder=20,
+        sortOrder=1600,
     ),
     FeatureLink(
         id="feat_meal_order",
@@ -57,15 +60,16 @@ FEATURE_MODULES: list[FeatureLink] = [
         description="提交餐食忌口和饮料补给需求",
         url="/p/meal-order",
         enabled=True,
-        sortOrder=25,
+        sortOrder=1700,
     ),
+    # 赛事运营
     FeatureLink(
         id="feat_resources",
         title="我的资源",
         description="查看已领取的兑换码和物资",
         url="/p/resources",
         enabled=True,
-        sortOrder=30,
+        sortOrder=1800,
     ),
     FeatureLink(
         id="feat_location",
@@ -73,7 +77,7 @@ FEATURE_MODULES: list[FeatureLink] = [
         description="查看比赛场地位置和交通",
         url="/p/location",
         enabled=True,
-        sortOrder=35,
+        sortOrder=1900,
     ),
 ]
 
