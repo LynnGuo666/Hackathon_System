@@ -63,6 +63,10 @@ def mount_static_frontend(app: FastAPI, static_dir: Path) -> None:
         if candidate.is_file():
             return FileResponse(candidate)
 
+        html_candidate = static_dir / (path + ".html")
+        if html_candidate.is_file():
+            return FileResponse(html_candidate)
+
         index_candidate = static_dir / path / "index.html"
         if index_candidate.is_file():
             return FileResponse(index_candidate)
