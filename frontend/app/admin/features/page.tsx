@@ -151,22 +151,31 @@ export default function AdminFeaturesPage() {
     }
   }
 
+  /** 固定模块 id → 后端 FeatureLink id */
+  const FIXED_TO_API: Record<string, string> = {
+    resources: "feat_resources",
+    "meal-orders": "feat_meal_order",
+    "email-outbox": "feat_email_outbox",
+    accommodation: "feat_accommodation",
+  };
+
   /** 将固定模块和 API 模块合并为统一列表 */
   function buildModuleList(): ModuleRow[] {
     const fixedIds = new Set(FIXED_MODULES.map((m) => m.id));
 
-    // 构建 API FeatureLink 查找表（按 url 匹配）
-    const apiByUrl = new Map<string, FeatureLink>();
+    // 构建 API FeatureLink 查找表（按 id 匹配）
+    const apiById = new Map<string, FeatureLink>();
     for (const f of modules) {
-      apiByUrl.set(f.url, f);
+      apiById.set(f.id, f);
     }
 
     const fixedRows: ModuleRow[] = FIXED_MODULES.map((m) => {
-      const matched = apiByUrl.get(m.url);
+      const apiId = FIXED_TO_API[m.id];
+      const matched = apiId ? apiById.get(apiId) : undefined;
       return {
         ...m,
         enabled: m.alwaysOn ? true : (matched?.enabled ?? true),
-        updatedAt: "",
+        updatedAt: matched?.updatedAt ?? "",
         featureId: matched?.id,
       };
     });

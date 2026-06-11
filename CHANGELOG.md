@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-12
+
+### Changed
+- 功能模块排序按赛事生命周期分组（基础设置→赛前收集→赛事运营→运维工具）
+- 管理端和参与者端模块 sortOrder 统一为百位/千位数
+- 始终启用模块显示为不可操作的开关，而非纯文本
+
+### Fixed
+- 修复功能模块开关操作报 "failed to fetch" 的问题（固定模块与后端 feature ID 映射错误）
+- 后端补充缺失的邮件队列功能模块（feat_email_outbox）
+- 移除功能模块页面冗余的错误提示卡片
+
 ## [0.2.0] - 2026-06-11
 
 ### Added

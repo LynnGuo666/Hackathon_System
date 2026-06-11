@@ -79,6 +79,15 @@ FEATURE_MODULES: list[FeatureLink] = [
         enabled=True,
         sortOrder=1900,
     ),
+    # 运维工具
+    FeatureLink(
+        id="feat_email_outbox",
+        title="邮件队列",
+        description="查看和管理邮件发送队列",
+        url="/admin/email-outbox",
+        enabled=True,
+        sortOrder=2000,
+    ),
 ]
 
 _feature_enabled: dict[str, bool] = {m.id: m.enabled for m in FEATURE_MODULES}
