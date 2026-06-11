@@ -16,18 +16,22 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "site_config",
-        sa.Column("event_name", sa.Text(), nullable=False, server_default="Hackathon"),
-    )
-    op.add_column(
-        "site_config",
-        sa.Column("timezone", sa.Text(), nullable=False, server_default="Asia/Shanghai"),
-    )
-    op.add_column(
-        "site_config",
-        sa.Column("countdown_stages", sa.Text(), nullable=False, server_default="[]"),
-    )
+    existing_columns = _site_config_columns()
+    if "event_name" not in existing_columns:
+        op.add_column(
+            "site_config",
+            sa.Column("event_name", sa.Text(), nullable=False, server_default="Hackathon"),
+        )
+    if "timezone" not in existing_columns:
+        op.add_column(
+            "site_config",
+            sa.Column("timezone", sa.Text(), nullable=False, server_default="Asia/Shanghai"),
+        )
+    if "countdown_stages" not in existing_columns:
+        op.add_column(
+            "site_config",
+            sa.Column("countdown_stages", sa.Text(), nullable=False, server_default="[]"),
+        )
     op.execute(
         """
 UPDATE site_config
@@ -45,6 +49,16 @@ WHERE countdown_end <> ''
 
 
 def downgrade() -> None:
-    op.drop_column("site_config", "countdown_stages")
-    op.drop_column("site_config", "timezone")
-    op.drop_column("site_config", "event_name")
+    existing_columns = _site_config_columns()
+    if "countdown_stages" in existing_columns:
+        op.drop_column("site_config", "countdown_stages")
+    if "timezone" in existing_columns:
+        op.drop_column("site_config", "timezone")
+    if "event_name" in existing_columns:
+        op.drop_column("site_config", "event_name")
+
+
+def _site_config_columns() -> set[str]:
+    connection = op.get_bind()
+    rows = connection.exec_driver_sql("PRAGMA table_info(site_config)").fetchall()
+    return {row[1] for row in rows}

@@ -26,7 +26,8 @@ export default function AdminLoginPage() {
       router.push(next.startsWith("/") && next.startsWith("/admin") ? next : "/admin/resources");
     } catch (error) {
       sessionStorage.removeItem("admin_token");
-      notify.error(errorText(error, "验证失败，请检查令牌"));
+      const message = errorText(error, "验证失败，请检查令牌");
+      notify.error(message.includes("admin not configured") ? "后端 ADMIN_TOKEN 未配置，请先启动带管理员令牌的后端" : message);
     } finally {
       setLoading(false);
     }
