@@ -30,7 +30,7 @@ export function MealSlotsTable({
   stats: Record<string, number>;
 } & TableStateProps) {
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardHeader className="justify-between gap-4">
         <h3 className="font-semibold">餐食餐次</h3>
         <Chip variant="flat">{slots.length} 个餐次</Chip>
@@ -91,7 +91,7 @@ export function DrinkSlotsTable({
   orders: DrinkOrder[];
 } & TableStateProps) {
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardHeader className="justify-between gap-4">
         <h3 className="font-semibold">饮料补给批次</h3>
         <Chip variant="flat">{slots.length} 个批次</Chip>

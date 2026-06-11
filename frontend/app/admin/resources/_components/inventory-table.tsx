@@ -25,7 +25,7 @@ export function InventoryTable({
   total: number;
 }) {
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardHeader className="justify-between gap-4">
         <h3 className="font-semibold">库存明细</h3>
         <Chip variant="flat">{total} 条库存</Chip>

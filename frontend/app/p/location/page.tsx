@@ -44,7 +44,7 @@ export default function LocationPage() {
       )}
 
       {!loading && !location?.name && (
-        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <Card classNames={{ base: "rounded-card shadow-sm" }}>
           <CardBody className="py-8 text-center text-sm text-foreground/40">
             暂未配置赛事地点，请等待主办方更新。
           </CardBody>
@@ -53,7 +53,7 @@ export default function LocationPage() {
 
       {location?.name && (
         <>
-          <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+          <Card classNames={{ base: "rounded-card shadow-sm" }}>
             <CardHeader className="items-start justify-between gap-4 px-5 py-4">
               <div className="grid gap-1">
                 <p className="text-xs font-medium text-foreground/40">场地</p>
@@ -101,7 +101,7 @@ export default function LocationPage() {
           </Card>
 
           {hasCoordinates && mapUrl && (
-            <div className="overflow-hidden rounded-lg border border-divider bg-content1">
+            <div className="overflow-hidden rounded-card border border-divider bg-content1">
               <iframe
                 title="赛事地点地图"
                 src={mapUrl}

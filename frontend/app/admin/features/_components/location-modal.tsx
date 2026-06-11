@@ -42,7 +42,7 @@ export function LocationModal({
             </ModalHeader>
             <ModalBody className="grid gap-4">
               {location?.name ? (
-                <div className="rounded-md border border-divider bg-content2 p-3 text-sm">
+                <div className="rounded-card border border-divider bg-content2 p-3 text-sm">
                   <p className="font-medium">{location.name}</p>
                   <p className="text-foreground/60">{location.address}</p>
                   {location.latitude !== null && location.longitude !== null && (
@@ -65,11 +65,11 @@ export function LocationModal({
                   <p className="mt-2 text-xs text-foreground/45">更新时间：{formatDateTime(location.updatedAt)}</p>
                 </div>
               ) : (
-                <div className="rounded-md border border-divider bg-content2 p-3 text-sm text-foreground/60">
+                <div className="rounded-card border border-divider bg-content2 p-3 text-sm text-foreground/60">
                   暂未配置赛事地点。
                 </div>
               )}
-              <div className="grid gap-3 rounded-md border border-divider bg-content2 p-3">
+              <div className="grid gap-3 rounded-card border border-divider bg-content2 p-3">
                 <Input label="地点名称" placeholder="Demo Hall" value={locationName} onValueChange={onLocationNameChange} />
                 <Button
                   color="primary"

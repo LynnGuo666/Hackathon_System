@@ -17,6 +17,7 @@
   --spacing-page-x: 1.25rem;
   --spacing-section: 1.5rem;
   --spacing-card: 1rem;
+  --radius-card: 12px;
 }
 
 @layer base {

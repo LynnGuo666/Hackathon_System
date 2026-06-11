@@ -31,7 +31,7 @@ export function MealOrdersTable({
 } & TableStateProps) {
   const slotNames = Object.fromEntries(slots.map((slot) => [slot.id, slot.title]));
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardHeader className="justify-between gap-4">
         <h3 className="font-semibold">餐食订单</h3>
         <Chip variant="flat">{orders.length} 条订单</Chip>
@@ -84,7 +84,7 @@ export function DrinkOrdersTable({
 } & TableStateProps) {
   const slotNames = Object.fromEntries(slots.map((slot) => [slot.id, slot.title]));
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardHeader className="justify-between gap-4">
         <h3 className="font-semibold">饮料订单</h3>
         <Chip variant="flat">{orders.length} 条订单</Chip>

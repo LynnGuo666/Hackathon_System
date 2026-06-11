@@ -45,7 +45,7 @@ export default function DashboardPage() {
       )}
 
       {!loading && config?.countdownEnabled && config.countdownStages.length > 0 && (
-        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <Card classNames={{ base: "rounded-card shadow-sm" }}>
           <CardBody className="flex items-center justify-center py-8">
             <Countdown eventName={config.eventName} stages={config.countdownStages} />
           </CardBody>
@@ -55,7 +55,7 @@ export default function DashboardPage() {
       {participant && (
         <section className="grid gap-4">
           <h3 className="text-sm font-semibold text-foreground/60">身份信息</h3>
-          <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+          <Card classNames={{ base: "rounded-card shadow-sm" }}>
             <CardBody className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-1">
                 <p className="text-xs font-medium text-foreground/40">CheckinID</p>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
               const { value, ok } = item.getValue(participant);
               const Icon = item.icon;
               return (
-                <Card key={item.label} classNames={{ base: "rounded-lg shadow-sm" }}>
+                <Card key={item.label} classNames={{ base: "rounded-card shadow-sm" }}>
                   <CardBody className="grid gap-2">
                     <div className="flex items-center gap-2">
                       <Icon size={14} className="text-foreground/30" aria-hidden="true" />

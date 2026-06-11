@@ -34,13 +34,13 @@ export default function AdminSettingsPage() {
           {form.loading && <Spinner label="正在读取比赛基础信息" />}
 
           {!form.loading && form.loadError && (
-            <Card classNames={{ base: "rounded-md" }}>
+            <Card classNames={{ base: "rounded-card" }}>
               <CardBody className="text-sm text-danger">{form.loadError}</CardBody>
             </Card>
           )}
 
           {!form.loading && !form.loadError && (
-            <Card classNames={{ base: "rounded-md" }}>
+            <Card classNames={{ base: "rounded-card" }}>
               <CardBody className="grid gap-5">
                 <BasicInfoForm
                   eventName={form.eventName}

@@ -90,7 +90,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto grid min-h-screen max-w-md place-items-center px-5">
-      <Card classNames={{ base: "w-full rounded-lg shadow-sm" }}>
+      <Card classNames={{ base: "w-full rounded-card shadow-sm" }}>
         <CardHeader className="block px-6 pt-6 pb-0">
           <h1 className="text-xl font-bold text-foreground">进入系统</h1>
           <p className="mt-1 text-xs text-foreground/40">选择登录方式</p>

@@ -23,7 +23,7 @@ export function StageList({
       </div>
 
       {stages.length === 0 && (
-        <Card classNames={{ base: "rounded-md border border-dashed border-divider shadow-none" }}>
+        <Card classNames={{ base: "rounded-card border border-dashed border-divider shadow-none" }}>
           <CardBody className="items-start gap-3">
             <p className="text-sm text-foreground/60">还没有阶段，可以添加开赛、提交、完赛等时间点。</p>
             <Button size="sm" color="primary" variant="flat" startContent={<Plus size={16} />} onPress={onAdd}>

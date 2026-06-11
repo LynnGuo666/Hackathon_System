@@ -93,7 +93,7 @@ function HomeEntryLinks({
   ];
 
   return (
-    <Card classNames={{ base: "w-full rounded-md" }}>
+    <Card classNames={{ base: "w-full rounded-card" }}>
       <CardBody className="grid gap-1 p-0">
         {allItems.map(({ item, actionLabel }, index) => {
           const external = item.url.startsWith("http");

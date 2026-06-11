@@ -40,7 +40,7 @@ export default function ServicesPage() {
       )}
 
       {!loading && features.length === 0 && links.length === 0 && (
-        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <Card classNames={{ base: "rounded-card shadow-sm" }}>
           <CardBody className="py-8 text-center text-sm text-foreground/40">
             暂无可用的功能或赛事导航，请稍后再来。
           </CardBody>
@@ -81,7 +81,7 @@ function EntrySection({
             <Card
               key={item.id}
               isPressable
-              classNames={{ base: "rounded-lg shadow-sm transition-shadow hover:shadow-md" }}
+              classNames={{ base: "rounded-card shadow-sm transition-shadow hover:shadow-md" }}
             >
               <Link href={item.url} className="block">
                 <CardBody className="grid gap-3 p-4">

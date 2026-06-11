@@ -62,7 +62,7 @@ export default function ProfilePage() {
         <h2 className="text-xl font-bold text-foreground">我的资料</h2>
       </div>
 
-      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+      <Card classNames={{ base: "rounded-card shadow-sm" }}>
         <CardHeader className="block px-5 pt-5 pb-0">
           <h3 className="text-sm font-semibold text-foreground/60">昵称</h3>
         </CardHeader>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
         </CardBody>
       </Card>
 
-      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+      <Card classNames={{ base: "rounded-card shadow-sm" }}>
         <CardHeader className="block px-5 pt-5 pb-0">
           <h3 className="text-sm font-semibold text-foreground/60">身份关联</h3>
         </CardHeader>

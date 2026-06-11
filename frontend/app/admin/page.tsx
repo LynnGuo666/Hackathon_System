@@ -119,7 +119,7 @@ export default function AdminPage() {
           )}
 
           {!loading && loadError && (
-            <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+            <Card classNames={{ base: "rounded-card shadow-sm" }}>
               <CardBody className="text-sm text-danger">{loadError}</CardBody>
             </Card>
           )}
@@ -201,7 +201,7 @@ export default function AdminPage() {
                   <Card
                     key={item.href}
                     isPressable
-                    classNames={{ base: "rounded-lg shadow-sm transition-shadow hover:shadow-md" }}
+                    classNames={{ base: "rounded-card shadow-sm transition-shadow hover:shadow-md" }}
                   >
                     <Link href={item.href} className="block">
                       <CardHeader className="items-start gap-3 px-4 py-3">
@@ -231,7 +231,7 @@ export default function AdminPage() {
 
 function OverviewCard({ title, value, details }: { title: string; value: number; details: string[] }) {
   return (
-    <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+    <Card classNames={{ base: "rounded-card shadow-sm" }}>
       <CardBody className="gap-3 p-4">
         <div>
           <p className="text-xs font-medium text-foreground/40">{title}</p>

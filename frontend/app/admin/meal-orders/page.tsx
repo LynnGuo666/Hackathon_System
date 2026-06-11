@@ -77,7 +77,7 @@ export default function AdminMealOrdersPage() {
           </div>
 
           {loadError && (
-            <Card classNames={{ base: "rounded-md" }}>
+            <Card classNames={{ base: "rounded-card" }}>
               <CardBody className="text-sm text-danger">{loadError}</CardBody>
             </Card>
           )}

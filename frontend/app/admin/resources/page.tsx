@@ -190,7 +190,7 @@ function PoolDetail({ poolId }: { poolId: string }) {
         {loading && <Spinner label="正在读取资源详情" />}
 
         {!loading && loadError && (
-          <Card classNames={{ base: "rounded-md" }}>
+          <Card classNames={{ base: "rounded-card" }}>
             <CardBody className="text-sm text-danger">{loadError}</CardBody>
           </Card>
         )}
@@ -224,7 +224,7 @@ function PoolDetail({ poolId }: { poolId: string }) {
         )}
 
         {!loading && !loadError && !pool && (
-          <Card classNames={{ base: "rounded-md" }}>
+          <Card classNames={{ base: "rounded-card" }}>
             <CardBody className="text-sm text-foreground/65">
               未找到资源条目，请从资源条目列表进入详情页。
             </CardBody>
@@ -314,7 +314,7 @@ function PoolList() {
           <h2 className="text-xl font-bold text-foreground">资源条目</h2>
         </div>
 
-        <Card classNames={{ base: "rounded-md" }}>
+        <Card classNames={{ base: "rounded-card" }}>
           <CardHeader>
             <h3 className="font-semibold">创建资源条目</h3>
           </CardHeader>
@@ -335,7 +335,7 @@ function PoolList() {
           </CardBody>
         </Card>
 
-        <Card classNames={{ base: "rounded-md" }}>
+        <Card classNames={{ base: "rounded-card" }}>
           <CardHeader className="justify-between gap-4">
             <h3 className="font-semibold">已建立条目</h3>
             <Chip variant="flat">{pools.length} 个条目</Chip>

@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
 
   return (
     <main className="mx-auto grid min-h-screen max-w-md place-items-center px-5">
-      <Card classNames={{ base: "w-full rounded-md" }}>
+      <Card classNames={{ base: "w-full rounded-card" }}>
         <CardHeader className="block">
           <h1 className="text-2xl font-semibold">管理员登录</h1>
         </CardHeader>

@@ -57,7 +57,7 @@ export default function AccommodationPage() {
         <h2 className="text-xl font-bold text-foreground">住宿需求</h2>
       </div>
 
-      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+      <Card classNames={{ base: "rounded-card shadow-sm" }}>
         <CardHeader className="block px-5 pt-5 pb-0">
           <h3 className="text-sm font-semibold text-foreground/60">请选择你需要的住宿方式</h3>
           <p className="mt-1 text-xs text-foreground/40">可多选，请根据自己的实际情况勾选。</p>

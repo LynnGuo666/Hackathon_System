@@ -82,7 +82,7 @@ export default function AdminAccommodationPage() {
             ))}
           </div>
 
-          <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+          <Card classNames={{ base: "rounded-card shadow-sm" }}>
             <CardHeader className="flex items-center justify-between gap-4 px-5 py-3">
               <h3 className="text-sm font-semibold text-foreground/60">需求明细</h3>
               <Chip size="sm" variant="flat">{requests.length} 条记录</Chip>
@@ -133,7 +133,7 @@ export default function AdminAccommodationPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card classNames={{ base: "rounded-md" }}>
+    <Card classNames={{ base: "rounded-card" }}>
       <CardBody>
         <p className="text-sm text-foreground/60">{label}</p>
         <p className="mt-1 text-2xl font-semibold">{value}</p>

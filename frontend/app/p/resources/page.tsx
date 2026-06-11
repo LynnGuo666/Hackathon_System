@@ -32,7 +32,7 @@ export default function ResourcesPage() {
       )}
 
       {!loading && resources.length === 0 && (
-        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <Card classNames={{ base: "rounded-card shadow-sm" }}>
           <CardBody className="py-8 text-center text-sm text-foreground/40">
             暂无资源发放记录。
           </CardBody>
@@ -41,7 +41,7 @@ export default function ResourcesPage() {
 
       <div className="grid gap-3 lg:grid-cols-2">
         {resources.map((resource) => (
-          <Card key={resource.id} classNames={{ base: "rounded-lg shadow-sm" }}>
+          <Card key={resource.id} classNames={{ base: "rounded-card shadow-sm" }}>
             <CardHeader className="items-center justify-between px-5 py-3">
               <h3 className="text-sm font-semibold text-foreground">{resource.poolId}</h3>
               <StatusChip status={resource.status} />

@@ -73,7 +73,7 @@ export default function AdminNavigationPage() {
           <h2 className="text-xl font-bold text-foreground">赛事导航</h2>
         </div>
 
-        <Card classNames={{ base: "rounded-md" }}>
+        <Card classNames={{ base: "rounded-card" }}>
           <CardHeader>
             <h3 className="font-semibold">新增导航链接</h3>
           </CardHeader>
@@ -92,7 +92,7 @@ export default function AdminNavigationPage() {
           </CardBody>
         </Card>
 
-        <Card classNames={{ base: "rounded-md" }}>
+        <Card classNames={{ base: "rounded-card" }}>
           <CardHeader className="justify-between gap-4">
             <h3 className="font-semibold">已配置导航</h3>
             <Chip variant="flat">{links.length} 个链接</Chip>
