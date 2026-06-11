@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { Button, Card, CardBody, Spinner } from "@heroui/react";
-import { ArrowRight, ClipboardList, ExternalLink, LogIn, MapPin } from "lucide-react";
+import { ArrowRight, ExternalLink, LogIn } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Countdown } from "@/components/countdown";
 import { api, type FeatureLink, type NavigationLink, type SiteConfig } from "@/web/lib/api";
 import { useEffect, useState } from "react";
-
-const sectionIcons: Record<string, typeof ClipboardList> = {
-  "功能办理": ClipboardList,
-  "赛事导航": MapPin,
-};
 
 export default function HomePage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
@@ -59,12 +54,8 @@ export default function HomePage() {
           <Countdown eventName={config.eventName} stages={config.countdownStages} />
         )}
 
-        {!loading && features.length > 0 && (
-          <HomeEntrySection title="功能办理" actionLabel="去办理" entries={features} />
-        )}
-
-        {!loading && links.length > 0 && (
-          <HomeEntrySection title="赛事导航" actionLabel="查看" entries={links} />
+        {!loading && (features.length > 0 || links.length > 0) && (
+          <HomeEntryLinks features={features} links={links} />
         )}
 
         {!loading && !config?.countdownEnabled && features.length === 0 && links.length === 0 && (
@@ -89,54 +80,45 @@ export default function HomePage() {
   );
 }
 
-function HomeEntrySection({
-  title,
-  actionLabel,
-  entries,
+function HomeEntryLinks({
+  features,
+  links,
 }: {
-  title: string;
-  actionLabel: string;
-  entries: Array<FeatureLink | NavigationLink>;
+  features: FeatureLink[];
+  links: NavigationLink[];
 }) {
-  const Icon = sectionIcons[title] ?? ClipboardList;
+  const allItems: Array<{ item: FeatureLink | NavigationLink; actionLabel: string }> = [
+    ...features.map((item) => ({ item, actionLabel: "去办理" })),
+    ...links.map((item) => ({ item, actionLabel: "查看" })),
+  ];
+
   return (
-    <section className="grid w-full gap-4">
-      <div className="flex items-center gap-2">
-        <Icon size={18} className="text-foreground/40" aria-hidden="true" />
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {entries.map((item) => {
+    <Card classNames={{ base: "w-full rounded-md" }}>
+      <CardBody className="grid gap-1 p-0">
+        {allItems.map(({ item, actionLabel }, index) => {
           const external = item.url.startsWith("http");
           return (
-            <Card
+            <Link
               key={item.id}
-              isPressable
-              classNames={{ base: "rounded-md transition-shadow hover:shadow-md" }}
+              href={item.url}
+              className={`flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-content2 ${
+                index !== allItems.length - 1 ? "border-b border-divider" : ""
+              }`}
             >
-              <CardBody className="grid gap-3 p-4">
-                <div className="grid gap-1">
-                  <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-                  {item.description && (
-                    <p className="text-xs leading-relaxed text-foreground/50">{item.description}</p>
-                  )}
-                </div>
-                <Button
-                  as={Link}
-                  href={item.url}
-                  color="primary"
-                  variant="flat"
-                  size="sm"
-                  className="justify-between"
-                  endContent={external ? <ExternalLink size={14} /> : <ArrowRight size={14} />}
-                >
-                  {actionLabel}
-                </Button>
-              </CardBody>
-            </Card>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                {item.description && (
+                  <p className="text-xs text-foreground/45">{item.description}</p>
+                )}
+              </div>
+              <span className="flex shrink-0 items-center gap-1 text-xs text-primary">
+                {actionLabel}
+                {external ? <ExternalLink size={12} /> : <ArrowRight size={12} />}
+              </span>
+            </Link>
           );
         })}
-      </div>
-    </section>
+      </CardBody>
+    </Card>
   );
 }
