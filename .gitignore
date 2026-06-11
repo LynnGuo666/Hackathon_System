@@ -1,17 +1,35 @@
+# OS
 .DS_Store
+
+# IDE
+.idea/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build Output
 .cache/
 .next/
-node_modules/
 backend/.cache/
-frontend/out/
+coverage/
+dist/
 frontend/.next/
+frontend/out/
 frontend/web/out/
-frontend/node_modules/
-.idea/
-backend/hackathon.sqlite
+
+# TypeScript
+*.tsbuildinfo
+
+# Database
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
-dist/
-coverage/
+backend/hackathon.sqlite
+
+# AI Tools
+.claude/
 .mimocode/
+.trae/
+.codex/
+.droid/
