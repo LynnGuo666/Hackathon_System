@@ -64,13 +64,13 @@ export default function AdminAccommodationPage() {
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-foreground/60">赛前需求</p>
-              <h2 className="text-2xl font-semibold">住宿需求</h2>
+              <p className="text-xs font-medium text-foreground/40">运营功能</p>
+              <h2 className="text-xl font-bold text-foreground">住宿需求</h2>
             </div>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
           </div>
@@ -82,10 +82,10 @@ export default function AdminAccommodationPage() {
             ))}
           </div>
 
-          <Card className="rounded-md">
-            <CardHeader className="justify-between gap-4">
-              <h3 className="font-semibold">需求明细</h3>
-              <Chip variant="flat">{requests.length} 条记录</Chip>
+          <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+            <CardHeader className="flex items-center justify-between gap-4 px-5 py-3">
+              <h3 className="text-sm font-semibold text-foreground/60">需求明细</h3>
+              <Chip size="sm" variant="flat">{requests.length} 条记录</Chip>
             </CardHeader>
             <CardBody>
               <Table aria-label="住宿需求列表">
@@ -133,7 +133,7 @@ export default function AdminAccommodationPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardBody>
         <p className="text-sm text-foreground/60">{label}</p>
         <p className="mt-1 text-2xl font-semibold">{value}</p>

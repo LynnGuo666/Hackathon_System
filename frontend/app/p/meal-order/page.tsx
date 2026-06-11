@@ -52,18 +52,22 @@ export default function MealOrderPage() {
   }, [drinkOrders]);
 
   if (loading) {
-    return <Spinner label="加载中..." />;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner label="加载中" />
+      </div>
+    );
   }
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">餐饮补给</p>
-        <h2 className="text-2xl font-semibold">餐食与饮料补给相关信息</h2>
+        <p className="text-xs font-medium text-foreground/40">餐饮补给</p>
+        <h2 className="text-xl font-bold text-foreground">餐食与饮料补给</h2>
       </div>
 
       <Tabs aria-label="餐饮补给类型" variant="underlined">
-        <Tab key="meals" title={<TabTitle icon={<Utensils size={16} />} label="餐食" />}>
+        <Tab key="meals" title={<TabTitle icon={<Utensils size={14} />} label="餐食" />}>
           <div className="grid gap-4 pt-4">
             {mealSlots.length === 0 && <EmptyState text="暂无开放或可查看的餐食餐次数据。" />}
             {mealSlots.map((slot) => (
@@ -76,7 +80,7 @@ export default function MealOrderPage() {
             ))}
           </div>
         </Tab>
-        <Tab key="drinks" title={<TabTitle icon={<Coffee size={16} />} label="饮料补给" />}>
+        <Tab key="drinks" title={<TabTitle icon={<Coffee size={14} />} label="饮料补给" />}>
           <div className="grid gap-4 pt-4">
             {drinkSlots.length === 0 && <EmptyState text="暂无开放或可查看的饮料补给批次。" />}
             {drinkSlots.map((slot) => (
@@ -95,5 +99,5 @@ export default function MealOrderPage() {
 }
 
 function TabTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return <span className="inline-flex items-center gap-2">{icon}{label}</span>;
+  return <span className="inline-flex items-center gap-1.5 text-sm">{icon}{label}</span>;
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Input } from "@heroui/react";
 import { Link as LinkIcon, Save } from "lucide-react";
 import { errorText, notify } from "@/components/toast";
-import { api, type Participant, type ParticipantProfile } from "@/web/lib/api";
+import { api, type Participant } from "@/web/lib/api";
 
 export default function ProfilePage() {
   const [participant, setParticipant] = useState<Participant | null>(null);
@@ -58,63 +58,68 @@ export default function ProfilePage() {
   return (
     <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">CheckinID 关联信息</p>
-        <h2 className="text-2xl font-semibold">我的资料</h2>
+        <p className="text-xs font-medium text-foreground/40">CheckinID 关联信息</p>
+        <h2 className="text-xl font-bold text-foreground">我的资料</h2>
       </div>
 
-      {/* 基础信息 */}
-      <Card className="rounded-md">
-        <CardHeader className="block">
-          <h3 className="font-semibold">昵称</h3>
+      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <CardHeader className="block px-5 pt-5 pb-0">
+          <h3 className="text-sm font-semibold text-foreground/60">昵称</h3>
         </CardHeader>
-        <CardBody className="grid gap-4">
+        <CardBody className="grid gap-4 px-5 pb-5">
           <Input label="昵称" value={fullName} onValueChange={setFullName} isRequired />
           <div>
-            <Button color="primary" startContent={<Save size={16} />} isLoading={loading} onPress={saveProfile}>
+            <Button color="primary" size="sm" startContent={<Save size={14} />} isLoading={loading} onPress={saveProfile}>
               保存
             </Button>
           </div>
         </CardBody>
       </Card>
 
-      {/* 签到身份 */}
-      <Card className="rounded-md">
-        <CardHeader className="block">
-          <h3 className="font-semibold">身份关联</h3>
+      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <CardHeader className="block px-5 pt-5 pb-0">
+          <h3 className="text-sm font-semibold text-foreground/60">身份关联</h3>
         </CardHeader>
-        <CardBody className="grid gap-4">
+        <CardBody className="grid gap-4 px-5 pb-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1">
-              <p className="text-xs text-foreground/50">CheckinID</p>
+              <p className="text-xs font-medium text-foreground/40">CheckinID</p>
               <div className="flex items-center gap-2">
-                <p className="font-medium">{participant?.checkinId || "未绑定"}</p>
+                <p className="text-sm font-medium text-foreground">{participant?.checkinId || "未绑定"}</p>
                 {participant?.checkinId && <Chip size="sm" color="success" variant="flat">已绑定</Chip>}
               </div>
             </div>
             <div className="grid gap-1">
-              <p className="text-xs text-foreground/50">关联邮箱</p>
-              <p className="font-medium">{participant?.email || "—"}</p>
+              <p className="text-xs font-medium text-foreground/40">关联邮箱</p>
+              <p className="text-sm font-medium text-foreground">{participant?.email || "—"}</p>
             </div>
           </div>
 
           {!participant?.checkinId && (
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+            <form
+              className="grid gap-3 sm:grid-cols-[1fr_auto]"
+              onSubmit={(e) => { e.preventDefault(); bindCheckinId(); }}
+            >
               <Input
                 label="CheckinID"
                 placeholder="000000"
                 value={checkinId}
                 onValueChange={setCheckinId}
+                autoComplete="off"
+                inputMode="numeric"
+                isRequired
               />
               <Button
                 color="primary"
+                size="sm"
                 className="sm:self-end"
-                startContent={<LinkIcon size={16} />}
+                startContent={<LinkIcon size={14} />}
                 isLoading={bindLoading}
-                onPress={bindCheckinId}
+                type="submit"
               >
                 绑定
               </Button>
-            </div>
+            </form>
           )}
         </CardBody>
       </Card>

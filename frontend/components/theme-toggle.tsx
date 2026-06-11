@@ -16,15 +16,18 @@ export function ThemeToggle() {
   const isDark = mounted && resolvedTheme === "dark";
 
   return (
-    <Tooltip content={isDark ? "切换浅色" : "切换深色"}>
+    <Tooltip content={isDark ? "切换浅色模式" : "切换深色模式"}>
       <Button
         isIconOnly
-        aria-label={isDark ? "切换浅色" : "切换深色"}
+        aria-label={isDark ? "切换浅色模式" : "切换深色模式"}
         size="sm"
         variant="flat"
         onPress={() => setTheme(isDark ? "light" : "dark")}
+        className="transition-colors"
       >
-        {isDark ? <Sun size={17} /> : <Moon size={17} />}
+        <span className="transition-transform duration-200" style={{ transform: mounted ? "rotate(0deg)" : "rotate(-90deg)" }}>
+          {isDark ? <Sun size={17} /> : <Moon size={17} />}
+        </span>
       </Button>
     </Tooltip>
   );

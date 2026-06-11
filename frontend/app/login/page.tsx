@@ -90,11 +90,12 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto grid min-h-screen max-w-md place-items-center px-5">
-      <Card className="w-full rounded-md">
-        <CardHeader className="block">
-          <h1 className="text-2xl font-semibold">进入系统</h1>
+      <Card classNames={{ base: "w-full rounded-lg shadow-sm" }}>
+        <CardHeader className="block px-6 pt-6 pb-0">
+          <h1 className="text-xl font-bold text-foreground">进入系统</h1>
+          <p className="mt-1 text-xs text-foreground/40">选择登录方式</p>
         </CardHeader>
-        <CardBody className="gap-4">
+        <CardBody className="gap-4 px-6 pb-6">
           <Tabs fullWidth aria-label="登录方式">
             <Tab key="email" title="邮箱">
               <EmailLoginForm

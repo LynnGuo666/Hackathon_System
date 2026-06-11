@@ -64,9 +64,10 @@ export default function AdminMealOrdersPage() {
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">餐饮与饮料补给</h2>
+            <p className="text-xs font-medium text-foreground/40">运营功能</p>
+            <h2 className="text-xl font-bold text-foreground">餐饮与饮料补给</h2>
           </div>
 
           <div className="flex justify-end">
@@ -76,7 +77,7 @@ export default function AdminMealOrdersPage() {
           </div>
 
           {loadError && (
-            <Card className="rounded-md">
+            <Card classNames={{ base: "rounded-md" }}>
               <CardBody className="text-sm text-danger">{loadError}</CardBody>
             </Card>
           )}

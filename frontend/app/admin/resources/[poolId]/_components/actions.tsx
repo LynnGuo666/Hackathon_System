@@ -3,7 +3,7 @@ import { PackagePlus, Send } from "lucide-react";
 
 export function InventoryActions({ onOpenImport }: { onOpenImport: () => void }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader>
         <h3 className="font-semibold">添加库存</h3>
       </CardHeader>
@@ -30,7 +30,7 @@ export function ManualAssignmentForm({
   onAssign: () => void;
 }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader>
         <h3 className="font-semibold">批准并发放</h3>
       </CardHeader>

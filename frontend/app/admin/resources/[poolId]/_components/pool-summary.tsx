@@ -21,7 +21,7 @@ export function PoolStatsCards({
 
 export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader>
         <h3 className="font-semibold">资源池信息</h3>
       </CardHeader>
@@ -37,7 +37,7 @@ export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardBody>
         <p className="text-sm text-foreground/60">{label}</p>
         <p className="mt-1 text-lg font-semibold">{value}</p>

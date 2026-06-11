@@ -55,7 +55,7 @@ export function MealSlotForm({ loading, setLoading, onSaved }: SlotFormProps) {
   }
 
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader>
         <h3 className="font-semibold">新增餐食餐次</h3>
       </CardHeader>
@@ -126,7 +126,7 @@ export function DrinkSlotForm({ loading, setLoading, onSaved }: SlotFormProps) {
   }
 
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader>
         <h3 className="font-semibold">新增饮料补给批次</h3>
       </CardHeader>

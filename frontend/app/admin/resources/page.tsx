@@ -124,12 +124,13 @@ export default function AdminResourcesPage() {
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">资源条目</h2>
+            <p className="text-xs font-medium text-foreground/40">运营功能</p>
+            <h2 className="text-xl font-bold text-foreground">资源条目</h2>
           </div>
 
-          <Card className="rounded-md">
+          <Card classNames={{ base: "rounded-md" }}>
             <CardHeader>
               <h3 className="font-semibold">创建资源条目</h3>
             </CardHeader>
@@ -150,7 +151,7 @@ export default function AdminResourcesPage() {
             </CardBody>
           </Card>
 
-          <Card className="rounded-md">
+          <Card classNames={{ base: "rounded-md" }}>
             <CardHeader className="justify-between gap-4">
               <h3 className="font-semibold">已建立条目</h3>
               <Chip variant="flat">{pools.length} 个条目</Chip>

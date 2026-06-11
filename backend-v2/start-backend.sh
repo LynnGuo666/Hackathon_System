@@ -33,6 +33,13 @@ export ADMIN_TOKEN="${ADMIN_TOKEN:-secret}"
 export DATABASE_PATH="${DATABASE_PATH:-./hackathon.sqlite}"
 export CORS_ORIGIN="${CORS_ORIGIN:-http://localhost:3000}"
 
+FRONTEND_DIR="$(cd "$ROOT_DIR/../frontend" && pwd)"
+if [ -f "$FRONTEND_DIR/package.json" ]; then
+  echo "Building frontend..."
+  (cd "$FRONTEND_DIR" && npm run build)
+  export STATIC_DIR="$FRONTEND_DIR/out"
+fi
+
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8080}"
 
@@ -40,5 +47,6 @@ echo "Starting backend-v2 on http://${HOST}:${PORT}"
 echo "ADMIN_TOKEN=${ADMIN_TOKEN}"
 echo "DATABASE_PATH=${DATABASE_PATH}"
 echo "CORS_ORIGIN=${CORS_ORIGIN}"
+echo "STATIC_DIR=${STATIC_DIR:-<not set>}"
 
 exec "$PYTHON" -m uvicorn app.main:app --reload --host "$HOST" --port "$PORT"

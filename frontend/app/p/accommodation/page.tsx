@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Checkbox, CheckboxGroup, Input, Spinner } from "@heroui/react";
 import { Save } from "lucide-react";
 import { errorText, notify } from "@/components/toast";
-import { api, type AccommodationOption, type AccommodationRequest } from "@/web/lib/api";
+import { api, type AccommodationOption } from "@/web/lib/api";
 
 const OPTIONS: { value: AccommodationOption; label: string }[] = [
   { value: "sleeping_bag", label: "睡袋" },
@@ -26,9 +26,7 @@ export default function AccommodationPage() {
         setSelections(req.selections || []);
         setOtherDetail(req.otherDetail || "");
       })
-      .catch(() => {
-        // no existing record
-      })
+      .catch(() => {})
       .finally(() => setInitialLoading(false));
   }, []);
 
@@ -45,22 +43,26 @@ export default function AccommodationPage() {
   }
 
   if (initialLoading) {
-    return <Spinner label="加载中" />;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner label="加载中" />
+      </div>
+    );
   }
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">赛前需求</p>
-        <h2 className="text-2xl font-semibold">住宿需求</h2>
+        <p className="text-xs font-medium text-foreground/40">赛前需求</p>
+        <h2 className="text-xl font-bold text-foreground">住宿需求</h2>
       </div>
 
-      <Card className="rounded-md">
-        <CardHeader className="block">
-          <h3 className="font-semibold">请选择你需要的住宿方式</h3>
-          <p className="text-sm text-foreground/60">可多选，请根据自己的实际情况勾选。</p>
+      <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+        <CardHeader className="block px-5 pt-5 pb-0">
+          <h3 className="text-sm font-semibold text-foreground/60">请选择你需要的住宿方式</h3>
+          <p className="mt-1 text-xs text-foreground/40">可多选，请根据自己的实际情况勾选。</p>
         </CardHeader>
-        <CardBody className="grid gap-4">
+        <CardBody className="grid gap-4 px-5 pb-5">
           <CheckboxGroup
             value={selections}
             onValueChange={(values) => setSelections(values as AccommodationOption[])}
@@ -82,7 +84,7 @@ export default function AccommodationPage() {
           )}
 
           <div>
-            <Button color="primary" startContent={<Save size={16} />} isLoading={loading} onPress={save}>
+            <Button color="primary" size="sm" startContent={<Save size={14} />} isLoading={loading} onPress={save}>
               保存
             </Button>
           </div>

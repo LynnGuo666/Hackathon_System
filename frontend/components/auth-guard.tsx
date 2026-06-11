@@ -20,7 +20,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
         <Spinner label="检查登录状态" />
       </div>
     );

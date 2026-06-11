@@ -136,7 +136,7 @@ export default function AdminResourcePoolDetailPage() {
           {loading && <Spinner label="正在读取资源详情" />}
 
           {!loading && loadError && (
-            <Card className="rounded-md">
+            <Card classNames={{ base: "rounded-md" }}>
               <CardBody className="text-sm text-danger">{loadError}</CardBody>
             </Card>
           )}
@@ -170,7 +170,7 @@ export default function AdminResourcePoolDetailPage() {
           )}
 
           {!loading && !loadError && !pool && (
-            <Card className="rounded-md">
+            <Card classNames={{ base: "rounded-md" }}>
               <CardBody className="text-sm text-foreground/65">
                 未找到资源条目，请从资源条目列表进入详情页。
               </CardBody>

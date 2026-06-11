@@ -19,13 +19,14 @@ export default function AdminSettingsPage() {
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-semibold">比赛基础信息</h2>
-              <p className="mt-1 text-sm text-foreground/60">统一控制比赛名称、展示时区和阶段式倒计时。</p>
+              <p className="text-xs font-medium text-foreground/40">系统配置</p>
+              <h2 className="text-xl font-bold text-foreground">比赛基础信息</h2>
+              <p className="mt-1 text-xs text-foreground/40">统一控制比赛名称、展示时区和阶段式倒计时。</p>
             </div>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={form.loading} onPress={form.refresh}>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={form.loading} onPress={form.refresh}>
               刷新
             </Button>
           </div>
@@ -33,13 +34,13 @@ export default function AdminSettingsPage() {
           {form.loading && <Spinner label="正在读取比赛基础信息" />}
 
           {!form.loading && form.loadError && (
-            <Card className="rounded-md">
+            <Card classNames={{ base: "rounded-md" }}>
               <CardBody className="text-sm text-danger">{form.loadError}</CardBody>
             </Card>
           )}
 
           {!form.loading && !form.loadError && (
-            <Card className="rounded-md">
+            <Card classNames={{ base: "rounded-md" }}>
               <CardBody className="grid gap-5">
                 <BasicInfoForm
                   eventName={form.eventName}

@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { Button, Card, CardBody, Spinner } from "@heroui/react";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ClipboardList, ExternalLink, MapPin } from "lucide-react";
 import { api, type FeatureLink, type NavigationLink } from "@/web/lib/api";
 import { useEffect, useState } from "react";
+
+const sectionIcons: Record<string, typeof ClipboardList> = {
+  "功能办理": ClipboardList,
+  "赛事导航": MapPin,
+};
 
 export default function ServicesPage() {
   const [features, setFeatures] = useState<FeatureLink[]>([]);
@@ -24,15 +29,19 @@ export default function ServicesPage() {
   return (
     <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">赛事服务</p>
-        <h2 className="text-2xl font-semibold">功能办理与赛事导航</h2>
+        <p className="text-xs font-medium text-foreground/40">赛事服务</p>
+        <h2 className="text-xl font-bold text-foreground">功能办理与赛事导航</h2>
       </div>
 
-      {loading && <Spinner label="加载中" />}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Spinner label="加载中" />
+        </div>
+      )}
 
       {!loading && features.length === 0 && links.length === 0 && (
-        <Card className="rounded-md">
-          <CardBody className="text-sm text-foreground/60">
+        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+          <CardBody className="py-8 text-center text-sm text-foreground/40">
             暂无可用的功能或赛事导航，请稍后再来。
           </CardBody>
         </Card>
@@ -58,26 +67,36 @@ function EntrySection({
   actionLabel: string;
   entries: Array<FeatureLink | NavigationLink>;
 }) {
+  const Icon = sectionIcons[title] ?? ClipboardList;
   return (
-    <section className="grid gap-3">
-      <h3 className="text-lg font-semibold">{title}</h3>
+    <section className="grid gap-4">
+      <div className="flex items-center gap-2">
+        <Icon size={16} className="text-foreground/30" aria-hidden="true" />
+        <h3 className="text-sm font-semibold text-foreground/60">{title}</h3>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {entries.map((item) => {
           const external = item.url.startsWith("http");
           return (
-            <Card key={item.id} as={Link} href={item.url} className="rounded-md transition-transform hover:scale-[1.01]">
-              <CardBody className="grid gap-3">
-                <div>
-                  <h4 className="font-semibold">{item.title}</h4>
-                  {item.description && (
-                    <p className="text-sm text-foreground/60">{item.description}</p>
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-primary text-sm">
-                  <span>{actionLabel}</span>
-                  {external ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
-                </div>
-              </CardBody>
+            <Card
+              key={item.id}
+              isPressable
+              classNames={{ base: "rounded-lg shadow-sm transition-shadow hover:shadow-md" }}
+            >
+              <Link href={item.url} className="block">
+                <CardBody className="grid gap-3 p-4">
+                  <div className="grid gap-1">
+                    <h4 className="text-sm font-semibold text-foreground">{item.title}</h4>
+                    {item.description && (
+                      <p className="text-xs leading-relaxed text-foreground/40">{item.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                    <span>{actionLabel}</span>
+                    {external ? <ExternalLink size={12} /> : <ArrowRight size={12} />}
+                  </div>
+                </CardBody>
+              </Link>
             </Card>
           );
         })}

@@ -31,17 +31,21 @@ export default function LocationPage() {
   const hasCoordinates = location?.latitude !== null && location?.longitude !== null;
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div>
-        <p className="text-sm text-foreground/60">赛事地点</p>
-        <h2 className="text-2xl font-semibold">地点与地图</h2>
+        <p className="text-xs font-medium text-foreground/40">赛事地点</p>
+        <h2 className="text-xl font-bold text-foreground">地点与地图</h2>
       </div>
 
-      {loading && <Spinner label="加载地点信息" />}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Spinner label="加载地点信息" />
+        </div>
+      )}
 
       {!loading && !location?.name && (
-        <Card className="rounded-md">
-          <CardBody className="text-sm text-foreground/60">
+        <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+          <CardBody className="py-8 text-center text-sm text-foreground/40">
             暂未配置赛事地点，请等待主办方更新。
           </CardBody>
         </Card>
@@ -49,19 +53,19 @@ export default function LocationPage() {
 
       {location?.name && (
         <>
-          <Card className="rounded-md">
-            <CardHeader className="justify-between gap-4">
-              <div>
-                <p className="text-sm text-foreground/60">venue</p>
-                <h3 className="font-semibold">{location.name}</h3>
+          <Card classNames={{ base: "rounded-lg shadow-sm" }}>
+            <CardHeader className="items-start justify-between gap-4 px-5 py-4">
+              <div className="grid gap-1">
+                <p className="text-xs font-medium text-foreground/40">场地</p>
+                <h3 className="text-sm font-semibold text-foreground">{location.name}</h3>
               </div>
-              <MapPin size={20} className="text-foreground/50" />
+              <MapPin size={18} className="shrink-0 text-foreground/30" aria-hidden="true" />
             </CardHeader>
-            <CardBody className="grid gap-3">
-              <p className="text-sm text-foreground/70">{location.address}</p>
+            <CardBody className="grid gap-3 px-5 pb-5">
+              <p className="text-sm text-foreground/60">{location.address}</p>
               {hasCoordinates && (
                 <>
-                  <p className="text-sm text-foreground/50">
+                  <p className="font-mono text-xs text-foreground/30">
                     {location.latitude?.toFixed(6)}, {location.longitude?.toFixed(6)}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -72,7 +76,8 @@ export default function LocationPage() {
                         target="_blank"
                         rel="noreferrer"
                         variant="flat"
-                        startContent={<ExternalLink size={16} />}
+                        size="sm"
+                        startContent={<ExternalLink size={14} />}
                       >
                         OpenStreetMap
                       </Button>
@@ -84,7 +89,8 @@ export default function LocationPage() {
                       rel="noreferrer"
                       color="primary"
                       variant="flat"
-                      startContent={<Navigation size={16} />}
+                      size="sm"
+                      startContent={<Navigation size={14} />}
                     >
                       路线
                     </Button>
@@ -95,7 +101,7 @@ export default function LocationPage() {
           </Card>
 
           {hasCoordinates && mapUrl && (
-            <div className="overflow-hidden rounded-md border border-divider bg-content1">
+            <div className="overflow-hidden rounded-lg border border-divider bg-content1">
               <iframe
                 title="赛事地点地图"
                 src={mapUrl}

@@ -67,12 +67,13 @@ export default function AdminNavigationPage() {
   return (
     <AdminAuthGuard>
     <AppShell variant="admin">
-      <section className="grid gap-5">
+      <section className="grid gap-6">
         <div>
-          <h2 className="text-2xl font-semibold">赛事导航</h2>
+          <p className="text-xs font-medium text-foreground/40">系统配置</p>
+          <h2 className="text-xl font-bold text-foreground">赛事导航</h2>
         </div>
 
-        <Card className="rounded-md">
+        <Card classNames={{ base: "rounded-md" }}>
           <CardHeader>
             <h3 className="font-semibold">新增导航链接</h3>
           </CardHeader>
@@ -91,7 +92,7 @@ export default function AdminNavigationPage() {
           </CardBody>
         </Card>
 
-        <Card className="rounded-md">
+        <Card classNames={{ base: "rounded-md" }}>
           <CardHeader className="justify-between gap-4">
             <h3 className="font-semibold">已配置导航</h3>
             <Chip variant="flat">{links.length} 个链接</Chip>

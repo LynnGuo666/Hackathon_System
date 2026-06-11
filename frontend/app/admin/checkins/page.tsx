@@ -114,10 +114,13 @@ export default function AdminCheckinsPage() {
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
-        <section className="grid gap-5">
+        <section className="grid gap-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold">CheckinID</h2>
-            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>刷新</Button>
+            <div>
+              <p className="text-xs font-medium text-foreground/40">运营功能</p>
+              <h2 className="text-xl font-bold text-foreground">CheckinID</h2>
+            </div>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>刷新</Button>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[180px_auto_auto_1fr]">

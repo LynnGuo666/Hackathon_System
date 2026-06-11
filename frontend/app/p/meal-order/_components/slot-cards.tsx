@@ -53,7 +53,7 @@ export function MealSlotCard({
   }
 
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader className="justify-between gap-4">
         <SlotTitle title={slot.title} description={slot.description} slot={slot} />
         <SlotStatus slot={slot} />
@@ -139,7 +139,7 @@ export function DrinkSlotCard({
   }
 
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardHeader className="justify-between gap-4">
         <SlotTitle title={slot.title} description={slot.description} slot={slot} />
         <SlotStatus slot={slot} />
@@ -183,7 +183,7 @@ export function DrinkSlotCard({
 
 export function EmptyState({ text }: { text: string }) {
   return (
-    <Card className="rounded-md">
+    <Card classNames={{ base: "rounded-md" }}>
       <CardBody className="text-sm text-foreground/60">{text}</CardBody>
     </Card>
   );
