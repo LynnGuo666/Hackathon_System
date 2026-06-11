@@ -25,6 +25,7 @@ export const featureNavIcons: Record<string, LucideIcon> = {
 export const participantNavItems: NavItem[] = [
   { href: "/p/dashboard", label: "总览", icon: Home },
   { href: "/p/services", label: "赛事服务", icon: ClipboardList },
+  { href: "/p/enrollment", label: "报名", icon: ClipboardList },
 ];
 
 export const adminNavGroups: NavGroup[] = [
@@ -32,6 +33,7 @@ export const adminNavGroups: NavGroup[] = [
     label: "运营功能",
     icon: Users,
     items: [
+      { href: "/admin/enrollments", label: "报名审核", icon: ClipboardList },
       { href: "/admin/accounts", label: "账号管理", icon: Users },
       { href: "/admin/checkins", label: "CheckinID", icon: CheckCircle },
       { href: "/admin/resources", label: "资源发放", icon: Gift },

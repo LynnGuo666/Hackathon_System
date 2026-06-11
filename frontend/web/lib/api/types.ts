@@ -266,3 +266,51 @@ export type DrinkSlotInput = Pick<
 export type MealOrderInput = Pick<MealOrder, "dietaryNeeds" | "otherDetail" | "notes">;
 
 export type DrinkOrderInput = Pick<DrinkOrder, "drinkOption" | "notes">;
+
+export type EnrollmentReviewStatus =
+  | "pending"
+  | "initial_review"
+  | "final_review"
+  | "approved"
+  | "rejected";
+
+export type Enrollment = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  school: string;
+  teamName: string;
+  personalBio: string;
+  projectDesc: string;
+  participationHistory: string;
+  githubUrl: string;
+  portfolioUrl: string;
+  resumeFilename: string;
+  reviewStatus: EnrollmentReviewStatus;
+  initialReviewer: string;
+  initialReviewAt?: string;
+  initialReviewNote: string;
+  finalReviewer: string;
+  finalReviewAt?: string;
+  finalReviewNote: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type EnrollmentInput = {
+  fullName: string;
+  email?: string;
+  phone: string;
+  school: string;
+  teamName: string;
+  personalBio: string;
+  projectDesc: string;
+  participationHistory: string;
+  githubUrl: string;
+  portfolioUrl: string;
+};
+
+export type EnrollmentReviewInput = {
+  note: string;
+};

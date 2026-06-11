@@ -68,9 +68,14 @@ export default function AdminNavigationPage() {
     <AdminAuthGuard>
     <AppShell variant="admin">
       <section className="grid gap-6">
-        <div>
-          <p className="text-xs font-medium text-foreground/40">系统配置</p>
-          <h2 className="text-xl font-bold text-foreground">赛事导航</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium text-foreground/40">系统配置</p>
+            <h2 className="text-xl font-bold text-foreground">赛事导航</h2>
+          </div>
+          <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
+            刷新
+          </Button>
         </div>
 
         <Card classNames={{ base: "rounded-card" }}>
@@ -84,9 +89,6 @@ export default function AdminNavigationPage() {
             <div className="flex gap-2 md:col-span-2">
               <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createLink}>
                 添加导航链接
-              </Button>
-              <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
-                刷新
               </Button>
             </div>
           </CardBody>

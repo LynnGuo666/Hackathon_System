@@ -85,7 +85,7 @@ export default function AdminAccountsPage() {
               <p className="text-xs font-medium text-foreground/40">运营功能</p>
               <h2 className="text-xl font-bold text-foreground">账号管理</h2>
             </div>
-            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>刷新</Button>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>刷新</Button>
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_220px]">

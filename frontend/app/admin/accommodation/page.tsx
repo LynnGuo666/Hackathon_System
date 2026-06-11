@@ -70,7 +70,7 @@ export default function AdminAccommodationPage() {
               <p className="text-xs font-medium text-foreground/40">运营功能</p>
               <h2 className="text-xl font-bold text-foreground">住宿需求</h2>
             </div>
-            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
           </div>

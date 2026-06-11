@@ -3,13 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@heroui/react";
-import { ArrowRight, Bed, Coffee, Compass, IdCard, KeyRound, Mail, RefreshCw, Settings2, SlidersHorizontal, UsersRound } from "lucide-react";
+import { ArrowRight, Bed, Coffee, Compass, FileText, IdCard, KeyRound, Mail, RefreshCw, Settings2, SlidersHorizontal, UsersRound } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
 import { api, type AdminOverview } from "@/web/lib/api";
 
 const adminModules = [
+  {
+    href: "/admin/enrollments",
+    title: "报名审核",
+    description: "审核参赛者报名信息",
+    group: "运营功能",
+    icon: FileText,
+  },
   {
     href: "/admin/accounts",
     title: "账号管理",
@@ -107,7 +114,7 @@ export default function AdminPage() {
               <p className="text-xs font-medium text-foreground/40">管理后台</p>
               <h2 className="text-xl font-bold text-foreground">系统概览</h2>
             </div>
-            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>
           </div>

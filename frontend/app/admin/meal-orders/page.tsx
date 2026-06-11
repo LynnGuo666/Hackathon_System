@@ -65,13 +65,12 @@ export default function AdminMealOrdersPage() {
     <AdminAuthGuard>
       <AppShell variant="admin">
         <section className="grid gap-6">
-          <div>
-            <p className="text-xs font-medium text-foreground/40">运营功能</p>
-            <h2 className="text-xl font-bold text-foreground">餐饮与饮料补给</h2>
-          </div>
-
-          <div className="flex justify-end">
-            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-foreground/40">运营功能</p>
+              <h2 className="text-xl font-bold text-foreground">餐饮与饮料补给</h2>
+            </div>
+            <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
               刷新
             </Button>
           </div>

@@ -8,6 +8,7 @@ from app.repositories.accommodation import AccommodationRepositoryMixin
 from app.repositories.auth import AuthRepositoryMixin
 from app.repositories.checkins import CheckinRepositoryMixin
 from app.repositories.configuration import ConfigurationRepositoryMixin
+from app.repositories.enrollments import EnrollmentRepositoryMixin
 from app.repositories.meal_orders import MealOrderRepositoryMixin
 from app.repositories.operations import OperationsRepositoryMixin
 from app.repositories.participants import ParticipantRepositoryMixin
@@ -23,6 +24,7 @@ class SQLiteRepository(
     ConfigurationRepositoryMixin,
     AccommodationRepositoryMixin,
     MealOrderRepositoryMixin,
+    EnrollmentRepositoryMixin,
 ):
     def __init__(self, path: str):
         self.path = path

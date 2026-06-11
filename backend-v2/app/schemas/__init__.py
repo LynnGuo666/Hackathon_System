@@ -17,6 +17,12 @@ from app.schemas.configuration import (
     OSMSearchResult,
     SiteConfig,
 )
+from app.schemas.enrollments import (
+    Enrollment,
+    EnrollmentInput,
+    EnrollmentReviewInput,
+    EnrollmentReviewStatus,
+)
 from app.schemas.food import DrinkOrder, DrinkSupplySlot, MealOrder, MealOrderSlot, SlotStatus
 from app.schemas.operations import AuditLog, EmailOutbox, EmailStatus
 from app.schemas.participants import (
@@ -71,6 +77,10 @@ __all__ = [
     "DrinkSupplySlot",
     "EmailOutbox",
     "EmailStatus",
+    "Enrollment",
+    "EnrollmentInput",
+    "EnrollmentReviewInput",
+    "EnrollmentReviewStatus",
     "EventLocation",
     "FeatureLink",
     "FeatureToggleInput",

@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import admin, auth, participant, public
+from app.api.routers import admin, auth, enrollment, participant, public
 from app.core.config import get_settings
 from app.core.errors import AppError
 
@@ -41,6 +41,7 @@ def create_app() -> FastAPI:
 
     app.include_router(public.router)
     app.include_router(auth.router)
+    app.include_router(enrollment.router)
     app.include_router(participant.router)
     app.include_router(admin.router)
 

@@ -26,7 +26,7 @@ export default function AdminSettingsPage() {
               <h2 className="text-xl font-bold text-foreground">比赛基础信息</h2>
               <p className="mt-1 text-xs text-foreground/40">统一控制比赛名称、展示时区和阶段式倒计时。</p>
             </div>
-            <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={form.loading} onPress={form.refresh}>
+            <Button variant="flat" size="sm" startContent={<RefreshCw size={16} />} isLoading={form.loading} onPress={form.refresh}>
               刷新
             </Button>
           </div>

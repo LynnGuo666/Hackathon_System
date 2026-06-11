@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Card, CardBody, Chip, useDisclosure } from "@heroui/react";
+import { Button, Card, CardBody, useDisclosure } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
@@ -194,19 +194,16 @@ export default function AdminFeaturesPage() {
   }, []);
 
   const rows = buildModuleList();
-  const enabledCount = rows.filter((r) => r.enabled).length;
 
   return (
     <AdminAuthGuard>
       <AppShell variant="admin">
         <section className="grid gap-6">
-          <div>
-            <p className="text-xs font-medium text-foreground/40">系统配置</p>
-            <h2 className="text-xl font-bold text-foreground">功能模块</h2>
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <Chip variant="flat">{enabledCount} 个启用</Chip>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-foreground/40">系统配置</p>
+              <h2 className="text-xl font-bold text-foreground">功能模块</h2>
+            </div>
             <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
               刷新
             </Button>

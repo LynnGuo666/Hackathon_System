@@ -50,12 +50,12 @@ export default function EmailOutboxPage() {
     <AdminAuthGuard>
     <AppShell variant="admin">
       <section className="grid gap-6">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium text-foreground/40">运营功能</p>
             <h2 className="text-xl font-bold text-foreground">邮件队列</h2>
           </div>
-          <Button variant="flat" size="sm" startContent={<RefreshCw size={14} />} isLoading={loading} onPress={refresh}>刷新</Button>
+          <Button variant="flat" size="sm" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>刷新</Button>
         </div>
         <Table aria-label="邮件队列">
           <TableHeader>

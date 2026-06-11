@@ -3,6 +3,7 @@
 import { adminApi } from "./api/admin";
 import { authApi } from "./api/auth";
 import { configurationApi } from "./api/configuration";
+import { enrollmentApi, adminEnrollmentApi } from "./api/enrollment";
 import { foodApi } from "./api/food";
 import { resourcesApi } from "./api/resources";
 
@@ -14,4 +15,6 @@ export const api = {
   ...adminApi,
   ...configurationApi,
   ...foodApi,
+  ...enrollmentApi,
+  ...adminEnrollmentApi,
 };
