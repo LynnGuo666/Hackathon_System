@@ -8,7 +8,11 @@ from app.schemas.base import APIModel
 
 class ParticipantStatus(StrEnum):
     pending = "pending"
+    enrolled = "enrolled"
+    accepted = "accepted"
+    checked_in = "checked_in"
     active = "active"
+    rejected = "rejected"
     disabled = "disabled"
 
 

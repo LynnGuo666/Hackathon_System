@@ -35,10 +35,10 @@ def overview(repo: SQLiteRepository = Depends(repository)) -> AdminOverview:
     return AdminOverview(
         participants=AdminOverviewParticipants(
             total=len(participants),
-            pending=sum(row.status == "pending" for row in participants),
-            active=sum(row.status == "active" for row in participants),
+            pending=sum(row.status in ("pending", "enrolled") for row in participants),
+            active=sum(row.status in ("accepted", "checked_in", "active") for row in participants),
             disabled=sum(row.status == "disabled" for row in participants),
-            checkedIn=sum(bool(row.checkin_id) for row in participants),
+            checkedIn=sum(row.status in ("checked_in", "active") for row in participants),
         ),
         checkinIds=AdminOverviewCheckinIDs(
             total=len(checkin_ids),

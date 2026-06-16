@@ -23,8 +23,9 @@ def actor_id(request: Request, x_actor_id: str | None = Header(default=None, ali
 def participant_email(
     request: Request,
     x_participant_email: str | None = Header(default=None, alias="X-Participant-Email"),
+    settings: Annotated[Settings, Depends(get_settings)] = None,
 ) -> str:
-    if x_participant_email:
+    if settings and settings.allow_participant_header_auth and x_participant_email:
         return normalize_email(x_participant_email)
     return normalize_email(request.cookies.get("participant_email"))
 

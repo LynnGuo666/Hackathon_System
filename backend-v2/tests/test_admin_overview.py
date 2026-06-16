@@ -6,12 +6,12 @@ from fastapi.testclient import TestClient
 def test_admin_overview_requires_token_and_returns_aggregates(
     client: TestClient,
     admin_headers: dict[str, str],
-    login: Callable[[str], None],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
     assert client.get("/api/admin/overview").status_code == 403
 
-    login("Overview@Example.com")
+    approve_enrollment("Overview@Example.com")
     import_checkins(["510001"])
     assert client.post("/api/auth/bind-checkin", json={"checkinId": "510001"}).status_code == 200
 

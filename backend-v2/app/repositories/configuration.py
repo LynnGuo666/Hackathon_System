@@ -89,7 +89,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         row = self.db.execute(
             """
 SELECT id, event_name, timezone, countdown_title, countdown_end, countdown_enabled,
-       countdown_stages, updated_at
+       countdown_stages, walkup_checkin_enabled, updated_at
 FROM site_config LIMIT 1
 """
         ).fetchone()
@@ -117,6 +117,9 @@ FROM site_config LIMIT 1
             "countdownEnd": row["countdown_end"],
             "countdownEnabled": bool(row["countdown_enabled"]),
             "countdownStages": countdown_stages,
+            "walkupCheckinEnabled": bool(row["walkup_checkin_enabled"])
+            if "walkup_checkin_enabled" in row.keys()
+            else False,
             "updatedAt": row["updated_at"],
         }
 
@@ -128,9 +131,9 @@ FROM site_config LIMIT 1
             """
 INSERT INTO site_config (
   id, event_name, timezone, countdown_title, countdown_end,
-  countdown_enabled, countdown_stages, updated_at
+  countdown_enabled, countdown_stages, walkup_checkin_enabled, updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   event_name = excluded.event_name,
   timezone = excluded.timezone,
@@ -138,6 +141,7 @@ ON CONFLICT(id) DO UPDATE SET
   countdown_end = excluded.countdown_end,
   countdown_enabled = excluded.countdown_enabled,
   countdown_stages = excluded.countdown_stages,
+  walkup_checkin_enabled = excluded.walkup_checkin_enabled,
   updated_at = excluded.updated_at
 """,
             (
@@ -148,6 +152,7 @@ ON CONFLICT(id) DO UPDATE SET
                 first_stage.get("time", config.get("countdown_end", "")),
                 bool_int(config.get("countdown_enabled", False)),
                 json.dumps(countdown_stages, ensure_ascii=False),
+                bool_int(config.get("walkup_checkin_enabled", False)),
                 updated_at,
             ),
         )

@@ -88,7 +88,7 @@ export default function AdminEnrollmentsPage() {
     if (!detail) return;
     setReviewing(true);
     try {
-      const isInitialReview = detail.reviewStatus === "pending" || detail.reviewStatus === "initial_review";
+      const isInitialReview = detail.reviewStatus === "pending";
       if (isInitialReview) {
         await api.initialReview(detail.id, approve, reviewNote);
       } else {

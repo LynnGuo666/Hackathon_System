@@ -1,33 +1,31 @@
-import re
 from collections.abc import Callable
 
 from fastapi.testclient import TestClient
 
 
-def test_send_code_prints_debug_log(client: TestClient, capfd):
+def test_send_code_queues_verification_email(
+    client: TestClient, admin_headers: dict[str, str], capfd
+):
     response = client.post("/api/auth/send-code", json={"email": "Debug@Example.com"})
     captured = capfd.readouterr()
 
     assert response.status_code == 202
-    assert re.search(
-        r"\[auth\] verification code for debug@example\.com: \d{6}",
-        captured.out,
-    )
+    assert "verification code" not in captured.out
+    emails = client.get("/api/admin/email-outbox", headers=admin_headers).json()
+    assert emails[0]["to"] == "debug@example.com"
 
 
 def test_profile_requires_login_and_fields(
     client: TestClient,
     admin_headers: dict[str, str],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
     assert client.put("/api/profile", json={}).status_code == 401
-    client.post("/api/auth/send-code", json={"email": "Profile@Example.com"})
-    code_email = client.get("/api/admin/email-outbox", headers=admin_headers).json()[0]["body"]
-    code = code_email.split("是 ")[1].split("，")[0]
-    client.post("/api/auth/verify-code", json={"email": "Profile@Example.com", "code": code})
+    approve_enrollment("Profile@Example.com")
 
     invalid = client.put("/api/profile", json={"fullName": "Ada"})
-    assert invalid.status_code == 401
+    assert invalid.status_code == 200
     import_checkins(["200001"])
     bound = client.post("/api/auth/bind-checkin", json={"checkinId": "200001"})
     assert bound.status_code == 200
@@ -45,8 +43,9 @@ def test_profile_requires_login_and_fields(
     assert saved.json()["fullName"] == "Ada Lovelace"
 
 
-def test_checkin_login_links_email_and_profile(
+def test_checkin_login_cannot_bypass_enrollment_acceptance(
     client: TestClient,
+    admin_headers: dict[str, str],
     import_checkins: Callable[[list[str]], None],
 ):
     import_checkins(["300001"])
@@ -55,9 +54,23 @@ def test_checkin_login_links_email_and_profile(
         "/api/auth/checkin-login",
         json={"checkinId": "300001", "email": "Checkin@Example.com", "fullName": "  Lyn  "},
     )
+    assert linked.status_code == 401
+
+    enabled = client.put(
+        "/api/admin/site-config",
+        headers=admin_headers,
+        json={"eventName": "Hackathon", "timezone": "Asia/Shanghai", "walkupCheckinEnabled": True},
+    )
+    assert enabled.status_code == 200
+
+    linked = client.post(
+        "/api/auth/checkin-login",
+        json={"checkinId": "300001", "email": "Checkin@Example.com", "fullName": "  Lyn  "},
+    )
     assert linked.status_code == 200
     assert linked.json()["email"] == "checkin@example.com"
     assert linked.json()["checkinId"] == "300001"
+    assert linked.json()["status"] == "checked_in"
 
     profile = client.get("/api/profile")
     assert profile.status_code == 200

@@ -4,6 +4,7 @@ from app.core.dependencies import service
 from app.core.security import participant_email
 from app.schemas import (
     AccommodationRequest,
+    BindCheckinInput,
     DrinkOrder,
     DrinkSupplySlot,
     MealOrder,
@@ -57,6 +58,15 @@ def put_accommodation(
     svc: HackathonService = Depends(service),
 ) -> AccommodationRequest:
     return svc.save_accommodation(email, input)
+
+
+@router.post("/checkin/claim", response_model=Participant, response_model_by_alias=True)
+def claim_checkin(
+    input: BindCheckinInput,
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> Participant:
+    return svc.bind_checkin(email, input.checkin_id)
 
 
 @router.get("/meal-order/slots", response_model=list[MealOrderSlot], response_model_by_alias=True)

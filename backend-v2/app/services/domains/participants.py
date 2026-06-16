@@ -39,30 +39,31 @@ class ParticipantServiceMixin:
     def bind_checkin_with_profile(
         self, email: str, checkin_id: str, full_name: str
     ) -> Participant:
+        site_config = self.repository.get_site_config()
+        if not site_config.get("walkupCheckinEnabled"):
+            raise LoginRequired("walkup checkin is disabled")
         full_name = full_name.strip()
         if not full_name:
             raise InvalidProfile("profile requires full name")
-        participant = self.bind_checkin(email, checkin_id)
+        email = email.strip().lower()
+        if not email or "@" not in email:
+            raise InvalidProfile("profile requires email")
+        checkin_id = checkin_id.strip()
+        if len(checkin_id) != 6 or not checkin_id.isdigit():
+            raise InvalidCheckinID("invalid checkin id")
         now = now_utc()
-        self.repository.upsert_participant_profile(
+        participant = self.repository.claim_checkin_as_walkup(email, checkin_id, full_name, now)
+        self.repository.enqueue_email(
             participant.email,
-            ParticipantProfile(
-                fullName=full_name,
-                teamName="",
-                school="",
-                phone="",
-                dietaryNeeds="",
-                tshirtSize="",
-                emergencyContact="",
-                notes="",
-            ),
+            mailer.checkin_bound_subject(),
+            mailer.checkin_bound_body(participant.checkin_id),
             now,
         )
         self.repository.record_audit(
             participant.email,
-            "participant.checkin_profile_upsert",
-            "participant_profile",
-            participant.email,
+            "participant.walkup_checkin",
+            "participant",
+            participant.checkin_id,
             "",
             now,
         )
@@ -77,12 +78,15 @@ class ParticipantServiceMixin:
 
     def checked_in_participant(self, email: str) -> Participant:
         participant = self.me(email)
-        if not participant.checkin_id:
+        if not participant.checkin_id or participant.status not in (
+            ParticipantStatus.checked_in,
+            ParticipantStatus.active,
+        ):
             raise LoginRequired("checkin id required")
         return participant
 
     def save_profile(self, email: str, profile: ParticipantProfile) -> ParticipantProfile:
-        participant = self.checked_in_participant(email)
+        participant = self.me(email)
         trimmed = profile.model_copy(
             update={
                 "full_name": profile.full_name.strip(),
@@ -110,7 +114,7 @@ class ParticipantServiceMixin:
         return saved
 
     def profile(self, email: str) -> ParticipantProfile:
-        participant = self.checked_in_participant(email)
+        participant = self.me(email)
         return self.repository.get_participant_profile(participant.email)
 
     def generate_checkin_ids(self, actor_id: str, count: int) -> list[CheckinIDRecord]:

@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     admin_token: str = Field(default="secret", alias="ADMIN_TOKEN")
     static_dir: str = Field(default="", alias="STATIC_DIR")
     cors_origin: str = Field(default="http://localhost:3000", alias="CORS_ORIGIN")
+    allow_participant_header_auth: bool = Field(
+        default=False, alias="ALLOW_PARTICIPANT_HEADER_AUTH"
+    )
 
     model_config = SettingsConfigDict(populate_by_name=True, extra="ignore")
 

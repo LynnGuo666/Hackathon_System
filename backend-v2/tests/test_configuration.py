@@ -82,6 +82,7 @@ def test_site_config_defaults_and_staged_countdown_validation(
     assert defaults.json()["eventName"] == "Hackathon"
     assert defaults.json()["timezone"] == "Asia/Shanghai"
     assert defaults.json()["countdownStages"] == []
+    assert defaults.json()["walkupCheckinEnabled"] is False
 
     saved = client.put(
         "/api/admin/site-config",
@@ -90,6 +91,7 @@ def test_site_config_defaults_and_staged_countdown_validation(
             "eventName": "HackHub 2026",
             "timezone": "Asia/Tokyo",
             "countdownEnabled": True,
+            "walkupCheckinEnabled": True,
             "countdownStages": [
                 {"id": "submit", "label": "提交", "time": "2026-06-10T04:00:00+09:00"},
                 {"id": "start", "label": "开赛", "time": "2026-06-09T10:00:00+09:00"},
@@ -101,12 +103,14 @@ def test_site_config_defaults_and_staged_countdown_validation(
     assert payload["eventName"] == "HackHub 2026"
     assert payload["timezone"] == "Asia/Tokyo"
     assert payload["countdownEnabled"] is True
+    assert payload["walkupCheckinEnabled"] is True
     assert [stage["id"] for stage in payload["countdownStages"]] == ["start", "submit"]
     assert payload["countdownStages"][0]["time"] == "2026-06-09T01:00:00Z"
     assert payload["countdownStages"][1]["time"] == "2026-06-09T19:00:00Z"
 
     public_config = client.get("/api/site-config").json()
     assert public_config["eventName"] == "HackHub 2026"
+    assert public_config["walkupCheckinEnabled"] is True
     assert public_config["countdownStages"] == payload["countdownStages"]
 
     invalid_timezone = client.put(

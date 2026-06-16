@@ -6,6 +6,7 @@ from app.schemas import (
     EnrollmentInput,
     EnrollmentReviewInput,
     EnrollmentReviewStatus,
+    ParticipantStatus,
 )
 
 
@@ -46,6 +47,9 @@ class EnrollmentServiceMixin:
             "resume_filename": "",
         }
         enrollment = self.repository.create_enrollment(email, data, now)
+        self.repository.ensure_participant_for_enrollment(
+            email, trimmed.full_name, ParticipantStatus.enrolled, now
+        )
         self.repository.record_audit(
             email, "enrollment.submit", "enrollment", enrollment.id, "", now
         )
@@ -61,13 +65,15 @@ class EnrollmentServiceMixin:
     ) -> Enrollment:
         now = now_utc()
         target_status = (
-            EnrollmentReviewStatus.final_review
-            if approve
-            else EnrollmentReviewStatus.rejected
+            EnrollmentReviewStatus.initial_review if approve else EnrollmentReviewStatus.rejected
         )
         enrollment = self.repository.update_enrollment_review(
             enrollment_id, target_status, actor_id, note, now
         )
+        if not approve:
+            self.repository.set_participant_status(
+                enrollment.email, ParticipantStatus.rejected, now
+            )
         self.repository.record_audit(
             actor_id,
             "enrollment.initial_review",
@@ -87,6 +93,11 @@ class EnrollmentServiceMixin:
         )
         enrollment = self.repository.update_enrollment_review(
             enrollment_id, target_status, actor_id, note, now
+        )
+        self.repository.set_participant_status(
+            enrollment.email,
+            ParticipantStatus.accepted if approve else ParticipantStatus.rejected,
+            now,
         )
         self.repository.record_audit(
             actor_id,

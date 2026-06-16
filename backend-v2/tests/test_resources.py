@@ -7,14 +7,13 @@ def test_checkin_and_resource_claim(
     client: TestClient,
     admin_headers: dict[str, str],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
-    client.post("/api/auth/send-code", json={"email": "a@example.com"})
-    body = client.get("/api/admin/email-outbox", headers=admin_headers).json()[0]["body"]
-    code = body.split("是 ")[1].split("，")[0]
-    client.post("/api/auth/verify-code", json={"email": "a@example.com", "code": code})
+    approve_enrollment("a@example.com")
     import_checkins(["100001"])
     bound = client.post("/api/auth/bind-checkin", json={"checkinId": "100001"})
     assert bound.status_code == 200
+    assert bound.json()["status"] == "checked_in"
 
     pool = client.post(
         "/api/admin/resources/pools",
@@ -40,11 +39,9 @@ def test_resource_pool_can_allow_multiple_claims(
     client: TestClient,
     admin_headers: dict[str, str],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
-    client.post("/api/auth/send-code", json={"email": "multi@example.com"})
-    body = client.get("/api/admin/email-outbox", headers=admin_headers).json()[0]["body"]
-    code = body.split("是 ")[1].split("，")[0]
-    client.post("/api/auth/verify-code", json={"email": "multi@example.com", "code": code})
+    approve_enrollment("multi@example.com")
     import_checkins(["100002"])
     client.post("/api/auth/bind-checkin", json={"checkinId": "100002"})
 

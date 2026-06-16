@@ -10,12 +10,25 @@ import { api, type Participant, type ParticipantAccount } from "@/web/lib/api";
 
 const filters = [
   { key: "all", label: "全部" },
-  { key: "unbound", label: "未绑定" },
-  { key: "bound", label: "已绑定" },
-  { key: "pending", label: "pending" },
-  { key: "active", label: "active" },
-  { key: "disabled", label: "disabled" },
+  { key: "unbound", label: "未签到" },
+  { key: "bound", label: "已签到" },
+  { key: "pending", label: "待报名" },
+  { key: "enrolled", label: "已报名" },
+  { key: "accepted", label: "已录取" },
+  { key: "checked_in", label: "已签到" },
+  { key: "rejected", label: "未通过" },
+  { key: "disabled", label: "已禁用" },
 ];
+
+const statusLabels: Record<Participant["status"], string> = {
+  pending: "待报名",
+  enrolled: "已报名",
+  accepted: "已录取",
+  checked_in: "已签到",
+  active: "已签到",
+  rejected: "未通过",
+  disabled: "已禁用",
+};
 
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<ParticipantAccount[]>([]);
@@ -124,8 +137,20 @@ export default function AdminAccountsPage() {
                   <TableCell>{row.email}</TableCell>
                   <TableCell>{row.checkinId || "-"}</TableCell>
                   <TableCell>
-                    <Chip size="sm" color={row.status === "active" ? "success" : row.status === "disabled" ? "danger" : "default"} variant="flat">
-                      {row.status}
+                    <Chip
+                      size="sm"
+                      color={
+                        row.status === "checked_in" || row.status === "active"
+                          ? "success"
+                          : row.status === "accepted"
+                            ? "primary"
+                            : row.status === "disabled" || row.status === "rejected"
+                              ? "danger"
+                              : "default"
+                      }
+                      variant="flat"
+                    >
+                      {statusLabels[row.status]}
                     </Chip>
                   </TableCell>
                   <TableCell>{row.fullName || "-"}</TableCell>
@@ -149,9 +174,12 @@ export default function AdminAccountsPage() {
                         }
                       }}
                     >
-                      <SelectItem key="pending">pending</SelectItem>
-                      <SelectItem key="active">active</SelectItem>
-                      <SelectItem key="disabled">disabled</SelectItem>
+                      <SelectItem key="pending">待报名</SelectItem>
+                      <SelectItem key="enrolled">已报名</SelectItem>
+                      <SelectItem key="accepted">已录取</SelectItem>
+                      <SelectItem key="checked_in">已签到</SelectItem>
+                      <SelectItem key="rejected">未通过</SelectItem>
+                      <SelectItem key="disabled">已禁用</SelectItem>
                     </Select>
                   </TableCell>
                 </TableRow>

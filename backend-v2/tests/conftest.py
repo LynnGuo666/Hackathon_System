@@ -54,3 +54,43 @@ def import_checkins(client: TestClient, admin_headers: dict[str, str]) -> Callab
         assert response.status_code == 201
 
     return _import_checkins
+
+
+@pytest.fixture
+def approve_enrollment(
+    client: TestClient, admin_headers: dict[str, str], login: Callable[[str], None]
+) -> Callable[[str], None]:
+    def _approve(email: str = "user@example.com") -> None:
+        login(email)
+        created = client.post(
+            "/api/enrollment",
+            json={
+                "fullName": "Test User",
+                "email": email,
+                "phone": "",
+                "school": "",
+                "teamName": "",
+                "personalBio": "",
+                "projectDesc": "",
+                "participationHistory": "",
+                "githubUrl": "",
+                "portfolioUrl": "",
+            },
+        )
+        assert created.status_code in (201, 409)
+        enrollments = client.get("/api/admin/enrollments", headers=admin_headers).json()
+        enrollment = next(row for row in enrollments if row["email"] == email.lower())
+        initial = client.post(
+            f"/api/admin/enrollments/{enrollment['id']}/initial-review",
+            headers=admin_headers,
+            json={"note": "ok"},
+        )
+        assert initial.status_code == 200
+        final = client.post(
+            f"/api/admin/enrollments/{enrollment['id']}/final-review",
+            headers=admin_headers,
+            json={"note": "ok"},
+        )
+        assert final.status_code == 200
+
+    return _approve

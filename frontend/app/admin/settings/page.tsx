@@ -56,6 +56,18 @@ export default function AdminSettingsPage() {
                   <p className="text-sm text-foreground/60">当前按 {form.timezoneLabel} 展示和编辑</p>
                 </div>
 
+                <div className="grid gap-1">
+                  <Switch
+                    isSelected={form.walkupCheckinEnabled}
+                    onValueChange={form.setWalkupCheckinEnabled}
+                  >
+                    {form.walkupCheckinEnabled ? "未注册 Checkin 通道已启用" : "未注册 Checkin 通道已禁用"}
+                  </Switch>
+                  <p className="text-xs text-foreground/45">
+                    开启后，现场用户可凭已导入且未绑定的 CheckinID、昵称和邮箱直接完成签到。
+                  </p>
+                </div>
+
                 <StageList
                   stages={form.stages}
                   onAdd={form.addStage}

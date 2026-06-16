@@ -2,10 +2,9 @@
 
 import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { errorText, notify } from "@/components/toast";
-import { api, type Participant } from "@/web/lib/api";
-import { CheckinBindModal } from "./_components/checkin-bind-modal";
+import { api } from "@/web/lib/api";
 import { CheckinLoginForm, EmailLoginForm } from "./_components/login-forms";
 
 export default function LoginPage() {
@@ -15,22 +14,18 @@ export default function LoginPage() {
   const [checkinId, setCheckinId] = useState("");
   const [checkinEmail, setCheckinEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [emailBindId, setEmailBindId] = useState("");
-  const [bindingParticipant, setBindingParticipant] = useState<Participant | null>(null);
+  const [walkupCheckinEnabled, setWalkupCheckinEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [bindLoading, setBindLoading] = useState(false);
+
+  useEffect(() => {
+    api.siteConfig()
+      .then((config) => setWalkupCheckinEnabled(config.walkupCheckinEnabled ?? false))
+      .catch(() => setWalkupCheckinEnabled(false));
+  }, []);
 
   function nextPath() {
     const next = new URLSearchParams(window.location.search).get("next") || "/p/dashboard";
-    return next.startsWith("/") ? next : "/p/dashboard";
-  }
-
-  function enter(participant?: Participant | null) {
-    if (participant && !participant.checkinId) {
-      setBindingParticipant(participant);
-      return;
-    }
-    router.push(nextPath());
+    return next.startsWith("/p/") && !next.startsWith("//") ? next : "/p/dashboard";
   }
 
   async function sendCode() {
@@ -49,7 +44,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await api.verifyCode(email, code);
-      enter(await api.me());
+      router.push(nextPath());
     } catch (error) {
       notify.error(errorText(error, "验证失败"));
     } finally {
@@ -57,32 +52,18 @@ export default function LoginPage() {
     }
   }
 
-  async function bindAfterEmailLogin() {
-    setBindLoading(true);
-    try {
-      const participant = await api.bindCheckin(emailBindId);
-      notify.success("CheckinID 已绑定");
-      setBindingParticipant(null);
-      enter(participant);
-    } catch (error) {
-      notify.error(errorText(error, "绑定失败"));
-    } finally {
-      setBindLoading(false);
-    }
-  }
-
   async function loginWithCheckin() {
     setLoading(true);
     try {
-      const participant = await api.checkinLogin({
+      await api.checkinLogin({
         checkinId,
         email: checkinEmail,
         fullName,
       });
-      notify.success("关联成功");
-      enter(participant);
+      notify.success("现场签到成功");
+      router.push(nextPath());
     } catch (error) {
-      notify.error(errorText(error, "关联失败"));
+      notify.error(errorText(error, "签到失败"));
     } finally {
       setLoading(false);
     }
@@ -108,30 +89,23 @@ export default function LoginPage() {
                 onVerifyCode={verifyCode}
               />
             </Tab>
-            <Tab key="checkin" title="CheckinID">
-              <CheckinLoginForm
-                checkinId={checkinId}
-                email={checkinEmail}
-                fullName={fullName}
-                loading={loading}
-                onCheckinIdChange={setCheckinId}
-                onEmailChange={setCheckinEmail}
-                onFullNameChange={setFullName}
-                onSubmit={loginWithCheckin}
-              />
-            </Tab>
+            {walkupCheckinEnabled && (
+              <Tab key="checkin" title="CheckinID">
+                <CheckinLoginForm
+                  checkinId={checkinId}
+                  email={checkinEmail}
+                  fullName={fullName}
+                  loading={loading}
+                  onCheckinIdChange={setCheckinId}
+                  onEmailChange={setCheckinEmail}
+                  onFullNameChange={setFullName}
+                  onSubmit={loginWithCheckin}
+                />
+              </Tab>
+            )}
           </Tabs>
         </CardBody>
       </Card>
-
-      <CheckinBindModal
-        participant={bindingParticipant}
-        fallbackEmail={email}
-        checkinId={emailBindId}
-        loading={bindLoading}
-        onCheckinIdChange={setEmailBindId}
-        onSubmit={bindAfterEmailLogin}
-      />
     </main>
   );
 }

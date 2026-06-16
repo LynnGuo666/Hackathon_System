@@ -114,6 +114,72 @@ VALUES (?, NULL, ?, ?, '', ?, ?, ?)
             raise self._constraint_error(exc) from exc
         return participant
 
+    def ensure_participant_for_enrollment(
+        self, email: str, full_name: str, status: ParticipantStatus, now: datetime
+    ) -> Participant:
+        email = normalize_email(email)
+        try:
+            participant = self.get_participant_by_email(email)
+        except NotFound:
+            participant = Participant(
+                id=new_id("par"),
+                email=email,
+                emailVerifiedAt=now,
+                status=status,
+                createdAt=now,
+                updatedAt=now,
+            )
+            try:
+                self.db.execute(
+                    """
+INSERT INTO participants (id, checkin_id, email, email_verified_at, checked_in_at, status, created_at, updated_at)
+VALUES (?, NULL, ?, ?, '', ?, ?, ?)
+""",
+                    (
+                        participant.id,
+                        participant.email,
+                        encode_time(participant.email_verified_at),
+                        participant.status,
+                        encode_time(participant.created_at),
+                        encode_time(participant.updated_at),
+                    ),
+                )
+            except sqlite3.IntegrityError as exc:
+                raise self._constraint_error(exc) from exc
+        else:
+            if participant.status != ParticipantStatus.disabled:
+                next_status = status
+                if participant.status == ParticipantStatus.checked_in or participant.checkin_id:
+                    next_status = ParticipantStatus.checked_in
+                elif participant.status == ParticipantStatus.active:
+                    next_status = ParticipantStatus.checked_in
+                self.db.execute(
+                    """
+UPDATE participants
+SET status = ?, updated_at = ?
+WHERE email = ?
+""",
+                    (next_status, encode_time(now), email),
+                )
+                participant.status = next_status
+                participant.updated_at = now
+
+        if full_name.strip():
+            profile = self.db.execute(
+                "SELECT email FROM participant_profiles WHERE email = ?", (email,)
+            ).fetchone()
+            if not profile:
+                self.db.execute(
+                    """
+INSERT INTO participant_profiles (
+  email, full_name, team_name, school, phone, dietary_needs, tshirt_size,
+  emergency_contact, notes, submitted_at, updated_at
+) VALUES (?, ?, '', '', '', '', '', '', '', ?, ?)
+""",
+                    (email, full_name.strip(), encode_time(now), encode_time(now)),
+                )
+        return self.get_participant_by_email(email)
+
     def get_participant_by_email(self, email: str) -> Participant:
         row = self.db.execute(
             """

@@ -8,6 +8,7 @@ def test_checkin_id_pool_generation_import_and_binding_rules(
     client: TestClient,
     admin_headers: dict[str, str],
     login: Callable[[str], None],
+    approve_enrollment: Callable[[str], None],
 ):
     assert client.get("/api/admin/checkin-ids").status_code == 403
 
@@ -41,9 +42,14 @@ def test_checkin_id_pool_generation_import_and_binding_rules(
     unknown = client.post("/api/auth/bind-checkin", json={"checkinId": "999999"})
     assert unknown.status_code == 404
 
+    not_accepted = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
+    assert not_accepted.status_code == 409
+
+    approve_enrollment("pool-a@example.com")
     bound = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
     assert bound.status_code == 200
     assert bound.json()["checkinId"] == "000001"
+    assert bound.json()["status"] == "checked_in"
 
     same_again = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
     assert same_again.status_code == 200
@@ -51,11 +57,8 @@ def test_checkin_id_pool_generation_import_and_binding_rules(
     switch = client.post("/api/auth/bind-checkin", json={"checkinId": "000002"})
     assert switch.status_code == 409
 
-    duplicate = client.post(
-        "/api/auth/bind-checkin",
-        headers={"X-Participant-Email": "pool-b@example.com"},
-        json={"checkinId": "000001"},
-    )
+    approve_enrollment("pool-b@example.com")
+    duplicate = client.post("/api/auth/bind-checkin", json={"checkinId": "000001"})
     assert duplicate.status_code == 409
 
     accounts = client.get("/api/admin/participants", headers=admin_headers).json()
@@ -66,13 +69,5 @@ def test_checkin_id_pool_generation_import_and_binding_rules(
         headers=admin_headers,
         json={"email": "pool-b@example.com", "status": "disabled"},
     )
-    assert disabled.status_code == 404
-
-    login("pool-b@example.com")
-    disabled = client.patch(
-        "/api/admin/participants/status",
-        headers=admin_headers,
-        json={"email": "pool-b@example.com", "status": "disabled"},
-    )
     assert disabled.status_code == 200
-    assert client.get("/api/me", headers={"X-Participant-Email": "pool-b@example.com"}).status_code == 401
+    assert client.get("/api/me").status_code == 401

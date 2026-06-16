@@ -22,6 +22,7 @@ export function useSiteConfigForm() {
   const [eventName, setEventName] = useState("Hackathon");
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [countdownEnabled, setCountdownEnabled] = useState(false);
+  const [walkupCheckinEnabled, setWalkupCheckinEnabled] = useState(false);
   const [stages, setStages] = useState<EditableStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,6 +53,7 @@ export function useSiteConfigForm() {
     setEventName(config.eventName || "Hackathon");
     setTimezone(nextTimezone);
     setCountdownEnabled(config.countdownEnabled);
+    setWalkupCheckinEnabled(config.walkupCheckinEnabled ?? false);
     setStages(toEditableStages(config.countdownStages, nextTimezone));
   }
 
@@ -119,6 +121,7 @@ export function useSiteConfigForm() {
         eventName: eventName.trim(),
         timezone,
         countdownEnabled,
+        walkupCheckinEnabled,
         countdownStages: normalizedStages,
         updatedAt: siteConfig?.updatedAt ?? "",
       });
@@ -136,12 +139,14 @@ export function useSiteConfigForm() {
     timezone,
     timezoneLabel,
     countdownEnabled,
+    walkupCheckinEnabled,
     stages,
     loading,
     saving,
     loadError,
     setEventName,
     setCountdownEnabled,
+    setWalkupCheckinEnabled,
     changeTimezone,
     updateStage,
     addStage,

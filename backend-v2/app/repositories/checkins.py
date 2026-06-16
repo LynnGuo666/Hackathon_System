@@ -84,9 +84,87 @@ WHERE email = ?
                 existing = self._participant_from_row(participant_row)
                 if existing.status == ParticipantStatus.disabled:
                     raise Conflict("participant is disabled")
+                if existing.status not in (
+                    ParticipantStatus.accepted,
+                    ParticipantStatus.checked_in,
+                    ParticipantStatus.active,
+                ):
+                    raise Conflict("participant is not accepted")
                 if existing.checkin_id == checkin_id:
                     return existing
                 if existing.checkin_id:
+                    raise Conflict("email is already bound")
+                participant_id = existing.id
+                created_at = existing.created_at
+            else:
+                raise Conflict("participant is not accepted")
+
+            tx.execute(
+                """
+UPDATE participants
+SET checkin_id = ?, checked_in_at = ?, status = ?, updated_at = ?
+WHERE email = ?
+""",
+                (
+                    checkin_id,
+                    encode_time(now),
+                    ParticipantStatus.checked_in,
+                    encode_time(now),
+                    email,
+                ),
+            )
+            tx.execute(
+                """
+UPDATE checkin_ids
+SET status = ?, assigned_email = ?, bound_at = ?
+WHERE id = ?
+""",
+                (CheckinIDStatus.bound, email, encode_time(now), checkin_id),
+            )
+            return Participant(
+                id=participant_id,
+                checkinId=checkin_id,
+                email=email,
+                emailVerifiedAt=now,
+                checkedInAt=now,
+                status=ParticipantStatus.checked_in,
+                createdAt=created_at,
+                updatedAt=now,
+            )
+
+    def claim_checkin_as_walkup(
+        self, email: str, checkin_id: str, full_name: str, now: datetime
+    ) -> Participant:
+        email = normalize_email(email)
+        checkin_id = checkin_id.strip()
+        with self.tx() as tx:
+            checkin = tx.execute(
+                """
+SELECT id, status, COALESCE(assigned_email, '') assigned_email
+FROM checkin_ids
+WHERE id = ?
+""",
+                (checkin_id,),
+            ).fetchone()
+            if not checkin:
+                raise NotFound("checkin id not found")
+            if checkin["status"] == CheckinIDStatus.bound:
+                raise Conflict("checkin id is already bound")
+
+            participant_row = tx.execute(
+                """
+SELECT id, COALESCE(checkin_id, '') checkin_id, email, email_verified_at,
+       checked_in_at, status, created_at, updated_at
+FROM participants
+WHERE email = ?
+""",
+                (email,),
+            ).fetchone()
+            if participant_row:
+                existing = self._participant_from_row(participant_row)
+                if existing.status == ParticipantStatus.disabled:
+                    raise Conflict("participant is disabled")
+                if existing.checkin_id and existing.checkin_id != checkin_id:
                     raise Conflict("email is already bound")
                 participant_id = existing.id
                 created_at = existing.created_at
@@ -114,7 +192,13 @@ UPDATE participants
 SET checkin_id = ?, checked_in_at = ?, status = ?, updated_at = ?
 WHERE email = ?
 """,
-                (checkin_id, encode_time(now), ParticipantStatus.active, encode_time(now), email),
+                (
+                    checkin_id,
+                    encode_time(now),
+                    ParticipantStatus.checked_in,
+                    encode_time(now),
+                    email,
+                ),
             )
             tx.execute(
                 """
@@ -124,13 +208,27 @@ WHERE id = ?
 """,
                 (CheckinIDStatus.bound, email, encode_time(now), checkin_id),
             )
+            if full_name.strip():
+                tx.execute(
+                    """
+INSERT INTO participant_profiles (
+  email, full_name, team_name, school, phone, dietary_needs, tshirt_size,
+  emergency_contact, notes, submitted_at, updated_at
+) VALUES (?, ?, '', '', '', '', '', '', '', ?, ?)
+ON CONFLICT(email) DO UPDATE SET
+  full_name = excluded.full_name,
+  updated_at = excluded.updated_at
+""",
+                    (email, full_name.strip(), encode_time(now), encode_time(now)),
+                )
+
             return Participant(
                 id=participant_id,
                 checkinId=checkin_id,
                 email=email,
                 emailVerifiedAt=now,
                 checkedInAt=now,
-                status=ParticipantStatus.active,
+                status=ParticipantStatus.checked_in,
                 createdAt=created_at,
                 updatedAt=now,
             )

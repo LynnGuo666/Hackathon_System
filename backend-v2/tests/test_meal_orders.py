@@ -6,11 +6,11 @@ from fastapi.testclient import TestClient
 def test_meal_and_drink_orders_respect_open_windows(
     client: TestClient,
     admin_headers: dict[str, str],
-    login: Callable[[str], None],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
     assert client.get("/api/meal-orders").status_code == 401
-    login("Meal@Example.com")
+    approve_enrollment("Meal@Example.com")
     assert client.get("/api/meal-orders").status_code == 401
     import_checkins(["400001"])
     assert client.post("/api/auth/bind-checkin", json={"checkinId": "400001"}).status_code == 200

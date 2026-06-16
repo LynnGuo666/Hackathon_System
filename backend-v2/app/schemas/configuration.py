@@ -66,6 +66,7 @@ class SiteConfig(APIModel):
     countdown_end: str = Field(default="", alias="countdownEnd")
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
     countdown_stages: list[CountdownStage] = Field(default_factory=list, alias="countdownStages")
+    walkup_checkin_enabled: bool = Field(default=False, alias="walkupCheckinEnabled")
     updated_at: str = Field(default="", alias="updatedAt")
 
 

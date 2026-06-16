@@ -3,7 +3,11 @@ import { Check, Clock, Minus, X } from "lucide-react";
 
 const statusConfig = {
   pending: { color: "warning" as const, icon: Clock },
+  enrolled: { color: "warning" as const, icon: Clock },
+  accepted: { color: "primary" as const, icon: Check },
+  checked_in: { color: "success" as const, icon: Check },
   active: { color: "success" as const, icon: Check },
+  rejected: { color: "danger" as const, icon: X },
   disabled: { color: "default" as const, icon: Minus },
   available: { color: "success" as const, icon: Check },
   failed: { color: "danger" as const, icon: X },

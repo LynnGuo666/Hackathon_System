@@ -14,7 +14,7 @@ export const authApi = {
       body: JSON.stringify({ email, code }),
     }),
   bindCheckin: (checkinId: string) =>
-    request<Participant>("/api/auth/bind-checkin", {
+    request<Participant>("/api/checkin/claim", {
       method: "POST",
       body: JSON.stringify({ checkinId }),
     }),

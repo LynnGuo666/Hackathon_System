@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Input } from "@heroui/react";
 import { Link as LinkIcon, Save } from "lucide-react";
 import { errorText, notify } from "@/components/toast";
-import { api, type Participant } from "@/web/lib/api";
+import { api, type Participant, type ParticipantProfile } from "@/web/lib/api";
 
 export default function ProfilePage() {
   const [participant, setParticipant] = useState<Participant | null>(null);
+  const [profile, setProfile] = useState<ParticipantProfile | null>(null);
   const [fullName, setFullName] = useState("");
   const [checkinId, setCheckinId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,23 +17,27 @@ export default function ProfilePage() {
   useEffect(() => {
     api.me().then(setParticipant).catch(() => {});
     api.profile()
-      .then((profile) => setFullName(profile.fullName || ""))
+      .then((profile) => {
+        setProfile(profile);
+        setFullName(profile.fullName || "");
+      })
       .catch(() => {});
   }, []);
 
   async function saveProfile() {
     setLoading(true);
     try {
-      await api.updateProfile({
+      const saved = await api.updateProfile({
         fullName,
-        teamName: "",
-        school: "",
-        phone: "",
-        dietaryNeeds: "",
-        tshirtSize: "",
-        emergencyContact: "",
-        notes: "",
+        teamName: profile?.teamName ?? "",
+        school: profile?.school ?? "",
+        phone: profile?.phone ?? "",
+        dietaryNeeds: profile?.dietaryNeeds ?? "",
+        tshirtSize: profile?.tshirtSize ?? "",
+        emergencyContact: profile?.emergencyContact ?? "",
+        notes: profile?.notes ?? "",
       });
+      setProfile(saved);
       notify.success("资料已保存");
     } catch (error) {
       notify.error(errorText(error, "保存失败"));
@@ -42,12 +47,16 @@ export default function ProfilePage() {
   }
 
   async function bindCheckinId() {
+    if (participant?.status !== "accepted") {
+      notify.warning("报名审核通过后才能现场签到");
+      return;
+    }
     setBindLoading(true);
     try {
       const result = await api.bindCheckin(checkinId);
       setParticipant(result);
       setCheckinId("");
-      notify.success("CheckinID 绑定成功");
+      notify.success("现场签到成功");
     } catch (error) {
       notify.error(errorText(error, "绑定失败"));
     } finally {
@@ -58,7 +67,7 @@ export default function ProfilePage() {
   return (
     <section className="grid gap-6">
       <div>
-        <p className="text-xs font-medium text-foreground/40">CheckinID 关联信息</p>
+        <p className="text-xs font-medium text-foreground/40">现场签到信息</p>
         <h2 className="text-xl font-bold text-foreground">我的资料</h2>
       </div>
 
@@ -85,8 +94,8 @@ export default function ProfilePage() {
             <div className="grid gap-1">
               <p className="text-xs font-medium text-foreground/40">CheckinID</p>
               <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-foreground">{participant?.checkinId || "未绑定"}</p>
-                {participant?.checkinId && <Chip size="sm" color="success" variant="flat">已绑定</Chip>}
+              <p className="text-sm font-medium text-foreground">{participant?.checkinId || "未签到"}</p>
+                {participant?.checkinId && <Chip size="sm" color="success" variant="flat">已签到</Chip>}
               </div>
             </div>
             <div className="grid gap-1">
@@ -107,6 +116,8 @@ export default function ProfilePage() {
                 onValueChange={setCheckinId}
                 autoComplete="off"
                 inputMode="numeric"
+                description={participant?.status === "accepted" ? "录取后可在现场输入签到码完成签到" : "报名审核通过后才能现场签到"}
+                isDisabled={participant?.status !== "accepted"}
                 isRequired
               />
               <Button
@@ -115,9 +126,10 @@ export default function ProfilePage() {
                 className="sm:self-end"
                 startContent={<LinkIcon size={14} />}
                 isLoading={bindLoading}
+                isDisabled={participant?.status !== "accepted"}
                 type="submit"
               >
-                绑定
+                签到
               </Button>
             </form>
           )}

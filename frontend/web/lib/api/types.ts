@@ -2,13 +2,13 @@ export type Participant = {
   id: string;
   checkinId: string;
   email: string;
-  status: "pending" | "active" | "disabled";
+  status: ParticipantStatus;
 };
 
 export type ParticipantAccount = {
   email: string;
   checkinId: string;
-  status: "pending" | "active" | "disabled";
+  status: ParticipantStatus;
   fullName: string;
   teamName: string;
   school: string;
@@ -17,6 +17,15 @@ export type ParticipantAccount = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type ParticipantStatus =
+  | "pending"
+  | "enrolled"
+  | "accepted"
+  | "checked_in"
+  | "active"
+  | "rejected"
+  | "disabled";
 
 export type CheckinIDRecord = {
   id: string;
@@ -120,6 +129,7 @@ export type SiteConfig = {
   countdownEnd: string;
   countdownEnabled: boolean;
   countdownStages: CountdownStage[];
+  walkupCheckinEnabled: boolean;
   updatedAt: string;
 };
 

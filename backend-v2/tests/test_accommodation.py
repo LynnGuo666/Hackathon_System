@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 def test_admin_accommodation_requests_list_empty_data_and_auth(
     client: TestClient,
     admin_headers: dict[str, str],
-    login: Callable[[str], None],
     import_checkins: Callable[[list[str]], None],
+    approve_enrollment: Callable[[str], None],
 ):
     assert client.get("/api/admin/accommodation-requests").status_code == 403
 
@@ -15,7 +15,7 @@ def test_admin_accommodation_requests_list_empty_data_and_auth(
     assert empty.status_code == 200
     assert empty.json() == []
 
-    login("Stay@Example.com")
+    approve_enrollment("Stay@Example.com")
     import_checkins(["520001"])
     assert client.post("/api/auth/bind-checkin", json={"checkinId": "520001"}).status_code == 200
 
