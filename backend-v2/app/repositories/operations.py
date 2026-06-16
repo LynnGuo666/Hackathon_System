@@ -1,16 +1,20 @@
 from datetime import datetime
 import sqlite3
+from typing import TYPE_CHECKING
 
 from app.core.errors import NotFound
 from app.core.security import normalize_email
 from app.repositories.common import decode_time, encode_time, new_id
 from app.schemas import AuditLog, EmailOutbox, EmailStatus
 
+if TYPE_CHECKING:
+    from app.repositories.tasks import TasksRepositoryMixin
+
 
 class OperationsRepositoryMixin:
     db: sqlite3.Connection
 
-    def enqueue_email(self, to: str, subject: str, body: str, now: datetime) -> EmailOutbox:
+    def enqueue_email(self: "OperationsRepositoryMixin & TasksRepositoryMixin", to: str, subject: str, body: str, now: datetime) -> EmailOutbox:
         email = EmailOutbox(
             id=new_id("mail"),
             to=normalize_email(to),
@@ -34,6 +38,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
                 encode_time(now),
                 encode_time(now),
             ),
+        )
+        self.enqueue_task(
+            "email_send",
+            {"outbox_id": email.id, "to": email.to, "subject": subject, "body": body},
         )
         return email
 
@@ -76,6 +84,17 @@ WHERE id = ? AND status != ?
             if email.id == email_id:
                 return email
         raise NotFound("not found")
+
+    def mark_email_sent(self, email_id: str, now: datetime) -> None:
+        """回写 email_outbox 状态为已发送（由 email_send task handler 调用）。"""
+        self.db.execute(
+            """
+UPDATE email_outbox
+SET status = ?, sent_at = ?, updated_at = ?
+WHERE id = ?
+""",
+            (EmailStatus.sent, encode_time(now), encode_time(now), email_id),
+        )
 
     def record_audit(
         self, actor_id: str, action: str, target_type: str, target_id: str, reason: str, now: datetime

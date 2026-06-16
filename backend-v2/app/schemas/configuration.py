@@ -67,6 +67,16 @@ class SiteConfig(APIModel):
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
     countdown_stages: list[CountdownStage] = Field(default_factory=list, alias="countdownStages")
     walkup_checkin_enabled: bool = Field(default=False, alias="walkupCheckinEnabled")
+    # 邮件 provider 配置（明文字段）。
+    email_provider: str = Field(default="disabled", alias="emailProvider")
+    email_service_url: str = Field(default="", alias="emailServiceUrl")
+    email_service_account_id: str = Field(default="", alias="emailServiceAccountId")
+    email_service_sync: bool = Field(default=False, alias="emailServiceSync")
+    smtp_host: str = Field(default="", alias="smtpHost")
+    smtp_port: int = Field(default=587, alias="smtpPort")
+    smtp_username: str = Field(default="", alias="smtpUsername")
+    smtp_from: str = Field(default="", alias="smtpFrom")
+    smtp_security: str = Field(default="starttls", alias="smtpSecurity")
     updated_at: str = Field(default="", alias="updatedAt")
 
 

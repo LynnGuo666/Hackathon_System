@@ -7,26 +7,21 @@ COPY frontend/ ./
 RUN npm run build
 
 # ---- Stage 2: Build backend ----
-FROM golang:1.26-alpine AS backend
-RUN apk add --no-cache gcc musl-dev
-WORKDIR /app/backend
-COPY backend/go.mod backend/go.sum ./
-RUN go mod download
-COPY backend/ ./
-COPY --from=frontend /app/frontend/out /app/frontend/out
-RUN CGO_ENABLED=1 go build -o /hackathon-server ./cmd/server
+FROM python:3.12-slim AS backend
+WORKDIR /app/backend-v2
+COPY backend-v2/pyproject.toml backend-v2/alembic.ini ./
+COPY backend-v2/app ./app
+RUN pip install --no-cache-dir .
 
 # ---- Stage 3: Runtime ----
-FROM alpine:3.21
-RUN apk add --no-cache ca-certificates tzdata
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=backend /hackathon-server .
+COPY --from=backend /app/backend-v2 ./backend-v2
 COPY --from=frontend /app/frontend/out ./frontend/out
-
-ENV ADDR=:8080
 ENV DATABASE_PATH=/data/hackathon.sqlite
 ENV STATIC_DIR=/app/frontend/out
+ENV SECRET_KEY_FILE=/data/.secret_key
 EXPOSE 8080
-
 VOLUME ["/data"]
-CMD ["./hackathon-server"]
+CMD ["uvicorn", "app.main:app", "--app-dir", "/app/backend-v2", "--host", "0.0.0.0", "--port", "8080"]

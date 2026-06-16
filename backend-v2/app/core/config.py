@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     allow_participant_header_auth: bool = Field(
         default=False, alias="ALLOW_PARTICIPANT_HEADER_AUTH"
     )
+    # AES 加密凭据用的主密钥文件路径；首次启动自动生成 32 字节随机密钥。
+    secret_key_file: str = Field(default=".secret_key", alias="SECRET_KEY_FILE")
+    # 后台任务 worker 是否随进程启动；测试时关闭避免后台线程干扰断言。
+    enable_task_worker: bool = Field(default=True, alias="ENABLE_TASK_WORKER")
+    # worker 轮询间隔（秒）与单次领取批量。
+    task_worker_poll_interval: float = Field(default=5.0, alias="TASK_WORKER_POLL_INTERVAL")
+    task_worker_batch_size: int = Field(default=10, alias="TASK_WORKER_BATCH_SIZE")
 
     model_config = SettingsConfigDict(populate_by_name=True, extra="ignore")
 

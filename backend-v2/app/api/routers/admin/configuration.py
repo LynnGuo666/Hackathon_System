@@ -10,6 +10,8 @@ from app.schemas import (
     FeatureToggleInput,
     NavigationLink,
     OSMSearchResult,
+    SecretKeyList,
+    SecretValueInput,
     SiteConfig,
 )
 from app.services.hackathon import HackathonService
@@ -79,3 +81,27 @@ def update_site_config(
     svc: HackathonService = Depends(service),
 ) -> SiteConfig:
     return svc.update_site_config(actor, input)
+
+
+@router.get("/email-secrets", response_model=SecretKeyList, response_model_by_alias=True)
+def list_email_secrets(repo: SQLiteRepository = Depends(repository)) -> SecretKeyList:
+    return SecretKeyList(keys=repo.list_secret_keys())
+
+
+@router.put("/email-secrets/{key}")
+def set_email_secret(
+    key: str,
+    input: SecretValueInput,
+    repo: SQLiteRepository = Depends(repository),
+) -> dict:
+    repo.set_secret(key, input.value)
+    return {"status": "ok"}
+
+
+@router.delete("/email-secrets/{key}")
+def delete_email_secret(
+    key: str,
+    repo: SQLiteRepository = Depends(repository),
+) -> dict:
+    repo.delete_secret(key)
+    return {"status": "ok"}

@@ -1,3 +1,4 @@
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -16,10 +17,18 @@ def client(tmp_path: Path) -> TestClient:
     get_settings.cache_clear()
     get_repository.cache_clear()
 
+    # lifespan 直接调 get_settings() 而非走依赖注入，需要通过环境变量禁用 worker。
+    os.environ["ENABLE_TASK_WORKER"] = "false"
+    os.environ["DATABASE_PATH"] = str(db_path)
+
     def override_settings():
         from app.core.config import Settings
 
-        return Settings(DATABASE_PATH=str(db_path), ADMIN_TOKEN="secret")
+        return Settings(
+            DATABASE_PATH=str(db_path),
+            ADMIN_TOKEN="secret",
+            ENABLE_TASK_WORKER=False,
+        )
 
     app = create_app()
     app.dependency_overrides[get_settings] = override_settings

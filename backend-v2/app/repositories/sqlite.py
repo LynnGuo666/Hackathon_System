@@ -13,6 +13,7 @@ from app.repositories.meal_orders import MealOrderRepositoryMixin
 from app.repositories.operations import OperationsRepositoryMixin
 from app.repositories.participants import ParticipantRepositoryMixin
 from app.repositories.resources import ResourceRepositoryMixin
+from app.repositories.tasks import TasksRepositoryMixin
 
 
 class SQLiteRepository(
@@ -25,6 +26,7 @@ class SQLiteRepository(
     AccommodationRepositoryMixin,
     MealOrderRepositoryMixin,
     EnrollmentRepositoryMixin,
+    TasksRepositoryMixin,
 ):
     def __init__(self, path: str):
         self.path = path

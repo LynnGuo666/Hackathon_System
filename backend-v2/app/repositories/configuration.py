@@ -89,7 +89,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         row = self.db.execute(
             """
 SELECT id, event_name, timezone, countdown_title, countdown_end, countdown_enabled,
-       countdown_stages, walkup_checkin_enabled, updated_at
+       countdown_stages, walkup_checkin_enabled,
+       email_provider, email_service_url, email_service_account_id, email_service_sync,
+       smtp_host, smtp_port, smtp_username, smtp_from, smtp_security,
+       updated_at
 FROM site_config LIMIT 1
 """
         ).fetchone()
@@ -109,6 +112,7 @@ FROM site_config LIMIT 1
                     "time": row["countdown_end"],
                 }
             ]
+        keys = row.keys()
         return {
             "id": row["id"],
             "eventName": row["event_name"] or "Hackathon",
@@ -118,8 +122,21 @@ FROM site_config LIMIT 1
             "countdownEnabled": bool(row["countdown_enabled"]),
             "countdownStages": countdown_stages,
             "walkupCheckinEnabled": bool(row["walkup_checkin_enabled"])
-            if "walkup_checkin_enabled" in row.keys()
+            if "walkup_checkin_enabled" in keys
             else False,
+            "emailProvider": row["email_provider"] if "email_provider" in keys else "disabled",
+            "emailServiceUrl": row["email_service_url"] if "email_service_url" in keys else "",
+            "emailServiceAccountId": row["email_service_account_id"]
+            if "email_service_account_id" in keys
+            else "",
+            "emailServiceSync": bool(row["email_service_sync"])
+            if "email_service_sync" in keys
+            else False,
+            "smtpHost": row["smtp_host"] if "smtp_host" in keys else "",
+            "smtpPort": row["smtp_port"] if "smtp_port" in keys else 587,
+            "smtpUsername": row["smtp_username"] if "smtp_username" in keys else "",
+            "smtpFrom": row["smtp_from"] if "smtp_from" in keys else "",
+            "smtpSecurity": row["smtp_security"] if "smtp_security" in keys else "starttls",
             "updatedAt": row["updated_at"],
         }
 
@@ -131,9 +148,12 @@ FROM site_config LIMIT 1
             """
 INSERT INTO site_config (
   id, event_name, timezone, countdown_title, countdown_end,
-  countdown_enabled, countdown_stages, walkup_checkin_enabled, updated_at
+  countdown_enabled, countdown_stages, walkup_checkin_enabled,
+  email_provider, email_service_url, email_service_account_id, email_service_sync,
+  smtp_host, smtp_port, smtp_username, smtp_from, smtp_security,
+  updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   event_name = excluded.event_name,
   timezone = excluded.timezone,
@@ -142,6 +162,15 @@ ON CONFLICT(id) DO UPDATE SET
   countdown_enabled = excluded.countdown_enabled,
   countdown_stages = excluded.countdown_stages,
   walkup_checkin_enabled = excluded.walkup_checkin_enabled,
+  email_provider = excluded.email_provider,
+  email_service_url = excluded.email_service_url,
+  email_service_account_id = excluded.email_service_account_id,
+  email_service_sync = excluded.email_service_sync,
+  smtp_host = excluded.smtp_host,
+  smtp_port = excluded.smtp_port,
+  smtp_username = excluded.smtp_username,
+  smtp_from = excluded.smtp_from,
+  smtp_security = excluded.smtp_security,
   updated_at = excluded.updated_at
 """,
             (
@@ -153,6 +182,15 @@ ON CONFLICT(id) DO UPDATE SET
                 bool_int(config.get("countdown_enabled", False)),
                 json.dumps(countdown_stages, ensure_ascii=False),
                 bool_int(config.get("walkup_checkin_enabled", False)),
+                config.get("email_provider", "disabled"),
+                config.get("email_service_url", ""),
+                config.get("email_service_account_id", ""),
+                bool_int(config.get("email_service_sync", False)),
+                config.get("smtp_host", ""),
+                config.get("smtp_port", 587),
+                config.get("smtp_username", ""),
+                config.get("smtp_from", ""),
+                config.get("smtp_security", "starttls"),
                 updated_at,
             ),
         )

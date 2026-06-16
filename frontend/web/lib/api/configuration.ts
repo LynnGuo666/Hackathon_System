@@ -5,6 +5,7 @@ import type {
   FeatureLink,
   NavigationLink,
   OSMSearchResult,
+  SecretKeyList,
   SiteConfig,
 } from "./types";
 
@@ -49,5 +50,17 @@ export const configurationApi = {
     request<AccommodationRequest>("/api/accommodation", {
       method: "PUT",
       body: JSON.stringify(input),
+    }),
+  emailSecrets: () => request<SecretKeyList>("/api/admin/email-secrets", { admin: true }),
+  setEmailSecret: (key: string, value: string) =>
+    request<{ status: string }>(`/api/admin/email-secrets/${key}`, {
+      admin: true,
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    }),
+  deleteEmailSecret: (key: string) =>
+    request<{ status: string }>(`/api/admin/email-secrets/${key}`, {
+      admin: true,
+      method: "DELETE",
     }),
 };

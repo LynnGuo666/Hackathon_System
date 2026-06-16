@@ -14,6 +14,9 @@ const statusConfig = {
   fulfilled: { color: "success" as const, icon: Check },
   assigned: { color: "primary" as const, icon: Check },
   used: { color: "primary" as const, icon: Check },
+  sending: { color: "primary" as const, icon: Clock },
+  succeeded: { color: "success" as const, icon: Check },
+  dead: { color: "danger" as const, icon: X },
   "未使用": { color: "success" as const, icon: Check },
   "已使用": { color: "primary" as const, icon: Check },
 } as const;

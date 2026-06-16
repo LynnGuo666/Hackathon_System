@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-16
+
+### Added
+- 通用异步任务框架：async_tasks 表 + 后台 worker 轮询执行，支持退避重试和手动重试
+- 邮件双通道发送：SMTP 和 HTTP（Email_service API）两种 provider，抽象可扩展
+- AES-256-GCM 加密凭据存储（task_secrets 表），密钥文件首次启动生成
+- 管理端异步任务页面：查看任务列表、筛选、手动重试
+- 管理端邮件配置：provider 选择、SMTP/HTTP 配置表单、凭据加密存储
+- email_send 任务 handler，发送成功后回写 email_outbox 状态
+
+### Changed
+- enqueue_email 现在同时写 email_outbox 和入队 async_tasks（双写桥接）
+- Dockerfile 改为 Python 多阶段构建（替换旧 Go 构建）
+- docker-compose.yml 适配 Python 后端环境变量
+
+### Fixed
+- Docker 构建适配 backend-v2 Python 后端
+
 ## [0.3.0] - 2026-06-12
 
 ### Changed

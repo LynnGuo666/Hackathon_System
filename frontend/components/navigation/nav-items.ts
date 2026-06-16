@@ -1,4 +1,4 @@
-import { BedDouble, ClipboardList, Home, LayoutDashboard, LogOut, MapPin, Settings2, SlidersHorizontal, Ticket, UserRoundPen, Utensils, Users, CheckCircle, Gift, Mail, Coffee, Bed, Navigation } from "lucide-react";
+import { BedDouble, ClipboardList, Home, LayoutDashboard, LogOut, MapPin, Settings2, SlidersHorizontal, Ticket, UserRoundPen, Utensils, Users, CheckCircle, Gift, Mail, Coffee, Bed, Navigation, ListTodo } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -49,6 +49,13 @@ export const adminNavGroups: NavGroup[] = [
       { href: "/admin/settings", label: "比赛基础信息", icon: SlidersHorizontal },
       { href: "/admin/features", label: "功能模块", icon: Settings2 },
       { href: "/admin/navigation", label: "入口导航", icon: Navigation },
+    ],
+  },
+  {
+    label: "运维工具",
+    icon: ListTodo,
+    items: [
+      { href: "/admin/tasks", label: "异步任务", icon: ListTodo },
     ],
   },
 ];

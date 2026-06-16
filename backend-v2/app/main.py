@@ -1,3 +1,6 @@
+import logging
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -8,12 +11,31 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routers import admin, auth, enrollment, participant, public
 from app.core.config import get_settings
+from app.core.dependencies import get_repository
 from app.core.errors import AppError
+from app.services.worker import TaskWorker
+
+# 触发 @register_task 装饰器，把 email_send handler 注册到 TASK_REGISTRY。
+import app.services.tasks.email_handler  # noqa: F401
+
+logger = logging.getLogger("task-worker")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    if settings.enable_task_worker:
+        repo = get_repository(settings.database_path)
+        worker = TaskWorker(repository=repo, settings=settings)
+        thread = threading.Thread(target=worker.run_forever, daemon=True, name="task-worker")
+        thread.start()
+        logger.info("task worker thread started")
+    yield
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="Hackathon Backend V2")
+    app = FastAPI(title="Hackathon Backend V2", lifespan=lifespan)
 
     app.add_middleware(
         CORSMiddleware,

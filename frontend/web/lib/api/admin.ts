@@ -1,6 +1,7 @@
 import { request } from "./client";
 import type {
   AdminOverview,
+  AsyncTask,
   CheckinIDRecord,
   EmailOutbox,
   Participant,
@@ -34,6 +35,20 @@ export const adminApi = {
   emailOutbox: () => request<EmailOutbox[]>("/api/admin/email-outbox", { admin: true }),
   retryEmail: (id: string) =>
     request<EmailOutbox>(`/api/admin/email-outbox/${id}/retry`, {
+      admin: true,
+      method: "POST",
+    }),
+  tasks: (params?: { type?: string; status?: string; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.type) qs.set("type", params.type);
+    if (params?.status) qs.set("status", params.status);
+    if (params?.limit) qs.set("limit", String(params.limit));
+    const query = qs.toString();
+    return request<AsyncTask[]>(`/api/admin/tasks${query ? `?${query}` : ""}`, { admin: true });
+  },
+  getTask: (id: string) => request<AsyncTask>(`/api/admin/tasks/${id}`, { admin: true }),
+  retryTask: (id: string) =>
+    request<AsyncTask>(`/api/admin/tasks/${id}/retry`, {
       admin: true,
       method: "POST",
     }),

@@ -25,6 +25,7 @@ from app.schemas.enrollments import (
 )
 from app.schemas.food import DrinkOrder, DrinkSupplySlot, MealOrder, MealOrderSlot, SlotStatus
 from app.schemas.operations import AuditLog, EmailOutbox, EmailStatus
+from app.schemas.tasks import AsyncTask, SecretKeyList, SecretValueInput, TaskStatus
 from app.schemas.participants import (
     BindCheckinInput,
     CheckinIDRecord,
@@ -66,6 +67,7 @@ __all__ = [
     "AdminOverviewParticipants",
     "AdminOverviewResources",
     "AssignInput",
+    "AsyncTask",
     "AuditLog",
     "BindCheckinInput",
     "CheckinIDRecord",
@@ -102,9 +104,12 @@ __all__ = [
     "ResourceItemStatus",
     "ResourcePool",
     "ResourcePoolType",
+    "SecretKeyList",
+    "SecretValueInput",
     "SendCodeInput",
     "SiteConfig",
     "SlotStatus",
+    "TaskStatus",
     "VerificationCode",
     "VerifyCodeInput",
     "VisiblePhase",

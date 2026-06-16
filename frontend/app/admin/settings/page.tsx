@@ -6,6 +6,7 @@ import { RefreshCw, Save } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { BasicInfoForm } from "./_components/basic-info-form";
+import { EmailProviderForm } from "./_components/email-provider-form";
 import { StageList } from "./_components/stage-list";
 import { useSiteConfigForm } from "./_components/use-site-config-form";
 
@@ -83,6 +84,8 @@ export default function AdminSettingsPage() {
               </CardBody>
             </Card>
           )}
+
+          <EmailProviderForm />
         </section>
       </AppShell>
     </AdminAuthGuard>

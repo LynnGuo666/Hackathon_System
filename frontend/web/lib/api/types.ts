@@ -130,6 +130,15 @@ export type SiteConfig = {
   countdownEnabled: boolean;
   countdownStages: CountdownStage[];
   walkupCheckinEnabled: boolean;
+  emailProvider: string;
+  emailServiceUrl: string;
+  emailServiceAccountId: string;
+  emailServiceSync: boolean;
+  smtpHost: string;
+  smtpPort: number;
+  smtpUsername: string;
+  smtpFrom: string;
+  smtpSecurity: string;
   updatedAt: string;
 };
 
@@ -329,4 +338,23 @@ export type SystemVersion = {
   backend: string;
   frontend: string;
   buildTime: string;
+};
+
+export type AsyncTask = {
+  id: string;
+  taskType: string;
+  payload: Record<string, unknown>;
+  status: "pending" | "sending" | "succeeded" | "failed" | "dead";
+  attempts: number;
+  maxAttempts: number;
+  lastError: string;
+  result: string;
+  availableAt?: string;
+  lockedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type SecretKeyList = {
+  keys: string[];
 };

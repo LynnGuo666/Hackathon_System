@@ -27,6 +27,10 @@ frontend/web/out/
 *.sqlite-wal
 backend/hackathon.sqlite
 
+# Secrets
+.secret_key
+.env
+
 # AI Tools
 .claude/
 .mimocode/

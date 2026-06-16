@@ -1,15 +1,16 @@
 services:
   app:
-    # build: .
+    build: .
     ports:
       - "8080:8080"
     volumes:
       - db-data:/data
     environment:
-      - ADDR=:8080
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-secret}
       - DATABASE_PATH=/data/hackathon.sqlite
       - STATIC_DIR=/app/frontend/out
-      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - SECRET_KEY_FILE=/data/.secret_key
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8080}
     restart: unless-stopped
 
 volumes:
