@@ -101,6 +101,15 @@ def put_meal_order(
     return svc.save_meal_order(email, slot_id, input)
 
 
+@router.delete("/meal-slots/{slot_id}/order", status_code=204)
+def delete_meal_order(
+    slot_id: str,
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> None:
+    svc.cancel_meal_order(email, slot_id)
+
+
 @router.get("/drink-orders", response_model=list[DrinkOrder], response_model_by_alias=True)
 def drink_orders(
     email: str = Depends(participant_email),
@@ -119,6 +128,15 @@ def put_drink_order(
     svc: HackathonService = Depends(service),
 ) -> DrinkOrder:
     return svc.save_drink_order(email, slot_id, input)
+
+
+@router.delete("/drink-slots/{slot_id}/order", status_code=204)
+def delete_drink_order(
+    slot_id: str,
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> None:
+    svc.cancel_drink_order(email, slot_id)
 
 
 @router.get("/resources", response_model=list[ResourceAssignment], response_model_by_alias=True)

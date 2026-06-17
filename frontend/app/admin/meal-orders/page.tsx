@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, CardBody, Tab, Tabs } from "@heroui/react";
-import { Coffee, RefreshCw, Utensils } from "lucide-react";
+import { Coffee, RefreshCw, Upload, Utensils } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { errorText, notify } from "@/components/toast";
@@ -20,6 +20,7 @@ import {
   MealSlotsTable,
 } from "./_components/order-tables";
 import { DrinkSlotForm, MealSlotForm } from "./_components/slot-forms";
+import { TemplateImportModal } from "./_components/template-import-modal";
 import { countBySlot } from "./_components/utils";
 
 export default function AdminMealOrdersPage() {
@@ -30,6 +31,7 @@ export default function AdminMealOrdersPage() {
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   async function refresh() {
     setListLoading(true);
@@ -70,9 +72,14 @@ export default function AdminMealOrdersPage() {
               <p className="text-xs font-medium text-foreground/40">运营功能</p>
               <h2 className="text-xl font-bold text-foreground">餐饮与饮料补给</h2>
             </div>
-            <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
-              刷新
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="flat" startContent={<Upload size={16} />} onPress={() => setImportOpen(true)}>
+                导入模板
+              </Button>
+              <Button size="sm" variant="flat" startContent={<RefreshCw size={16} />} isLoading={listLoading} onPress={refresh}>
+                刷新
+              </Button>
+            </div>
           </div>
 
           {loadError && (
@@ -97,6 +104,7 @@ export default function AdminMealOrdersPage() {
               </div>
             </Tab>
           </Tabs>
+          <TemplateImportModal isOpen={importOpen} onOpenChange={setImportOpen} onImported={refresh} />
         </section>
       </AppShell>
     </AdminAuthGuard>

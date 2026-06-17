@@ -105,6 +105,20 @@ FROM meal_order_slots
         rows = self.db.execute(query, params).fetchall()
         return [self._meal_slot_from_row(row) for row in rows]
 
+    def find_meal_slot_by_template_key(
+        self, title: str, service_date: str, service_time: str
+    ) -> MealOrderSlot | None:
+        row = self.db.execute(
+            """
+SELECT id, title, description, open_at, close_at, service_date, service_time,
+       order_deadline, is_open, dietary_options, enabled, sort_order, created_at, updated_at
+FROM meal_order_slots
+WHERE title = ? AND service_date = ? AND service_time = ?
+""",
+            (title, service_date, service_time),
+        ).fetchone()
+        return self._meal_slot_from_row(row) if row else None
+
     def create_drink_slot(self, slot: DrinkSupplySlot, now: datetime) -> DrinkSupplySlot:
         saved = slot.model_copy(
             update={
@@ -199,6 +213,20 @@ FROM drink_supply_slots
         query += " ORDER BY sort_order ASC, created_at ASC"
         rows = self.db.execute(query, params).fetchall()
         return [self._drink_slot_from_row(row) for row in rows]
+
+    def find_drink_slot_by_template_key(
+        self, title: str, service_date: str, service_time: str
+    ) -> DrinkSupplySlot | None:
+        row = self.db.execute(
+            """
+SELECT id, title, description, open_at, close_at, service_date, service_time,
+       order_deadline, is_open, drink_options, enabled, sort_order, created_at, updated_at
+FROM drink_supply_slots
+WHERE title = ? AND service_date = ? AND service_time = ?
+""",
+            (title, service_date, service_time),
+        ).fetchone()
+        return self._drink_slot_from_row(row) if row else None
 
     def _meal_slot_from_row(self, row: sqlite3.Row) -> MealOrderSlot:
         now = now_utc()

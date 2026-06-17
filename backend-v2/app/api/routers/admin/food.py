@@ -3,7 +3,16 @@ from fastapi import APIRouter, Depends
 from app.core.dependencies import repository, service
 from app.core.security import actor_id, require_admin_token
 from app.repositories.sqlite import SQLiteRepository
-from app.schemas import DrinkOrder, DrinkSupplySlot, MealOrder, MealOrderSlot
+from app.schemas import (
+    DrinkOrder,
+    DrinkSupplySlot,
+    MealOrder,
+    MealOrderSlot,
+    SupplyTemplateImportInput,
+    SupplyTemplateImportResult,
+    SupplyTemplateInput,
+    SupplyTemplatePreview,
+)
 from app.services.hackathon import HackathonService
 
 router = APIRouter(dependencies=[Depends(require_admin_token)])
@@ -49,6 +58,31 @@ def update_meal_slot(
     svc: HackathonService = Depends(service),
 ) -> MealOrderSlot:
     return svc.update_meal_slot(actor, slot_id, input)
+
+
+@router.post(
+    "/meal-supply/templates/preview",
+    response_model=SupplyTemplatePreview,
+    response_model_by_alias=True,
+)
+def preview_meal_supply_template(
+    input: SupplyTemplateInput,
+    svc: HackathonService = Depends(service),
+) -> SupplyTemplatePreview:
+    return svc.preview_supply_template(input.content)
+
+
+@router.post(
+    "/meal-supply/templates/import",
+    response_model=SupplyTemplateImportResult,
+    response_model_by_alias=True,
+)
+def import_meal_supply_template(
+    input: SupplyTemplateImportInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> SupplyTemplateImportResult:
+    return svc.import_supply_template(actor, input.content, input.mode)
 
 
 @router.get("/meal-orders", response_model=list[MealOrder], response_model_by_alias=True)

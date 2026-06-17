@@ -82,6 +82,27 @@ WHERE o.id = ?
             raise NotFound("meal order not found")
         return self._meal_order_from_row(row)
 
+    def get_meal_order_for_participant(self, email: str, slot_id: str) -> MealOrder:
+        row = self.db.execute(
+            """
+SELECT o.id, o.email, o.slot_id, o.dietary_needs, o.other_detail, o.notes,
+       COALESCE(p.full_name, '') participant_name, COALESCE(p.team_name, '') team_name,
+       o.created_at, o.updated_at
+FROM meal_orders o
+LEFT JOIN participant_profiles p ON p.email = o.email
+WHERE o.email = ? AND o.slot_id = ?
+""",
+            (normalize_email(email), slot_id),
+        ).fetchone()
+        if not row:
+            raise NotFound("meal order not found")
+        return self._meal_order_from_row(row)
+
+    def delete_meal_order(self, order_id: str) -> None:
+        result = self.db.execute("DELETE FROM meal_orders WHERE id = ?", (order_id,))
+        if result.rowcount == 0:
+            raise NotFound("meal order not found")
+
     def upsert_drink_order(self, email: str, order: DrinkOrder, now: datetime) -> DrinkOrder:
         email = normalize_email(email)
         row = self.db.execute(
@@ -148,6 +169,27 @@ WHERE o.id = ?
         if not row:
             raise NotFound("drink order not found")
         return self._drink_order_from_row(row)
+
+    def get_drink_order_for_participant(self, email: str, slot_id: str) -> DrinkOrder:
+        row = self.db.execute(
+            """
+SELECT o.id, o.email, o.slot_id, o.drink_option, o.notes,
+       COALESCE(p.full_name, '') participant_name, COALESCE(p.team_name, '') team_name,
+       o.created_at, o.updated_at
+FROM drink_orders o
+LEFT JOIN participant_profiles p ON p.email = o.email
+WHERE o.email = ? AND o.slot_id = ?
+""",
+            (normalize_email(email), slot_id),
+        ).fetchone()
+        if not row:
+            raise NotFound("drink order not found")
+        return self._drink_order_from_row(row)
+
+    def delete_drink_order(self, order_id: str) -> None:
+        result = self.db.execute("DELETE FROM drink_orders WHERE id = ?", (order_id,))
+        if result.rowcount == 0:
+            raise NotFound("drink order not found")
 
     def _meal_order_from_row(self, row: sqlite3.Row) -> MealOrder:
         return MealOrder(

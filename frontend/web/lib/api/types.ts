@@ -322,6 +322,19 @@ export type MealOrderInput = Pick<MealOrder, "dietaryNeeds" | "otherDetail" | "n
 
 export type DrinkOrderInput = Pick<DrinkOrder, "drinkOption" | "notes">;
 
+export type MealSupplyTemplateRequest = {
+  content: string;
+};
+
+export type MealSupplyTemplatePreview = {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+};
+
+export type MealSupplyTemplateImportResult = MealSupplyTemplatePreview;
+
 export type EnrollmentReviewStatus =
   | "pending"
   | "initial_review"

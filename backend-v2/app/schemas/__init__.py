@@ -23,7 +23,18 @@ from app.schemas.enrollments import (
     EnrollmentReviewInput,
     EnrollmentReviewStatus,
 )
-from app.schemas.food import DrinkOrder, DrinkSupplySlot, MealOrder, MealOrderSlot, SlotStatus
+from app.schemas.food import (
+    DrinkOrder,
+    DrinkSupplySlot,
+    MealOrder,
+    MealOrderSlot,
+    SlotStatus,
+    SupplyTemplateImportInput,
+    SupplyTemplateImportResult,
+    SupplyTemplateInput,
+    SupplyTemplateItem,
+    SupplyTemplatePreview,
+)
 from app.schemas.operations import AuditLog, EmailOutbox, EmailStatus
 from app.schemas.plugins import (
     OAuthIdentity,
@@ -147,6 +158,11 @@ __all__ = [
     "SendCodeInput",
     "SiteConfig",
     "SlotStatus",
+    "SupplyTemplateImportInput",
+    "SupplyTemplateImportResult",
+    "SupplyTemplateInput",
+    "SupplyTemplateItem",
+    "SupplyTemplatePreview",
     "TaskStatus",
     "VerificationCode",
     "VerifyCodeInput",

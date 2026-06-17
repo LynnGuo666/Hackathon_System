@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import Field
 
@@ -72,3 +73,40 @@ class DrinkOrder(APIModel):
     team_name: str = Field(default="", alias="teamName")
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class SupplyTemplateInput(APIModel):
+    content: str
+
+
+class SupplyTemplateItem(APIModel):
+    type: Literal["meal", "drink"]
+    title: str
+    description: str = ""
+    service_date: str = Field(default="", alias="serviceDate")
+    service_time: str = Field(default="", alias="serviceTime")
+    order_deadline: str = Field(default="", alias="orderDeadline")
+    options: list[str] = Field(default_factory=list)
+    enabled: bool = True
+    is_open: bool = Field(default=True, alias="isOpen")
+    sort_order: int = Field(default=0, alias="sortOrder")
+    duplicate: bool = False
+    existing_slot_id: str = Field(default="", alias="existingSlotId")
+
+
+class SupplyTemplatePreview(APIModel):
+    version: str = ""
+    timezone: str = ""
+    supplies: list[SupplyTemplateItem] = Field(default_factory=list)
+    created: int = 0
+    updated: int = 0
+    skipped: int = 0
+
+
+class SupplyTemplateImportInput(SupplyTemplateInput):
+    mode: Literal["create_only", "upsert"] = "create_only"
+
+
+class SupplyTemplateImportResult(SupplyTemplatePreview):
+    meal_slots: list[MealOrderSlot] = Field(default_factory=list, alias="mealSlots")
+    drink_slots: list[DrinkSupplySlot] = Field(default_factory=list, alias="drinkSlots")

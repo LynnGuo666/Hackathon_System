@@ -13,7 +13,7 @@ import {
   RadioGroup,
   Textarea,
 } from "@heroui/react";
-import { Save } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import { errorText, notify } from "@/components/toast";
 import { api, type DrinkOrder, type DrinkSlot, type MealOrder, type MealSlot } from "@/web/lib/api";
 import { formatDateTime } from "./utils";
@@ -31,6 +31,7 @@ export function MealSlotCard({
   const [otherDetail, setOtherDetail] = useState(order?.otherDetail ?? "");
   const [notes, setNotes] = useState(order?.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const disabled = !slot.isOpen || !slot.enabled;
 
   useEffect(() => {
@@ -49,6 +50,19 @@ export function MealSlotCard({
       notify.error(errorText(error, "保存餐食需求失败"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function cancelOrder() {
+    setCanceling(true);
+    try {
+      await api.cancelMealOrder(slot.id);
+      notify.success(`${slot.title} 已取消`);
+      await onSaved();
+    } catch (error) {
+      notify.error(errorText(error, "取消餐食需求失败"));
+    } finally {
+      setCanceling(false);
     }
   }
 
@@ -85,7 +99,7 @@ export function MealSlotCard({
           isDisabled={disabled}
           onValueChange={setNotes}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             color="primary"
             startContent={<Save size={16} />}
@@ -95,6 +109,17 @@ export function MealSlotCard({
           >
             {order ? "更新餐食需求" : "提交餐食需求"}
           </Button>
+          {order && (
+            <Button
+              color="danger"
+              variant="flat"
+              startContent={<Trash2 size={16} />}
+              isLoading={canceling}
+              onPress={cancelOrder}
+            >
+              取消订单
+            </Button>
+          )}
           {order && <span className="text-sm text-foreground/50">上次更新：{formatDateTime(order.updatedAt)}</span>}
         </div>
       </CardBody>
@@ -114,6 +139,7 @@ export function DrinkSlotCard({
   const [drinkOption, setDrinkOption] = useState(order?.drinkOption ?? "");
   const [notes, setNotes] = useState(order?.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const disabled = !slot.isOpen || !slot.enabled;
 
   useEffect(() => {
@@ -135,6 +161,19 @@ export function DrinkSlotCard({
       notify.error(errorText(error, "保存饮料补给失败"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function cancelOrder() {
+    setCanceling(true);
+    try {
+      await api.cancelDrinkOrder(slot.id);
+      notify.success(`${slot.title} 已取消`);
+      await onSaved();
+    } catch (error) {
+      notify.error(errorText(error, "取消饮料补给失败"));
+    } finally {
+      setCanceling(false);
     }
   }
 
@@ -164,7 +203,7 @@ export function DrinkSlotCard({
           isDisabled={disabled}
           onValueChange={setNotes}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             color="primary"
             startContent={<Save size={16} />}
@@ -174,6 +213,17 @@ export function DrinkSlotCard({
           >
             {order ? "更新饮料选择" : "提交饮料选择"}
           </Button>
+          {order && (
+            <Button
+              color="danger"
+              variant="flat"
+              startContent={<Trash2 size={16} />}
+              isLoading={canceling}
+              onPress={cancelOrder}
+            >
+              取消订单
+            </Button>
+          )}
           {order && <span className="text-sm text-foreground/50">上次更新：{formatDateTime(order.updatedAt)}</span>}
         </div>
       </CardBody>
