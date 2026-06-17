@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routers.admin import checkins, configuration, enrollments, food, operations, overview, participants, resources, tasks
+from app.api.routers.admin import checkins, configuration, enrollments, food, operations, overview, participants, plugins, resources, tasks
 
 router = APIRouter(prefix="/api/admin")
 
@@ -13,3 +13,4 @@ router.include_router(checkins.router)
 router.include_router(food.router)
 router.include_router(configuration.router)
 router.include_router(tasks.router)
+router.include_router(plugins.router)

@@ -92,6 +92,42 @@ export type EmailOutbox = {
   createdAt: string;
 };
 
+export type PluginSecretState = {
+  key: string;
+  label?: string;
+  configured: boolean;
+  updatedAt?: string;
+};
+
+export type PluginIntegration = {
+  id: string;
+  name: string;
+  description: string;
+  provider: string;
+  enabled: boolean;
+  status: string;
+  config: Record<string, unknown>;
+  secrets: PluginSecretState[];
+  lastSyncAt?: string;
+  lastTestAt?: string;
+  lastError?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type PluginConnectionTestResult = {
+  status: string;
+  message: string;
+  checkedAt?: string;
+};
+
+export type PluginSyncResult = {
+  status: string;
+  taskId?: string;
+  message?: string;
+  triggeredAt?: string;
+};
+
 export type NavigationLink = {
   id: string;
   title: string;

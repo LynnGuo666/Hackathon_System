@@ -17,6 +17,8 @@ from app.services.worker import TaskWorker
 
 # 触发 @register_task 装饰器，把 email_send handler 注册到 TASK_REGISTRY。
 import app.services.tasks.email_handler  # noqa: F401
+import app.services.tasks.plugin_handler  # noqa: F401
+import app.plugins.supervisor_http  # noqa: F401
 
 logger = logging.getLogger("task-worker")
 

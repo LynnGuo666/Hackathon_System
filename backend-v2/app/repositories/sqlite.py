@@ -12,6 +12,7 @@ from app.repositories.enrollments import EnrollmentRepositoryMixin
 from app.repositories.meal_orders import MealOrderRepositoryMixin
 from app.repositories.operations import OperationsRepositoryMixin
 from app.repositories.participants import ParticipantRepositoryMixin
+from app.repositories.plugins import PluginRepositoryMixin
 from app.repositories.resources import ResourceRepositoryMixin
 from app.repositories.tasks import TasksRepositoryMixin
 
@@ -27,6 +28,7 @@ class SQLiteRepository(
     MealOrderRepositoryMixin,
     EnrollmentRepositoryMixin,
     TasksRepositoryMixin,
+    PluginRepositoryMixin,
 ):
     def __init__(self, path: str):
         self.path = path

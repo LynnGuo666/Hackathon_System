@@ -14,7 +14,7 @@ def normalize_email(email: str | None) -> str:
 def actor_id(request: Request, x_actor_id: str | None = Header(default=None, alias="X-Actor-ID")) -> str:
     if x_actor_id:
         return x_actor_id
-    cookie_email = request.cookies.get("participant_email")
+    cookie_email = request.state.__dict__.get("participant_email", "")
     if cookie_email:
         return cookie_email
     return "anonymous"
@@ -27,7 +27,16 @@ def participant_email(
 ) -> str:
     if settings and settings.allow_participant_header_auth and x_participant_email:
         return normalize_email(x_participant_email)
-    return normalize_email(request.cookies.get("participant_email"))
+    session_id = request.cookies.get("participant_session", "")
+    if session_id:
+        from app.core.dependencies import get_repository
+
+        repo = get_repository(settings.database_path)
+        session = repo.get_participant_session(session_id)
+        if session:
+            request.state.participant_email = session.email
+            return normalize_email(session.email)
+    return ""
 
 
 def require_admin_token(

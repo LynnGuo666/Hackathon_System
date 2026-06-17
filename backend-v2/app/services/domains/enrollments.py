@@ -53,6 +53,13 @@ class EnrollmentServiceMixin:
         self.repository.record_audit(
             email, "enrollment.submit", "enrollment", enrollment.id, "", now
         )
+        self.emit_plugin_event(
+            "enrollment.submitted",
+            "enrollment",
+            enrollment.id,
+            enrollment.model_dump(mode="json", by_alias=True),
+            now,
+        )
         return enrollment
 
     def get_my_enrollment(self, email: str) -> Enrollment:
@@ -82,6 +89,13 @@ class EnrollmentServiceMixin:
             f"status={target_status.value}",
             now,
         )
+        self.emit_plugin_event(
+            "enrollment.initial_reviewed",
+            "enrollment",
+            enrollment.id,
+            enrollment.model_dump(mode="json", by_alias=True),
+            now,
+        )
         return enrollment
 
     def admin_final_review(
@@ -105,6 +119,13 @@ class EnrollmentServiceMixin:
             "enrollment",
             enrollment_id,
             f"status={target_status.value}",
+            now,
+        )
+        self.emit_plugin_event(
+            "enrollment.final_reviewed",
+            "enrollment",
+            enrollment.id,
+            enrollment.model_dump(mode="json", by_alias=True),
             now,
         )
         return enrollment

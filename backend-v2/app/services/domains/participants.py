@@ -34,6 +34,13 @@ class ParticipantServiceMixin:
             "",
             now,
         )
+        self.emit_plugin_event(
+            "participant.checkin_bound",
+            "participant",
+            participant.email,
+            participant.model_dump(mode="json", by_alias=True),
+            now,
+        )
         return participant
 
     def bind_checkin_with_profile(
@@ -65,6 +72,13 @@ class ParticipantServiceMixin:
             "participant",
             participant.checkin_id,
             "",
+            now,
+        )
+        self.emit_plugin_event(
+            "participant.walkup_checked_in",
+            "participant",
+            participant.email,
+            participant.model_dump(mode="json", by_alias=True),
             now,
         )
         return participant
@@ -111,6 +125,13 @@ class ParticipantServiceMixin:
             "",
             now,
         )
+        self.emit_plugin_event(
+            "participant.profile_upserted",
+            "participant_profile",
+            participant.email,
+            saved.model_dump(mode="json", by_alias=True),
+            now,
+        )
         return saved
 
     def profile(self, email: str) -> ParticipantProfile:
@@ -144,6 +165,13 @@ class ParticipantServiceMixin:
         self.repository.record_audit(
             actor_id, "checkin_ids.generate", "checkin_ids", "batch", f"count={len(saved)}", now
         )
+        self.emit_plugin_event(
+            "checkin_ids.generated",
+            "checkin_ids",
+            "batch",
+            {"count": len(saved), "ids": [item.id for item in saved]},
+            now,
+        )
         return saved
 
     def import_checkin_ids(self, actor_id: str, values: list[str]) -> list[CheckinIDRecord]:
@@ -158,6 +186,13 @@ class ParticipantServiceMixin:
         self.repository.record_audit(
             actor_id, "checkin_ids.import", "checkin_ids", "batch", f"count={len(inserted)}", now
         )
+        self.emit_plugin_event(
+            "checkin_ids.imported",
+            "checkin_ids",
+            "batch",
+            {"count": len(inserted), "ids": [item.id for item in inserted]},
+            now,
+        )
         return inserted
 
     def set_participant_status(
@@ -167,5 +202,12 @@ class ParticipantServiceMixin:
         saved = self.repository.set_participant_status(email, status, now)
         self.repository.record_audit(
             actor_id, "participant.status", "participant", saved.email, status, now
+        )
+        self.emit_plugin_event(
+            "participant.status_changed",
+            "participant",
+            saved.email,
+            saved.model_dump(mode="json", by_alias=True),
+            now,
         )
         return saved

@@ -5,6 +5,7 @@ from app.services.domains.configuration import ConfigurationServiceMixin
 from app.services.domains.enrollments import EnrollmentServiceMixin
 from app.services.domains.meal_orders import MealOrderServiceMixin
 from app.services.domains.participants import ParticipantServiceMixin
+from app.services.domains.plugins import PluginServiceMixin
 from app.services.domains.resources import ResourceServiceMixin
 
 
@@ -16,6 +17,7 @@ class HackathonService(
     AccommodationServiceMixin,
     MealOrderServiceMixin,
     EnrollmentServiceMixin,
+    PluginServiceMixin,
 ):
     def __init__(self, repository: SQLiteRepository):
         self.repository = repository
