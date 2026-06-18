@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-06-18
+
+### Added
+- 插件集成系统：可插拔的 PluginConnector 协议和 registry，支持启用/禁用、配置、加密 secrets 管理
+- 内置 supervisor_http 连接器：通过标准 HTTP 对接上级系统，支持 OAuth 登录、事件上报、拉取导入
+- 数据库迁移 0015_plugin_system：plugins / plugin_secrets / participant_sessions 表
+- 管理端插件页面：插件列表、配置编辑、secrets 管理、连接测试、手动同步
+- 参赛者端 OAuth 登录入口（/api/auth/oauth/{provider}/start 与 callback）
+- 参赛者会话改用 participant_session cookie，支持登出和后端会话撤销
+- 餐饮补给模板导入：管理端粘贴模板内容即可批量创建 meal/drink slot
+- 模板预览接口（/admin/meal-supply/templates/preview）和导入接口，支持 create_only / upsert 模式
+- 前端模板导入 Modal 与 meal-orders 管理页接入，参赛者端 slot 卡片同步增强
+
+### Changed
+- 参赛者认证 cookie 由 participant_email 升级为 participant_session（带服务端会话）
+- meal_orders 服务扩展模板解析、去重、批量落库逻辑
+- enrollments / participants 服务接入插件事件上报钩子
+
 ## [0.4.0] - 2026-06-16
 
 ### Added
