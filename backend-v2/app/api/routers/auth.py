@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Request, Response
@@ -9,6 +10,7 @@ from app.services.hackathon import HackathonService
 from app.core.dependencies import service
 
 router = APIRouter(prefix="/api/auth")
+logger = logging.getLogger("auth")
 
 
 def set_participant_cookie(response: Response, email: str, svc: HackathonService) -> None:
@@ -27,14 +29,17 @@ def set_participant_cookie(response: Response, email: str, svc: HackathonService
 @router.post("/send-code", status_code=202)
 def send_code(input: SendCodeInput, svc: HackathonService = Depends(service)) -> dict[str, str]:
     code = svc.send_code(input.email)
-    response: dict[str, str] = {"status": "queued"}
-    # 没配真邮件 provider 时（site_config.emailProvider == "disabled"），把验证码
-    # 原文随响应带回去，让管理员/开发不必去 /admin/email-outbox 翻。一旦配上 SMTP
-    # 或 HTTP provider，这个分支自动失效，验证码不再外泄。
+    # 没配真邮件 provider 时（site_config.emailProvider == "disabled"）只把验证码
+    # 打印到后端日志，开发者从控制台读取后手动填入；不再随响应返回，避免前端
+    # 自动填值导致的“看上去不像在测验证流程”的混淆。
     if svc.email_provider_disabled():
-        response["devCode"] = code
-        response["devNotice"] = "邮件服务尚未配置，验证码直接随响应返回（仅开发模式）"
-    return response
+        logger.warning(
+            "[MOCK EMAIL] verification code for %s: %s (邮件 provider 未配置)",
+            input.email,
+            code,
+        )
+        print(f"[MOCK EMAIL] verification code for {input.email}: {code}", flush=True)
+    return {"status": "queued"}
 
 
 @router.post("/verify-code")

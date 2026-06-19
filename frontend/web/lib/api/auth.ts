@@ -4,7 +4,7 @@ import type { Participant, ParticipantProfile } from "./types";
 export const authApi = {
   health: () => request<{ status: string }>("/api/health"),
   sendCode: (email: string) =>
-    request<{ status: string; devCode?: string; devNotice?: string }>("/api/auth/send-code", {
+    request<{ status: string }>("/api/auth/send-code", {
       method: "POST",
       body: JSON.stringify({ email }),
     }),

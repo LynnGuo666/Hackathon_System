@@ -10,7 +10,10 @@ def test_send_code_queues_verification_email(
     captured = capfd.readouterr()
 
     assert response.status_code == 202
-    assert "verification code" not in captured.out
+    # 默认 emailProvider 为 disabled（mock 模式）：验证码原文不再随响应返回，
+    # 而是打印到后端输出，方便开发读取后手动填入。
+    assert "verification code" in captured.out
+    assert "devCode" not in response.json()
     emails = client.get("/api/admin/email-outbox", headers=admin_headers).json()
     assert emails[0]["to"] == "debug@example.com"
 
