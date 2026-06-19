@@ -13,7 +13,7 @@ import {
   RadioGroup,
   Textarea,
 } from "@heroui/react";
-import { Save, Trash2 } from "lucide-react";
+import { Save, UtensilsCrossed, Trash2 } from "lucide-react";
 import { errorText, notify } from "@/components/toast";
 import { api, type DrinkOrder, type DrinkSlot, type MealOrder, type MealSlot } from "@/web/lib/api";
 import { formatDateTime } from "./utils";
@@ -233,8 +233,11 @@ export function DrinkSlotCard({
 
 export function EmptyState({ text }: { text: string }) {
   return (
-    <Card classNames={{ base: "rounded-card" }}>
-      <CardBody className="text-sm text-foreground/60">{text}</CardBody>
+    <Card classNames={{ base: "rounded-card shadow-sm" }}>
+      <CardBody className="flex flex-col items-center gap-2 py-10 text-center text-sm text-foreground/40">
+        <UtensilsCrossed size={22} className="text-foreground/30" />
+        <span>{text}</span>
+      </CardBody>
     </Card>
   );
 }

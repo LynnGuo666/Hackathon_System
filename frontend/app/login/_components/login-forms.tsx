@@ -7,6 +7,7 @@ export function EmailLoginForm({
   email,
   code,
   loading,
+  cooldown,
   onEmailChange,
   onCodeChange,
   onSendCode,
@@ -15,11 +16,13 @@ export function EmailLoginForm({
   email: string;
   code: string;
   loading: boolean;
+  cooldown: number;
   onEmailChange: (value: string) => void;
   onCodeChange: (value: string) => void;
   onSendCode: () => void;
   onVerifyCode: () => void;
 }) {
+  const coolingDown = cooldown > 0;
   return (
     <form className="grid gap-4 pt-4" onSubmit={(e) => e.preventDefault()}>
       <Input
@@ -43,8 +46,14 @@ export function EmailLoginForm({
         isRequired
       />
       <div className="grid gap-3 sm:grid-cols-2">
-        <Button variant="flat" isLoading={loading} onPress={onSendCode} type="button">
-          发送验证码
+        <Button
+          variant="flat"
+          isLoading={loading}
+          isDisabled={coolingDown}
+          onPress={onSendCode}
+          type="button"
+        >
+          {coolingDown ? `重新发送 (${cooldown}s)` : "发送验证码"}
         </Button>
         <Button color="primary" isLoading={loading} onPress={onVerifyCode} type="submit">
           验证进入

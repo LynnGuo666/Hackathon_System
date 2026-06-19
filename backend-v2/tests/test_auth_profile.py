@@ -18,6 +18,17 @@ def test_send_code_queues_verification_email(
     assert emails[0]["to"] == "debug@example.com"
 
 
+def test_send_code_enforces_cooldown(client: TestClient):
+    # 第一次发送应成功。
+    assert client.post("/api/auth/send-code", json={"email": "a@b.com"}).status_code == 202
+    # 冷却期内再次发送应被拒绝（429），并返回剩余秒数。
+    again = client.post("/api/auth/send-code", json={"email": "a@b.com"})
+    assert again.status_code == 429
+    message = again.json()["error"]
+    assert "秒" in message
+    assert any(ch.isdigit() for ch in message)
+
+
 def test_profile_requires_login_and_fields(
     client: TestClient,
     admin_headers: dict[str, str],

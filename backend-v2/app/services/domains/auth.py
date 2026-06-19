@@ -3,11 +3,14 @@ import secrets
 from datetime import timedelta
 from email.utils import parseaddr
 
-from app.core.errors import InvalidCode, InvalidEmail, TooManyAttempts
+from app.core.errors import InvalidCode, InvalidEmail, TooManyAttempts, TooManyRequests
 from app.core.security import normalize_email
 from app.repositories.common import now_utc
 from app.schemas import VerificationCode
 from app.services import mailer
+
+# 验证码重发冷却（秒）：防止前端按钮被滥用刷邮件。
+RESEND_COOLDOWN_SECONDS = 60
 
 
 def hash_code(code: str) -> str:
@@ -20,12 +23,21 @@ class AuthServiceMixin:
 
         调用方负责决定是否把 code 透出给客户端 —— 仅当邮件 provider 是
         ``disabled``（开发/未配置真邮箱）时才允许返回，避免生产环境意外泄漏。
+
+        若距上次发送不足 ``RESEND_COOLDOWN_SECONDS``，拒绝重发并返回剩余秒数。
         """
         email = normalize_email(email)
         parsed_name, parsed_email = parseaddr(email)
         if parsed_name or parsed_email != email or "@" not in email:
             raise InvalidEmail("invalid email")
         now = now_utc()
+        existing = self.repository.get_verification_code(email)
+        if existing and existing.last_sent_at is not None:
+            elapsed = (now - existing.last_sent_at).total_seconds()
+            if elapsed < RESEND_COOLDOWN_SECONDS:
+                raise TooManyRequests(
+                    f"请 {int(RESEND_COOLDOWN_SECONDS - elapsed)} 秒后再试"
+                )
         code = f"{secrets.randbelow(1_000_000):06d}"
         self.repository.upsert_verification_code(
             VerificationCode(

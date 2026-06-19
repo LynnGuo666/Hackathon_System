@@ -41,6 +41,10 @@ class ServiceUnavailable(AppError):
     status_code = 503
 
 
+class TooManyRequests(AppError):
+    status_code = 429
+
+
 class InvalidCheckinID(AppError):
     pass
 
