@@ -38,6 +38,29 @@ def create_navigation_link(
     return svc.create_navigation_link(actor, input)
 
 
+@router.patch(
+    "/navigation-links/{link_id}",
+    response_model=NavigationLink,
+    response_model_by_alias=True,
+)
+def update_navigation_link(
+    link_id: str,
+    input: NavigationLink,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> NavigationLink:
+    return svc.update_navigation_link(actor, link_id, input)
+
+
+@router.delete("/navigation-links/{link_id}", status_code=204)
+def delete_navigation_link(
+    link_id: str,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> None:
+    svc.delete_navigation_link(actor, link_id)
+
+
 @router.get("/feature-links", response_model=list[FeatureLink], response_model_by_alias=True)
 def admin_feature_links() -> list[FeatureLink]:
     return get_all_feature_links()

@@ -126,3 +126,105 @@ def test_site_config_defaults_and_staged_countdown_validation(
         json={"eventName": "  ", "timezone": "UTC", "countdownStages": []},
     )
     assert empty_name.status_code == 400
+
+
+def test_navigation_link_show_on_home_filter(
+    client: TestClient,
+    admin_headers: dict[str, str],
+):
+    public_link = client.post(
+        "/api/admin/navigation-links",
+        headers=admin_headers,
+        json={
+            "title": "活动手册",
+            "description": "对外开放的赛事手册",
+            "url": "https://example.com/handbook",
+            "showOnHome": True,
+        },
+    )
+    assert public_link.status_code == 201
+    public_payload = public_link.json()
+    assert public_payload["showOnHome"] is True
+    public_id = public_payload["id"]
+
+    private_link = client.post(
+        "/api/admin/navigation-links",
+        headers=admin_headers,
+        json={
+            "title": "内部资料",
+            "description": "登录后才看到的资料",
+            "url": "/p/dashboard",
+        },
+    )
+    assert private_link.status_code == 201
+    private_payload = private_link.json()
+    assert private_payload["showOnHome"] is False
+
+    # 默认拉取 = 全部启用项；首页过滤仅返回显式勾选的。
+    all_links = client.get("/api/navigation-links").json()
+    home_links = client.get("/api/navigation-links?home=true").json()
+    all_urls = [link["url"] for link in all_links]
+    home_urls = [link["url"] for link in home_links]
+    assert "https://example.com/handbook" in all_urls
+    assert "/p/dashboard" in all_urls
+    assert home_urls == ["https://example.com/handbook"]
+
+
+def test_navigation_link_patch_toggle_and_delete(
+    client: TestClient,
+    admin_headers: dict[str, str],
+):
+    created = client.post(
+        "/api/admin/navigation-links",
+        headers=admin_headers,
+        json={
+            "title": "外部社区",
+            "description": "Discord 群组",
+            "url": "https://example.com/discord",
+        },
+    )
+    assert created.status_code == 201
+    link_id = created.json()["id"]
+    assert created.json()["showOnHome"] is False
+
+    home_links = client.get("/api/navigation-links?home=true").json()
+    assert link_id not in [row["id"] for row in home_links]
+
+    toggled = client.patch(
+        f"/api/admin/navigation-links/{link_id}",
+        headers=admin_headers,
+        json={"showOnHome": True},
+    )
+    assert toggled.status_code == 200
+    assert toggled.json()["showOnHome"] is True
+
+    home_links = client.get("/api/navigation-links?home=true").json()
+    assert link_id in [row["id"] for row in home_links]
+
+    disabled = client.patch(
+        f"/api/admin/navigation-links/{link_id}",
+        headers=admin_headers,
+        json={"enabled": False},
+    )
+    assert disabled.status_code == 200
+    assert disabled.json()["enabled"] is False
+
+    # 停用后，公开列表（无论是否过滤 home）都不应再返回它。
+    assert link_id not in [row["id"] for row in client.get("/api/navigation-links").json()]
+    assert link_id not in [row["id"] for row in client.get("/api/navigation-links?home=true").json()]
+    # 但管理员视图还能看到。
+    admin_visible = client.get("/api/admin/navigation-links", headers=admin_headers).json()
+    assert link_id in [row["id"] for row in admin_visible]
+
+    deleted = client.delete(
+        f"/api/admin/navigation-links/{link_id}", headers=admin_headers
+    )
+    assert deleted.status_code == 204
+
+    after = client.get("/api/admin/navigation-links", headers=admin_headers).json()
+    assert link_id not in [row["id"] for row in after]
+
+    missing = client.delete(
+        f"/api/admin/navigation-links/{link_id}", headers=admin_headers
+    )
+    assert missing.status_code == 404

@@ -26,8 +26,11 @@ def version() -> dict[str, str]:
 
 
 @router.get("/navigation-links", response_model=list[NavigationLink], response_model_by_alias=True)
-def navigation_links(repo: SQLiteRepository = Depends(repository)) -> list[NavigationLink]:
-    return repo.list_navigation_links(include_disabled=False)
+def navigation_links(
+    home: bool = False,
+    repo: SQLiteRepository = Depends(repository),
+) -> list[NavigationLink]:
+    return repo.list_navigation_links(include_disabled=False, home_only=home)
 
 
 @router.get("/feature-links", response_model=list[FeatureLink], response_model_by_alias=True)

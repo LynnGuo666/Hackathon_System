@@ -14,8 +14,59 @@ class ConfigurationRepositoryMixin:
     def create_navigation_link(self, link: NavigationLink, now: datetime) -> NavigationLink:
         return self._create_link("navigation_links", "nav", NavigationLink, link, now)
 
-    def list_navigation_links(self, include_disabled: bool) -> list[NavigationLink]:
-        return self._list_links("navigation_links", NavigationLink, include_disabled)
+    def list_navigation_links(
+        self, include_disabled: bool, home_only: bool = False
+    ) -> list[NavigationLink]:
+        return self._list_links("navigation_links", NavigationLink, include_disabled, home_only)
+
+    def update_navigation_link(
+        self, link_id: str, fields: dict[str, Any], now: datetime
+    ) -> NavigationLink:
+        existing = self.db.execute(
+            "SELECT id FROM navigation_links WHERE id = ?", (link_id,)
+        ).fetchone()
+        if not existing:
+            raise NotFound("navigation link not found")
+        column_map = {
+            "title": "title",
+            "description": "description",
+            "url": "url",
+            "enabled": "enabled",
+            "sort_order": "sort_order",
+            "sortOrder": "sort_order",
+            "show_on_home": "show_on_home",
+            "showOnHome": "show_on_home",
+        }
+        assignments: list[str] = []
+        params: list[Any] = []
+        for key, value in fields.items():
+            column = column_map.get(key)
+            if not column:
+                continue
+            if column in {"enabled", "show_on_home"}:
+                value = bool_int(bool(value))
+            assignments.append(f"{column} = ?")
+            params.append(value)
+        assignments.append("updated_at = ?")
+        params.append(encode_time(now))
+        params.append(link_id)
+        self.db.execute(
+            f"UPDATE navigation_links SET {', '.join(assignments)} WHERE id = ?",
+            params,
+        )
+        rows = self._list_links("navigation_links", NavigationLink, True, False)
+        for row in rows:
+            if row.id == link_id:
+                return row
+        raise NotFound("navigation link not found")
+
+    def delete_navigation_link(self, link_id: str, now: datetime) -> None:
+        existing = self.db.execute(
+            "SELECT id FROM navigation_links WHERE id = ?", (link_id,)
+        ).fetchone()
+        if not existing:
+            raise NotFound("navigation link not found")
+        self.db.execute("DELETE FROM navigation_links WHERE id = ?", (link_id,))
 
     def _create_link(
         self,
@@ -42,8 +93,8 @@ class ConfigurationRepositoryMixin:
         )
         self.db.execute(
             f"""
-INSERT INTO {table} (id, title, description, url, enabled, sort_order, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO {table} (id, title, description, url, enabled, sort_order, show_on_home, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 """,
             (
                 saved.id,
@@ -52,6 +103,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 saved.url,
                 bool_int(saved.enabled),
                 saved.sort_order,
+                bool_int(saved.show_on_home),
                 encode_time(saved.created_at),
                 encode_time(saved.updated_at),
             ),
@@ -63,12 +115,20 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         table: str,
         model: type[NavigationLink],
         include_disabled: bool,
+        home_only: bool = False,
     ) -> list[NavigationLink]:
-        query = f"SELECT id, title, description, url, enabled, sort_order, created_at, updated_at FROM {table}"
+        query = (
+            f"SELECT id, title, description, url, enabled, sort_order, show_on_home, "
+            f"created_at, updated_at FROM {table}"
+        )
         params: tuple[Any, ...] = ()
+        clauses: list[str] = []
         if not include_disabled:
-            query += " WHERE enabled = ?"
-            params = (1,)
+            clauses.append("enabled = 1")
+        if home_only:
+            clauses.append("show_on_home = 1")
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
         query += " ORDER BY sort_order ASC, created_at ASC"
         rows = self.db.execute(query, params).fetchall()
         return [
@@ -79,6 +139,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 url=row["url"],
                 enabled=bool(row["enabled"]),
                 sortOrder=row["sort_order"],
+                showOnHome=bool(row["show_on_home"]),
                 createdAt=decode_time(row["created_at"]),
                 updatedAt=decode_time(row["updated_at"]),
             )

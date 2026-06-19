@@ -37,6 +37,44 @@ class ConfigurationServiceMixin:
         )
         return saved
 
+    def update_navigation_link(
+        self, actor_id: str, link_id: str, input: NavigationLink
+    ) -> NavigationLink:
+        # Pydantic 模型在创建时给所有字段都填了默认值，因此只看用户显式传入的字段（exclude_unset）。
+        provided = input.model_dump(exclude_unset=True, by_alias=False)
+        fields: dict[str, object] = {}
+        for key in ("title", "description", "url"):
+            if key in provided:
+                value = provided[key]
+                if isinstance(value, str):
+                    value = value.strip()
+                fields[key] = value
+        if "enabled" in provided:
+            fields["enabled"] = bool(provided["enabled"])
+        if "sort_order" in provided:
+            fields["sort_order"] = int(provided["sort_order"])
+        if "show_on_home" in provided:
+            fields["show_on_home"] = bool(provided["show_on_home"])
+
+        if "title" in fields and not fields["title"]:
+            raise InvalidNavigation("navigation link requires title")
+        if "url" in fields and not fields["url"]:
+            raise InvalidNavigation("navigation link requires url")
+
+        now = now_utc()
+        saved = self.repository.update_navigation_link(link_id, fields, now)
+        self.repository.record_audit(
+            actor_id, "navigation_link.update", "navigation_link", saved.id, "", now
+        )
+        return saved
+
+    def delete_navigation_link(self, actor_id: str, link_id: str) -> None:
+        now = now_utc()
+        self.repository.delete_navigation_link(link_id, now)
+        self.repository.record_audit(
+            actor_id, "navigation_link.delete", "navigation_link", link_id, "", now
+        )
+
     def update_site_config(self, actor_id: str, config: SiteConfig) -> SiteConfig:
         now = now_utc()
         event_name = config.event_name.strip()

@@ -10,13 +10,32 @@ import type {
 } from "./types";
 
 export const configurationApi = {
-  navigationLinks: () => request<NavigationLink[]>("/api/navigation-links"),
+  navigationLinks: (opts?: { home?: boolean }) => {
+    const search = opts?.home ? "?home=true" : "";
+    return request<NavigationLink[]>(`/api/navigation-links${search}`);
+  },
   adminNavigationLinks: () => request<NavigationLink[]>("/api/admin/navigation-links", { admin: true }),
-  createNavigationLink: (input: Pick<NavigationLink, "title" | "description" | "url"> & { sortOrder?: number }) =>
+  createNavigationLink: (
+    input: Pick<NavigationLink, "title" | "description" | "url"> & {
+      sortOrder?: number;
+      showOnHome?: boolean;
+    },
+  ) =>
     request<NavigationLink>("/api/admin/navigation-links", {
       admin: true,
       method: "POST",
       body: JSON.stringify(input),
+    }),
+  updateNavigationLink: (id: string, patch: Partial<Pick<NavigationLink, "title" | "description" | "url" | "enabled" | "sortOrder" | "showOnHome">>) =>
+    request<NavigationLink>(`/api/admin/navigation-links/${id}`, {
+      admin: true,
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+  deleteNavigationLink: (id: string) =>
+    request<void>(`/api/admin/navigation-links/${id}`, {
+      admin: true,
+      method: "DELETE",
     }),
   featureLinks: () => request<FeatureLink[]>("/api/feature-links"),
   adminFeatureLinks: () => request<FeatureLink[]>("/api/admin/feature-links", { admin: true }),

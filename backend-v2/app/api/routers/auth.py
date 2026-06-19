@@ -26,8 +26,15 @@ def set_participant_cookie(response: Response, email: str, svc: HackathonService
 
 @router.post("/send-code", status_code=202)
 def send_code(input: SendCodeInput, svc: HackathonService = Depends(service)) -> dict[str, str]:
-    svc.send_code(input.email)
-    return {"status": "queued"}
+    code = svc.send_code(input.email)
+    response: dict[str, str] = {"status": "queued"}
+    # 没配真邮件 provider 时（site_config.emailProvider == "disabled"），把验证码
+    # 原文随响应带回去，让管理员/开发不必去 /admin/email-outbox 翻。一旦配上 SMTP
+    # 或 HTTP provider，这个分支自动失效，验证码不再外泄。
+    if svc.email_provider_disabled():
+        response["devCode"] = code
+        response["devNotice"] = "邮件服务尚未配置，验证码直接随响应返回（仅开发模式）"
+    return response
 
 
 @router.post("/verify-code")

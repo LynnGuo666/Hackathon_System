@@ -135,6 +135,7 @@ export type NavigationLink = {
   url: string;
   enabled: boolean;
   sortOrder: number;
+  showOnHome: boolean;
   createdAt: string;
   updatedAt: string;
 };

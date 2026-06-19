@@ -1,7 +1,28 @@
 "use client";
 
-import { Button, Card, CardBody, CardHeader, Chip, Input, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
-import { ExternalLink, Plus, RefreshCw } from "lucide-react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
+  Chip,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Spinner,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from "@heroui/react";
+import { ExternalLink, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { errorText, notify } from "@/components/toast";
@@ -13,9 +34,14 @@ export default function AdminNavigationPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
+  const [showOnHome, setShowOnHome] = useState(false);
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  // 表格里的开关在切换瞬间会进入 pending 状态，避免重复点击；按 id 标记。
+  const [pendingIds, setPendingIds] = useState<Record<string, boolean>>({});
+  const [pendingDelete, setPendingDelete] = useState<NavigationLink | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function refresh() {
     setListLoading(true);
@@ -47,16 +73,59 @@ export default function AdminNavigationPage() {
 
     setLoading(true);
     try {
-      const link = await api.createNavigationLink({ title: nextTitle, description: nextDescription, url: nextUrl });
+      const link = await api.createNavigationLink({
+        title: nextTitle,
+        description: nextDescription,
+        url: nextUrl,
+        showOnHome,
+      });
       notify.success(`已添加导航链接：${link.title}`);
       setTitle("");
       setDescription("");
       setUrl("");
+      setShowOnHome(false);
       await refresh();
     } catch (error) {
       notify.error(errorText(error, "添加失败"));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function patchLink(id: string, patch: Partial<Pick<NavigationLink, "enabled" | "showOnHome">>) {
+    setPendingIds((prev) => ({ ...prev, [id]: true }));
+    // 乐观更新：先把界面调整到目标状态，请求失败再回滚，避免开关跳动。
+    const previous = links;
+    setLinks((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+    );
+    try {
+      const updated = await api.updateNavigationLink(id, patch);
+      setLinks((rows) => rows.map((row) => (row.id === id ? updated : row)));
+    } catch (error) {
+      setLinks(previous);
+      notify.error(errorText(error, "更新失败"));
+    } finally {
+      setPendingIds((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await api.deleteNavigationLink(pendingDelete.id);
+      notify.success(`已删除：${pendingDelete.title}`);
+      setPendingDelete(null);
+      await refresh();
+    } catch (error) {
+      notify.error(errorText(error, "删除失败"));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -86,6 +155,11 @@ export default function AdminNavigationPage() {
             <Input label="链接名称" placeholder="赛程安排" value={title} onValueChange={setTitle} />
             <Input label="跳转地址" placeholder="/p/dashboard 或 https://example.com" value={url} onValueChange={setUrl} />
             <Input className="md:col-span-2" label="说明" placeholder="显示在导航卡片上的简短说明" value={description} onValueChange={setDescription} />
+            <div className="flex items-center md:col-span-2">
+              <Checkbox isSelected={showOnHome} onValueChange={setShowOnHome}>
+                在公开首页展示
+              </Checkbox>
+            </div>
             <div className="flex gap-2 md:col-span-2">
               <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createLink}>
                 添加导航链接
@@ -105,10 +179,11 @@ export default function AdminNavigationPage() {
                 <TableColumn>名称</TableColumn>
                 <TableColumn>地址</TableColumn>
                 <TableColumn>说明</TableColumn>
-                <TableColumn>状态</TableColumn>
+                <TableColumn>启用</TableColumn>
+                <TableColumn>首页展示</TableColumn>
                 <TableColumn>排序</TableColumn>
-                <TableColumn>创建时间</TableColumn>
                 <TableColumn>更新时间</TableColumn>
+                <TableColumn>操作</TableColumn>
               </TableHeader>
               <TableBody
                 items={links}
@@ -127,13 +202,37 @@ export default function AdminNavigationPage() {
                     </TableCell>
                     <TableCell>{row.description || "-"}</TableCell>
                     <TableCell>
-                      <Chip size="sm" color={row.enabled ? "success" : "default"} variant="flat">
-                        {row.enabled ? "启用" : "停用"}
-                      </Chip>
+                      <Switch
+                        size="sm"
+                        isSelected={row.enabled}
+                        isDisabled={pendingIds[row.id]}
+                        onValueChange={(value) => patchLink(row.id, { enabled: value })}
+                        aria-label={`切换启用 ${row.title}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        size="sm"
+                        isSelected={row.showOnHome}
+                        isDisabled={pendingIds[row.id]}
+                        onValueChange={(value) => patchLink(row.id, { showOnHome: value })}
+                        aria-label={`切换首页展示 ${row.title}`}
+                      />
                     </TableCell>
                     <TableCell>{row.sortOrder}</TableCell>
-                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                     <TableCell>{formatDateTime(row.updatedAt)}</TableCell>
+                    <TableCell>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        color="danger"
+                        aria-label={`删除 ${row.title}`}
+                        onPress={() => setPendingDelete(row)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -141,6 +240,29 @@ export default function AdminNavigationPage() {
           </CardBody>
         </Card>
       </section>
+
+      <Modal isOpen={!!pendingDelete} onClose={() => (deleting ? null : setPendingDelete(null))}>
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader>确认删除</ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-foreground/70">
+                  确定要删除导航链接「{pendingDelete?.title}」吗？删除后无法恢复。
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" isDisabled={deleting} onPress={() => setPendingDelete(null)}>
+                  取消
+                </Button>
+                <Button color="danger" isLoading={deleting} onPress={confirmDelete}>
+                  删除
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </AppShell>
     </AdminAuthGuard>
   );

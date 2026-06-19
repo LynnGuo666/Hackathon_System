@@ -15,7 +15,12 @@ def hash_code(code: str) -> str:
 
 
 class AuthServiceMixin:
-    def send_code(self, email: str) -> None:
+    def send_code(self, email: str) -> str:
+        """生成并入队验证码邮件，返回明文 code。
+
+        调用方负责决定是否把 code 透出给客户端 —— 仅当邮件 provider 是
+        ``disabled``（开发/未配置真邮箱）时才允许返回，避免生产环境意外泄漏。
+        """
         email = normalize_email(email)
         parsed_name, parsed_email = parseaddr(email)
         if parsed_name or parsed_email != email or "@" not in email:
@@ -33,6 +38,11 @@ class AuthServiceMixin:
         self.repository.enqueue_email(
             email, mailer.verification_subject(), mailer.verification_body(code), now
         )
+        return code
+
+    def email_provider_disabled(self) -> bool:
+        config = self.repository.get_site_config()
+        return config.get("emailProvider", "disabled") == "disabled"
 
     def verify_code(self, email: str, code: str) -> None:
         email = normalize_email(email)

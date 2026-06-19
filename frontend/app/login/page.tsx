@@ -31,8 +31,17 @@ export default function LoginPage() {
   async function sendCode() {
     setLoading(true);
     try {
-      await api.sendCode(email);
-      notify.success("验证码已发送");
+      const result = await api.sendCode(email);
+      // 邮件 provider 配成 disabled 时后端会把验证码原文带回来，直接填入并提示。
+      // 配上真 provider 后该字段消失，逻辑自动退化为常规发送提示。
+      if (result.devCode) {
+        setCode(result.devCode);
+        notify.success(
+          `开发模式：验证码 ${result.devCode} 已自动填入${result.devNotice ? `（${result.devNotice}）` : ""}`,
+        );
+      } else {
+        notify.success("验证码已发送");
+      }
     } catch (error) {
       notify.error(errorText(error, "发送失败"));
     } finally {

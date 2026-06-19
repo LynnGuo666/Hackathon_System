@@ -15,6 +15,7 @@ class NavigationLink(APIModel):
     url: str = ""
     enabled: bool = True
     sort_order: int = Field(default=0, alias="sortOrder")
+    show_on_home: bool = Field(default=False, alias="showOnHome")
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
