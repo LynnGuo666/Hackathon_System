@@ -34,6 +34,14 @@ export default function LoginPage() {
     };
   }, []);
 
+  useEffect(() => {
+    // 已登录用户直接访问 /login 时，自动跳转到目标页，无需再次登录。
+    api.me()
+      .then(() => router.replace(nextPath()))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function startCooldown(seconds: number) {
     if (cooldownTimer.current) clearInterval(cooldownTimer.current);
     setCooldown(seconds);

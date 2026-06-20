@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 export default function HomePage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [homeLinks, setHomeLinks] = useState<NavigationLink[]>([]);
+  const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,10 +24,13 @@ export default function HomePage() {
         setHomeLinks(navLinks);
       })
       .finally(() => setLoading(false));
+    // 探测是否已登录：已登录则「进入系统」直达工作台，不再经过登录页。
+    api.me().then(() => setAuthed(true)).catch(() => setAuthed(false));
   }, []);
 
   const eventName = config?.eventName || "Hackathon";
   const showCountdown = !!config?.countdownEnabled && (config?.countdownStages?.length ?? 0) > 0;
+  const entryHref = authed ? "/p/dashboard" : "/login";
 
   return (
     <main className="min-h-screen">
@@ -37,8 +41,8 @@ export default function HomePage() {
             <p className="text-sm font-semibold text-foreground/80">{eventName}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button as={Link} href="/login" color="primary" size="sm" startContent={<LogIn size={16} />}>
-              进入
+            <Button as={Link} href={entryHref} color="primary" size="sm" startContent={<LogIn size={16} />}>
+              {authed ? "工作台" : "进入"}
             </Button>
             <ThemeToggle />
           </div>
@@ -64,12 +68,12 @@ export default function HomePage() {
             <div className="flex flex-col items-center gap-3 sm:flex-row">
               <Button
                 as={Link}
-                href="/login"
+                href={entryHref}
                 color="primary"
                 size="lg"
                 startContent={<LogIn size={18} />}
               >
-                进入系统
+                {authed ? "进入工作台" : "进入系统"}
               </Button>
               <Button
                 as={Link}
