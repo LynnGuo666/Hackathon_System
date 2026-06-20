@@ -70,4 +70,6 @@ class SQLiteRepository(
             return Conflict("checkin id is already bound")
         if "resource_assignments" in message:
             return Conflict("resource already assigned to participant")
+        if "resource_requests" in message:
+            return Conflict("resource request already exists")
         return Conflict(f"sqlite constraint: {error}")

@@ -17,3 +17,20 @@ export const phaseLabels: Record<string, string> = {
   in_event: "赛中",
   all: "全阶段",
 };
+
+export const claimModeLabels: Record<string, string> = {
+  self_claim: "自助领取",
+  self_apply_review: "自助申请审核",
+  admin_only: "仅管理员发放",
+};
+
+export const participantTagLabels: Record<string, string> = {
+  approved: "已通过审核",
+  checked_in: "已签到",
+};
+
+export const resourceRequestStatusLabels: Record<string, string> = {
+  pending: "审核中",
+  approved: "已通过",
+  rejected: "已拒绝",
+};

@@ -1,10 +1,22 @@
 import { request } from "./client";
-import type { ResourceAssignment, ResourceItem, ResourcePool } from "./types";
+import type {
+  AllowedTagOption,
+  ResourceAssignment,
+  ResourceEligibility,
+  ResourceItem,
+  ResourcePool,
+  ResourceRequest,
+} from "./types";
 
 export type ResourcePoolInput = Pick<
   ResourcePool,
   "name" | "type" | "docUrl" | "docMarkdown"
-> & { allowMultipleClaims?: boolean };
+> & {
+  allowMultipleClaims?: boolean;
+  claimMode?: string;
+  requireReview?: boolean;
+  allowedTags?: string[];
+};
 
 export type ResourcePoolUpdateInput = Partial<
   Pick<
@@ -15,6 +27,9 @@ export type ResourcePoolUpdateInput = Partial<
     | "visiblePhase"
     | "enabled"
     | "allowMultipleClaims"
+    | "claimMode"
+    | "requireReview"
+    | "allowedTags"
     | "docUrl"
     | "docMarkdown"
   >
@@ -69,4 +84,34 @@ export const resourcesApi = {
       `/api/admin/resources/assignments${poolId ? `?pool_id=${encodeURIComponent(poolId)}` : ""}`,
       { admin: true },
     ),
+  myRequests: () => request<ResourceRequest[]>("/api/resources/requests"),
+  applyResource: (poolId: string) =>
+    request<ResourceRequest>(`/api/resources/${encodeURIComponent(poolId)}/apply`, {
+      method: "POST",
+    }),
+  claimResource: (poolId: string) =>
+    request<ResourceAssignment>(`/api/resources/${encodeURIComponent(poolId)}/claim`, {
+      method: "POST",
+    }),
+  myEligibility: () => request<ResourceEligibility>("/api/resources/my-eligibility"),
+  adminRequests: (poolId?: string, status?: string) => {
+    const params = new URLSearchParams();
+    if (poolId) params.set("pool_id", poolId);
+    if (status) params.set("status", status);
+    const search = params.toString() ? `?${params.toString()}` : "";
+    return request<ResourceRequest[]>(`/api/admin/resources/requests${search}`, {
+      admin: true,
+    });
+  },
+  reviewRequest: (requestId: string, approve: boolean, note: string) =>
+    request<ResourceAssignment | ResourceRequest>(
+      `/api/admin/resources/requests/${encodeURIComponent(requestId)}/review?approve=${approve}`,
+      {
+        admin: true,
+        method: "POST",
+        body: JSON.stringify({ approve, note }),
+      },
+    ),
+  allowedTagOptions: () =>
+    request<AllowedTagOption[]>("/api/admin/resources/allowed-tags", { admin: true }),
 };

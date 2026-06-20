@@ -68,6 +68,9 @@ class SiteConfig(APIModel):
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
     countdown_stages: list[CountdownStage] = Field(default_factory=list, alias="countdownStages")
     walkup_checkin_enabled: bool = Field(default=False, alias="walkupCheckinEnabled")
+    # 资源池白名单 tag 可选性开关：开启时对应 tag 才能在池白名单里被选中。
+    enrollment_review_enabled: bool = Field(default=True, alias="enrollmentReviewEnabled")
+    checkin_enabled: bool = Field(default=True, alias="checkinEnabled")
     # 邮件 provider 配置（明文字段）。
     email_provider: str = Field(default="disabled", alias="emailProvider")
     email_service_url: str = Field(default="", alias="emailServiceUrl")

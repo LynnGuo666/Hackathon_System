@@ -57,9 +57,47 @@ export type ResourcePool = {
   visiblePhase: string;
   enabled: boolean;
   allowMultipleClaims: boolean;
+  claimMode: string;
+  requireReview: boolean;
+  allowedTags: string[];
   docUrl: string;
   docMarkdown: string;
   createdAt: string;
+};
+
+export type ResourceRequestStatus = "pending" | "approved" | "rejected";
+
+export type ResourceRequest = {
+  id: string;
+  poolId: string;
+  checkinId: string;
+  status: ResourceRequestStatus;
+  resourceItemId: string;
+  assignmentId: string;
+  reviewer: string;
+  reviewNote: string;
+  createdAt: string;
+  reviewedAt?: string;
+  poolName: string;
+};
+
+export type AllowedTagOption = {
+  tag: string;
+  label: string;
+  systemEnabled: boolean;
+};
+
+export type ResourceEligibilityPool = {
+  poolId: string;
+  canClaim: boolean;
+  canApply: boolean;
+  alreadyClaimed: boolean;
+  hasPendingRequest: boolean;
+};
+
+export type ResourceEligibility = {
+  tags: string[];
+  pools: ResourceEligibilityPool[];
 };
 
 export type ResourceItem = {
@@ -175,6 +213,8 @@ export type SiteConfig = {
   countdownEnabled: boolean;
   countdownStages: CountdownStage[];
   walkupCheckinEnabled: boolean;
+  enrollmentReviewEnabled: boolean;
+  checkinEnabled: boolean;
   emailProvider: string;
   emailServiceUrl: string;
   emailServiceAccountId: string;

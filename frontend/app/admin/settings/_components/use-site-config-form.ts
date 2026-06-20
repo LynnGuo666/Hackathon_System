@@ -23,6 +23,8 @@ export function useSiteConfigForm() {
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [countdownEnabled, setCountdownEnabled] = useState(false);
   const [walkupCheckinEnabled, setWalkupCheckinEnabled] = useState(false);
+  const [enrollmentReviewEnabled, setEnrollmentReviewEnabled] = useState(true);
+  const [checkinEnabled, setCheckinEnabled] = useState(true);
   const [stages, setStages] = useState<EditableStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,6 +56,8 @@ export function useSiteConfigForm() {
     setTimezone(nextTimezone);
     setCountdownEnabled(config.countdownEnabled);
     setWalkupCheckinEnabled(config.walkupCheckinEnabled ?? false);
+    setEnrollmentReviewEnabled(config.enrollmentReviewEnabled ?? true);
+    setCheckinEnabled(config.checkinEnabled ?? true);
     setStages(toEditableStages(config.countdownStages, nextTimezone));
   }
 
@@ -122,6 +126,8 @@ export function useSiteConfigForm() {
         timezone,
         countdownEnabled,
         walkupCheckinEnabled,
+        enrollmentReviewEnabled,
+        checkinEnabled,
         countdownStages: normalizedStages,
         updatedAt: siteConfig?.updatedAt ?? "",
       });
@@ -140,6 +146,8 @@ export function useSiteConfigForm() {
     timezoneLabel,
     countdownEnabled,
     walkupCheckinEnabled,
+    enrollmentReviewEnabled,
+    checkinEnabled,
     stages,
     loading,
     saving,
@@ -147,6 +155,8 @@ export function useSiteConfigForm() {
     setEventName,
     setCountdownEnabled,
     setWalkupCheckinEnabled,
+    setEnrollmentReviewEnabled,
+    setCheckinEnabled,
     changeTimezone,
     updateStage,
     addStage,

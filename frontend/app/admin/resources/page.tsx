@@ -28,12 +28,13 @@ import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { StatusChip } from "@/components/status-chip";
 import { errorText, notify } from "@/components/toast";
-import { api, type ResourceAssignment, type ResourceItem, type ResourcePool } from "@/web/lib/api";
+import { api, type AllowedTagOption, type ResourceAssignment, type ResourceItem, type ResourcePool } from "@/web/lib/api";
 import { InventoryActions, ManualAssignmentForm } from "./_components/actions";
 import { ImportInventoryModal } from "./_components/import-modal";
 import { InventoryTable } from "./_components/inventory-table";
 import { PoolEditModal } from "./_components/pool-edit-modal";
 import { PoolInfoCard, PoolStatsCards } from "./_components/pool-summary";
+import { RequestsPanel } from "./_components/requests-panel";
 import { resourceStats } from "./_components/utils";
 
 type PoolStats = {
@@ -49,16 +50,15 @@ const typeLabels: Record<string, string> = {
   physical: "实体物资",
 };
 
-const distributionLabels: Record<string, string> = {
-  one_per_participant: "每人一次",
-  role_based: "按角色",
-  manual: "手动发放",
+const claimModeLabels: Record<string, string> = {
+  self_claim: "自助领取",
+  self_apply_review: "自助申请审核",
+  admin_only: "仅管理员发放",
 };
 
-const phaseLabels: Record<string, string> = {
-  pre_event: "赛前",
-  in_event: "赛中",
-  all: "全阶段",
+const participantTagLabels: Record<string, string> = {
+  approved: "已通过审核",
+  checked_in: "已签到",
 };
 
 function formatDateTime(value?: string) {
@@ -251,6 +251,8 @@ function PoolDetail({ poolId }: { poolId: string }) {
                 setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
               }
             />
+
+            <RequestsPanel poolId={poolId} />
           </>
         )}
 
@@ -269,6 +271,10 @@ function PoolDetail({ poolId }: { poolId: string }) {
 function PoolList() {
   const [name, setName] = useState("");
   const [type, setType] = useState("code");
+  const [claimMode, setClaimMode] = useState("self_claim");
+  const [requireReview, setRequireReview] = useState(false);
+  const [allowedTags, setAllowedTags] = useState<string[]>([]);
+  const [tagOptions, setTagOptions] = useState<AllowedTagOption[]>([]);
   const [allowMultipleClaims, setAllowMultipleClaims] = useState(false);
   const [docUrl, setDocUrl] = useState("");
   const [docMarkdown, setDocMarkdown] = useState("");
@@ -321,6 +327,9 @@ function PoolList() {
       const pool = await api.createPool({
         name: name.trim(),
         type,
+        claimMode,
+        requireReview: claimMode === "self_apply_review" ? true : requireReview,
+        allowedTags,
         allowMultipleClaims,
         docUrl: docUrl.trim(),
         docMarkdown,
@@ -328,6 +337,9 @@ function PoolList() {
       notify.success(`已创建资源池：${pool.name}`);
       setName("");
       setType("code");
+      setClaimMode("self_claim");
+      setRequireReview(false);
+      setAllowedTags([]);
       setAllowMultipleClaims(false);
       setDocUrl("");
       setDocMarkdown("");
@@ -341,6 +353,7 @@ function PoolList() {
 
   useEffect(() => {
     refresh();
+    api.allowedTagOptions().then(setTagOptions).catch(() => setTagOptions([]));
   }, []);
 
   return (
@@ -371,6 +384,43 @@ function PoolList() {
                 <SelectItem key={value}>{label}</SelectItem>
               ))}
             </Select>
+            <Select
+              label="领取方式"
+              selectedKeys={[claimMode]}
+              onSelectionChange={(keys) => {
+                const next = String(Array.from(keys)[0] ?? "self_claim");
+                setClaimMode(next);
+                if (next === "self_apply_review") setRequireReview(true);
+                if (next === "admin_only") setRequireReview(false);
+              }}
+            >
+              {Object.entries(claimModeLabels).map(([value, label]) => (
+                <SelectItem key={value}>{label}</SelectItem>
+              ))}
+            </Select>
+            <Select
+              label="可领取角色（白名单）"
+              selectionMode="multiple"
+              selectedKeys={new Set(allowedTags)}
+              onSelectionChange={(keys) => setAllowedTags(Array.from(keys).map(String))}
+              description="空 = 任何登录选手可领"
+            >
+              {tagOptions.map((option) => (
+                <SelectItem key={option.tag} isDisabled={!option.systemEnabled}>
+                  {participantTagLabels[option.tag] ?? option.tag}
+                  {!option.systemEnabled ? "（系统未开启）" : ""}
+                </SelectItem>
+              ))}
+            </Select>
+            {claimMode !== "admin_only" && (
+              <Switch
+                isDisabled={claimMode === "self_apply_review"}
+                isSelected={claimMode === "self_apply_review" ? true : requireReview}
+                onValueChange={setRequireReview}
+              >
+                {claimMode === "self_apply_review" ? "需审核（申请方式已锁定）" : "领取需审核"}
+              </Switch>
+            )}
             <Switch className="md:col-span-2" isSelected={allowMultipleClaims} onValueChange={setAllowMultipleClaims}>
               允许同一选手多次申请/发放
             </Switch>
@@ -407,8 +457,7 @@ function PoolList() {
               <TableHeader>
                 <TableColumn>名称</TableColumn>
                 <TableColumn>类型</TableColumn>
-                <TableColumn>规则</TableColumn>
-                <TableColumn>阶段</TableColumn>
+                <TableColumn>领取方式</TableColumn>
                 <TableColumn>库存</TableColumn>
                 <TableColumn>重复申请</TableColumn>
                 <TableColumn>状态</TableColumn>
@@ -432,8 +481,7 @@ function PoolList() {
                         </div>
                       </TableCell>
                       <TableCell>{typeLabels[row.type] ?? row.type}</TableCell>
-                      <TableCell>{distributionLabels[row.distributionRule] ?? row.distributionRule}</TableCell>
-                      <TableCell>{phaseLabels[row.visiblePhase] ?? row.visiblePhase}</TableCell>
+                      <TableCell>{claimModeLabels[row.claimMode] ?? row.claimMode}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
                           <Chip size="sm" variant="flat">未使用 {stats.available}</Chip>

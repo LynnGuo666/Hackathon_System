@@ -69,6 +69,30 @@ export default function AdminSettingsPage() {
                   </p>
                 </div>
 
+                <div className="grid gap-1">
+                  <Switch
+                    isSelected={form.enrollmentReviewEnabled}
+                    onValueChange={form.setEnrollmentReviewEnabled}
+                  >
+                    {form.enrollmentReviewEnabled ? "报名审核已启用" : "报名审核已禁用"}
+                  </Switch>
+                  <p className="text-xs text-foreground/45">
+                    关闭后，资源池白名单中「已通过审核」角色不可选。
+                  </p>
+                </div>
+
+                <div className="grid gap-1">
+                  <Switch
+                    isSelected={form.checkinEnabled}
+                    onValueChange={form.setCheckinEnabled}
+                  >
+                    {form.checkinEnabled ? "签到系统已启用" : "签到系统已禁用"}
+                  </Switch>
+                  <p className="text-xs text-foreground/45">
+                    关闭后，资源池白名单中「已签到」角色不可选。
+                  </p>
+                </div>
+
                 <StageList
                   stages={form.stages}
                   onAdd={form.addStage}

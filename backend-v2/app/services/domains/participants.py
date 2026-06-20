@@ -7,6 +7,7 @@ from app.schemas import (
     Participant,
     ParticipantProfile,
     ParticipantStatus,
+    ParticipantTag,
 )
 from app.services import mailer
 
@@ -20,6 +21,8 @@ class ParticipantServiceMixin:
             raise InvalidCheckinID("invalid checkin id")
         now = now_utc()
         participant = self.repository.bind_participant_to_checkin_pool(email, checkin_id, now)
+        # Checkin 绑定 → 自动打「已签到」tag，作为资源池白名单准入依据。
+        self.repository.add_participant_tag(participant.email, ParticipantTag.checked_in, now)
         self.repository.enqueue_email(
             participant.email,
             mailer.checkin_bound_subject(),
@@ -60,6 +63,8 @@ class ParticipantServiceMixin:
             raise InvalidCheckinID("invalid checkin id")
         now = now_utc()
         participant = self.repository.claim_checkin_as_walkup(email, checkin_id, full_name, now)
+        # walkup 签到路径同样打「已签到」tag。
+        self.repository.add_participant_tag(participant.email, ParticipantTag.checked_in, now)
         self.repository.enqueue_email(
             participant.email,
             mailer.checkin_bound_subject(),

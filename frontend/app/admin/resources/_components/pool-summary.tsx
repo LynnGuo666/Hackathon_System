@@ -1,7 +1,12 @@
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import { DocSection } from "@/components/markdown";
 import type { ResourcePool } from "@/web/lib/api";
-import { distributionLabels, formatDateTime, phaseLabels, typeLabels } from "./utils";
+import {
+  claimModeLabels,
+  formatDateTime,
+  participantTagLabels,
+  typeLabels,
+} from "./utils";
 
 export function PoolStatsCards({
   pool,
@@ -22,6 +27,10 @@ export function PoolStatsCards({
 
 export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
   const hasDoc = Boolean(pool.docUrl || pool.docMarkdown);
+  const allowedTagsText =
+    pool.allowedTags && pool.allowedTags.length > 0
+      ? pool.allowedTags.map((tag) => participantTagLabels[tag] ?? tag).join("、")
+      : "不限（任何选手）";
   return (
     <Card classNames={{ base: "rounded-card" }}>
       <CardHeader>
@@ -29,8 +38,12 @@ export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
       </CardHeader>
       <CardBody className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
         <InfoItem label="启用状态" value={pool.enabled ? "启用" : "停用"} />
-        <InfoItem label="发放规则" value={distributionLabels[pool.distributionRule] ?? pool.distributionRule} />
-        <InfoItem label="可见阶段" value={phaseLabels[pool.visiblePhase] ?? pool.visiblePhase} />
+        <InfoItem label="领取方式" value={claimModeLabels[pool.claimMode] ?? pool.claimMode} />
+        <InfoItem
+          label="需审核"
+          value={pool.claimMode === "admin_only" ? "—" : pool.requireReview ? "是" : "否"}
+        />
+        <InfoItem label="可领取角色" value={allowedTagsText} />
         <InfoItem label="创建时间" value={formatDateTime(pool.createdAt)} />
         {hasDoc && (
           <div className="md:col-span-2 xl:col-span-4">

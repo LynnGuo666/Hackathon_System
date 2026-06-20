@@ -7,6 +7,7 @@ from app.schemas import (
     EnrollmentReviewInput,
     EnrollmentReviewStatus,
     ParticipantStatus,
+    ParticipantTag,
 )
 
 
@@ -113,6 +114,11 @@ class EnrollmentServiceMixin:
             ParticipantStatus.accepted if approve else ParticipantStatus.rejected,
             now,
         )
+        if approve:
+            # 报名终审通过 → 自动打「已通过审核」tag，作为资源池白名单准入依据。
+            self.repository.add_participant_tag(
+                enrollment.email, ParticipantTag.approved, now
+            )
         self.repository.record_audit(
             actor_id,
             "enrollment.final_review",

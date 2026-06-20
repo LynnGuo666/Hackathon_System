@@ -13,6 +13,7 @@ from app.schemas import (
     ParticipantProfile,
     ResourceAssignment,
     ResourcePool,
+    ResourceRequest,
 )
 from app.services.hackathon import HackathonService
 
@@ -171,6 +172,42 @@ def claim_resource(
 ) -> ResourceAssignment:
     participant = svc.checked_in_participant(email)
     return svc.claim_resource(participant.checkin_id, pool_id, participant.checkin_id)
+
+
+@router.post(
+    "/resources/{pool_id}/apply",
+    status_code=201,
+    response_model=ResourceRequest,
+    response_model_by_alias=True,
+)
+def apply_resource(
+    pool_id: str,
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> ResourceRequest:
+    participant = svc.checked_in_participant(email)
+    return svc.apply_resource(participant.checkin_id, pool_id, participant.checkin_id)
+
+
+@router.get(
+    "/resources/requests",
+    response_model=list[ResourceRequest],
+    response_model_by_alias=True,
+)
+def my_resource_requests(
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> list[ResourceRequest]:
+    participant = svc.checked_in_participant(email)
+    return svc.my_requests(participant.checkin_id)
+
+
+@router.get("/resources/my-eligibility")
+def my_resource_eligibility(
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> dict:
+    return svc.my_resource_eligibility(email)
 
 
 @router.post("/resources/{assignment_id}/resend-email", status_code=202)

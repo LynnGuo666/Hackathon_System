@@ -7,6 +7,7 @@ from app.core.dependencies import repository, service
 from app.core.security import actor_id, require_admin_token
 from app.repositories.sqlite import SQLiteRepository
 from app.schemas import (
+    AllowedTagOption,
     AssignInput,
     ImportCodesInput,
     ResourceAssignment,
@@ -14,6 +15,8 @@ from app.schemas import (
     ResourceItemUpdateInput,
     ResourcePool,
     ResourcePoolUpdateInput,
+    ResourceRequest,
+    ResourceRequestReviewInput,
 )
 from app.services.hackathon import HackathonService
 
@@ -129,7 +132,8 @@ def assign_resource(
     actor: str = Depends(actor_id),
     svc: HackathonService = Depends(service),
 ) -> ResourceAssignment:
-    return svc.claim_resource(actor, pool_id, input.checkin_id)
+    # 管理员手动发放：不受 claim_mode/白名单限制。
+    return svc.assign_resource(actor, pool_id, input.checkin_id)
 
 
 @router.post("/resources/assignments/{assignment_id}/resend-email", status_code=202)
@@ -138,3 +142,43 @@ def resend_email(assignment_id: str) -> dict[str, str]:
         "status": "queued",
         "note": "resource email resend is tracked through email outbox retry",
     }
+
+
+@router.get(
+    "/resources/requests",
+    response_model=list[ResourceRequest],
+    response_model_by_alias=True,
+)
+def list_resource_requests(
+    pool_id: str = "",
+    status: str = "",
+    svc: HackathonService = Depends(service),
+) -> list[ResourceRequest]:
+    return svc.list_resource_requests(pool_id=pool_id, status=status)
+
+
+@router.post(
+    "/resources/requests/{request_id}/review",
+    response_model=ResourceAssignment | ResourceRequest,
+    response_model_by_alias=True,
+)
+def review_resource_request(
+    request_id: str,
+    input: ResourceRequestReviewInput,
+    approve: bool = True,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> ResourceAssignment | ResourceRequest:
+    # approve=True 返回新建的 assignment；reject 返回 request（含审核备注）。
+    return svc.review_resource_request(actor, request_id, approve, input.note)
+
+
+@router.get(
+    "/resources/allowed-tags",
+    response_model=list[AllowedTagOption],
+    response_model_by_alias=True,
+)
+def list_allowed_tags(
+    svc: HackathonService = Depends(service),
+) -> list[AllowedTagOption]:
+    return svc.allowed_tag_options()

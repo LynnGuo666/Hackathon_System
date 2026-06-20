@@ -1,11 +1,19 @@
 import type { ResourceItem } from "@/web/lib/api";
 import {
+  claimModeLabels,
   distributionLabels,
+  participantTagLabels,
   phaseLabels,
   resourceTypeLabels as typeLabels,
 } from "@/web/lib/resource-labels";
 
-export { distributionLabels, phaseLabels, typeLabels };
+export {
+  claimModeLabels,
+  distributionLabels,
+  participantTagLabels,
+  phaseLabels,
+  typeLabels,
+};
 
 export function resourceStats(items: ResourceItem[]) {
   return {

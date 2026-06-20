@@ -151,6 +151,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 SELECT id, event_name, timezone, countdown_title, countdown_end, countdown_enabled,
        countdown_stages, walkup_checkin_enabled,
+       enrollment_review_enabled, checkin_enabled,
        email_provider, email_service_url, email_service_account_id, email_service_sync,
        smtp_host, smtp_port, smtp_username, smtp_from, smtp_security,
        updated_at
@@ -185,6 +186,12 @@ FROM site_config LIMIT 1
             "walkupCheckinEnabled": bool(row["walkup_checkin_enabled"])
             if "walkup_checkin_enabled" in keys
             else False,
+            "enrollmentReviewEnabled": bool(row["enrollment_review_enabled"])
+            if "enrollment_review_enabled" in keys
+            else True,
+            "checkinEnabled": bool(row["checkin_enabled"])
+            if "checkin_enabled" in keys
+            else True,
             "emailProvider": row["email_provider"] if "email_provider" in keys else "disabled",
             "emailServiceUrl": row["email_service_url"] if "email_service_url" in keys else "",
             "emailServiceAccountId": row["email_service_account_id"]
@@ -210,11 +217,12 @@ FROM site_config LIMIT 1
 INSERT INTO site_config (
   id, event_name, timezone, countdown_title, countdown_end,
   countdown_enabled, countdown_stages, walkup_checkin_enabled,
+  enrollment_review_enabled, checkin_enabled,
   email_provider, email_service_url, email_service_account_id, email_service_sync,
   smtp_host, smtp_port, smtp_username, smtp_from, smtp_security,
   updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   event_name = excluded.event_name,
   timezone = excluded.timezone,
@@ -223,6 +231,8 @@ ON CONFLICT(id) DO UPDATE SET
   countdown_enabled = excluded.countdown_enabled,
   countdown_stages = excluded.countdown_stages,
   walkup_checkin_enabled = excluded.walkup_checkin_enabled,
+  enrollment_review_enabled = excluded.enrollment_review_enabled,
+  checkin_enabled = excluded.checkin_enabled,
   email_provider = excluded.email_provider,
   email_service_url = excluded.email_service_url,
   email_service_account_id = excluded.email_service_account_id,
@@ -243,6 +253,8 @@ ON CONFLICT(id) DO UPDATE SET
                 bool_int(config.get("countdown_enabled", False)),
                 json.dumps(countdown_stages, ensure_ascii=False),
                 bool_int(config.get("walkup_checkin_enabled", False)),
+                bool_int(config.get("enrollment_review_enabled", True)),
+                bool_int(config.get("checkin_enabled", True)),
                 config.get("email_provider", "disabled"),
                 config.get("email_service_url", ""),
                 config.get("email_service_account_id", ""),
