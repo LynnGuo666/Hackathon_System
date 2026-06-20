@@ -23,8 +23,6 @@ export type ResourcePoolUpdateInput = Partial<
     ResourcePool,
     | "name"
     | "type"
-    | "distributionRule"
-    | "visiblePhase"
     | "enabled"
     | "allowMultipleClaims"
     | "claimMode"

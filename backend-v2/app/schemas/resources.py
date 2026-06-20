@@ -12,18 +12,6 @@ class ResourcePoolType(StrEnum):
     physical = "physical"
 
 
-class DistributionRule(StrEnum):
-    one_per_participant = "one_per_participant"
-    role_based = "role_based"
-    manual = "manual"
-
-
-class VisiblePhase(StrEnum):
-    pre_event = "pre_event"
-    in_event = "in_event"
-    all = "all"
-
-
 class ClaimMode(StrEnum):
     """资源领取方式，正交于是否审核与可重复领取。"""
 
@@ -49,11 +37,6 @@ class ResourcePool(APIModel):
     id: str = ""
     name: str = ""
     type: ResourcePoolType = ResourcePoolType.code
-    distribution_rule: DistributionRule = Field(
-        default=DistributionRule.one_per_participant, alias="distributionRule"
-    )
-    # visible_phase 已废弃：保留列/字段向后兼容，前端不再编辑、后端不再过滤。
-    visible_phase: VisiblePhase = Field(default=VisiblePhase.all, alias="visiblePhase")
     enabled: bool = True
     allow_multiple_claims: bool = Field(default=False, alias="allowMultipleClaims")
     claim_mode: ClaimMode = Field(default=ClaimMode.self_claim, alias="claimMode")
@@ -119,8 +102,6 @@ class ResourcePoolUpdateInput(APIModel):
 
     name: str | None = Field(default=None)
     type: ResourcePoolType | None = Field(default=None)
-    distribution_rule: DistributionRule | None = Field(default=None, alias="distributionRule")
-    visible_phase: VisiblePhase | None = Field(default=None, alias="visiblePhase")
     enabled: bool | None = Field(default=None)
     allow_multiple_claims: bool | None = Field(default=None, alias="allowMultipleClaims")
     claim_mode: ClaimMode | None = Field(default=None, alias="claimMode")

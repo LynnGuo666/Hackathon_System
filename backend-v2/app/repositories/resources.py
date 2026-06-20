@@ -21,7 +21,7 @@ from app.schemas import (
 
 # SELECT 列表与构造函数多处复用，集中声明避免漏字段。
 _POOL_COLUMNS = (
-    "id, name, type, distribution_rule, visible_phase, enabled, allow_multiple_claims, "
+    "id, name, type, enabled, allow_multiple_claims, "
     "claim_mode, require_review, allowed_tags, doc_url, doc_markdown, created_at"
 )
 
@@ -63,8 +63,6 @@ def _row_to_pool(row: sqlite3.Row) -> ResourcePool:
         id=row["id"],
         name=row["name"],
         type=row["type"],
-        distributionRule=row["distribution_rule"],
-        visiblePhase=row["visible_phase"],
         enabled=bool(row["enabled"]),
         allowMultipleClaims=bool(row["allow_multiple_claims"]),
         claimMode=row["claim_mode"],
@@ -98,17 +96,15 @@ class ResourceRepositoryMixin:
         self.db.execute(
             """
 INSERT INTO resource_pools (
-    id, name, type, distribution_rule, visible_phase, enabled, allow_multiple_claims,
+    id, name, type, enabled, allow_multiple_claims,
     claim_mode, require_review, allowed_tags, doc_url, doc_markdown, created_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """,
             (
                 saved.id,
                 saved.name,
                 saved.type,
-                saved.distribution_rule,
-                saved.visible_phase,
                 bool_int(saved.enabled),
                 bool_int(saved.allow_multiple_claims),
                 saved.claim_mode,
@@ -142,8 +138,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         column_map = {
             "name": "name",
             "type": "type",
-            "distribution_rule": "distribution_rule",
-            "visible_phase": "visible_phase",
             "enabled": "enabled",
             "allow_multiple_claims": "allow_multiple_claims",
             "claim_mode": "claim_mode",

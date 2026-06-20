@@ -77,7 +77,6 @@ from app.schemas.resources import (
     AllowedTagOption,
     AssignInput,
     ClaimMode,
-    DistributionRule,
     ImportCodesInput,
     ParticipantTag,
     ResourceAssignment,
@@ -91,7 +90,6 @@ from app.schemas.resources import (
     ResourceRequest,
     ResourceRequestReviewInput,
     ResourceRequestStatus,
-    VisiblePhase,
 )
 
 __all__ = [
@@ -115,7 +113,6 @@ __all__ = [
     "CheckinLoginInput",
     "ClaimMode",
     "CountdownStage",
-    "DistributionRule",
     "DrinkOrder",
     "DrinkSupplySlot",
     "EmailOutbox",
@@ -182,5 +179,4 @@ __all__ = [
     "TaskStatus",
     "VerificationCode",
     "VerifyCodeInput",
-    "VisiblePhase",
 ]

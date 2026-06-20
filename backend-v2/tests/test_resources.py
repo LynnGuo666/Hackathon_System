@@ -474,13 +474,11 @@ def test_apply_multiple_when_allowed(
     assert second.status_code == 201
 
 
-def test_visible_phase_does_not_filter(
+def test_enabled_pools_always_visible(
     client, admin_headers, approve_enrollment, import_checkins
 ):
-    # visible_phase 已废弃：仍返回所有 enabled 池。
-    pool = _create_pool(
-        client, admin_headers, visiblePhase="pre_event"
-    )
+    # 已废弃 visible_phase 过滤：所有 enabled 池都对选手可见。
+    pool = _create_pool(client, admin_headers)
     approve_enrollment("vis@example.com")
     pools = client.get("/api/resources/pools").json()
     ids = [p["id"] for p in pools]

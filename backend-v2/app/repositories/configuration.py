@@ -149,7 +149,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     def get_site_config(self) -> dict[str, Any]:
         row = self.db.execute(
             """
-SELECT id, event_name, timezone, countdown_title, countdown_end, countdown_enabled,
+SELECT id, event_name, timezone, countdown_enabled,
        countdown_stages, walkup_checkin_enabled,
        enrollment_review_enabled, checkin_enabled,
        email_provider, email_service_url, email_service_account_id, email_service_sync,
@@ -166,21 +166,11 @@ FROM site_config LIMIT 1
                 "countdownStages": [],
             }
         countdown_stages = decode_countdown_stages(row["countdown_stages"])
-        if not countdown_stages and row["countdown_end"]:
-            countdown_stages = [
-                {
-                    "id": "stage_legacy",
-                    "label": row["countdown_title"] or "开赛",
-                    "time": row["countdown_end"],
-                }
-            ]
         keys = row.keys()
         return {
             "id": row["id"],
             "eventName": row["event_name"] or "Hackathon",
             "timezone": row["timezone"] or "Asia/Shanghai",
-            "countdownTitle": row["countdown_title"],
-            "countdownEnd": row["countdown_end"],
             "countdownEnabled": bool(row["countdown_enabled"]),
             "countdownStages": countdown_stages,
             "walkupCheckinEnabled": bool(row["walkup_checkin_enabled"])
@@ -211,23 +201,20 @@ FROM site_config LIMIT 1
     def update_site_config(self, config: dict[str, Any], now: datetime) -> dict[str, Any]:
         updated_at = encode_time(now)
         countdown_stages = config.get("countdown_stages", [])
-        first_stage = countdown_stages[0] if countdown_stages else {}
         self.db.execute(
             """
 INSERT INTO site_config (
-  id, event_name, timezone, countdown_title, countdown_end,
+  id, event_name, timezone,
   countdown_enabled, countdown_stages, walkup_checkin_enabled,
   enrollment_review_enabled, checkin_enabled,
   email_provider, email_service_url, email_service_account_id, email_service_sync,
   smtp_host, smtp_port, smtp_username, smtp_from, smtp_security,
   updated_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   event_name = excluded.event_name,
   timezone = excluded.timezone,
-  countdown_title = excluded.countdown_title,
-  countdown_end = excluded.countdown_end,
   countdown_enabled = excluded.countdown_enabled,
   countdown_stages = excluded.countdown_stages,
   walkup_checkin_enabled = excluded.walkup_checkin_enabled,
@@ -248,8 +235,6 @@ ON CONFLICT(id) DO UPDATE SET
                 "default",
                 config.get("event_name", "Hackathon"),
                 config.get("timezone", "Asia/Shanghai"),
-                first_stage.get("label", config.get("countdown_title", "")),
-                first_stage.get("time", config.get("countdown_end", "")),
                 bool_int(config.get("countdown_enabled", False)),
                 json.dumps(countdown_stages, ensure_ascii=False),
                 bool_int(config.get("walkup_checkin_enabled", False)),

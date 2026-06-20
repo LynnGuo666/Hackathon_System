@@ -53,8 +53,6 @@ export type ResourcePool = {
   id: string;
   name: string;
   type: string;
-  distributionRule: string;
-  visiblePhase: string;
   enabled: boolean;
   allowMultipleClaims: boolean;
   claimMode: string;
@@ -208,8 +206,6 @@ export type SiteConfig = {
   id: string;
   eventName: string;
   timezone: string;
-  countdownTitle: string;
-  countdownEnd: string;
   countdownEnabled: boolean;
   countdownStages: CountdownStage[];
   walkupCheckinEnabled: boolean;

@@ -104,8 +104,6 @@ class ConfigurationServiceMixin:
             update={
                 "event_name": event_name,
                 "timezone": config.timezone,
-                "countdown_title": stages[0].label if stages else "",
-                "countdown_end": stages[0].time if stages else "",
                 "countdown_stages": stages,
             }
         )

@@ -6,18 +6,6 @@ export const resourceTypeLabels: Record<string, string> = {
   physical: "实体物资",
 };
 
-export const distributionLabels: Record<string, string> = {
-  one_per_participant: "每人一次",
-  role_based: "按角色",
-  manual: "手动发放",
-};
-
-export const phaseLabels: Record<string, string> = {
-  pre_event: "赛前",
-  in_event: "赛中",
-  all: "全阶段",
-};
-
 export const claimModeLabels: Record<string, string> = {
   self_claim: "自助领取",
   self_apply_review: "自助申请审核",

@@ -62,9 +62,6 @@ class SiteConfig(APIModel):
     id: str = "default"
     event_name: str = Field(default="Hackathon", alias="eventName")
     timezone: str = "Asia/Shanghai"
-    # 旧字段仍保留在响应里，兼容历史单一倒计时配置和旧前端读取路径。
-    countdown_title: str = Field(default="", alias="countdownTitle")
-    countdown_end: str = Field(default="", alias="countdownEnd")
     countdown_enabled: bool = Field(default=False, alias="countdownEnabled")
     countdown_stages: list[CountdownStage] = Field(default_factory=list, alias="countdownStages")
     walkup_checkin_enabled: bool = Field(default=False, alias="walkupCheckinEnabled")
