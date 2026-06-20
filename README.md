@@ -171,4 +171,4 @@ npm run build
 
 详见 [CHANGELOG.md](./CHANGELOG.md)
 
-当前版本：**v0.5.0**
+当前版本：**v0.6.0**

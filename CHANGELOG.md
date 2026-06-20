@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-20
+
+### Added
+- 资源领取模型重构：领取方式（自助领取 / 自助申请审核 / 仅管理员发放）、是否需审核、可重复领取三字段正交设计，弃用旧 distribution_rule 语义
+- 角色 tag 机制：报名终审通过自动打「已通过审核」tag、签到绑定自动打「已签到」tag，存独立表 participant_tags
+- 池配角色白名单 allowed_tags：选手能否自助领取/申请完全由白名单决定，空数组=最宽松（任何登录选手可领）
+- 资源申请审核流：独立表 resource_requests，pending 不分配 item，管理员批准时才分配并回填 assignment_id，拒绝不归还
+- 两个系统开关（site_config）：enrollment_review_enabled / checkin_enabled，关闭时对应 tag 在池白名单中灰显不可选
+- 迁移 0018_resource_claim_model：新三列 + 旧 distribution_rule→claim_mode 数据映射、两系统开关列、participant_tags / resource_requests 表
+- 选手端 /p/resources 自助领取/申请入口与「我的申请」段，管理端申请审批面板
+- 端点：选手 POST /resources/{id}/apply、GET /resources/requests、GET /resources/my-eligibility；管理端 GET /resources/requests、POST /resources/requests/{id}/review、GET /resources/allowed-tags
+
+### Changed
+- visible_phase 废弃：保留列/字段向后兼容，前端移除编辑 UI、后端不再过滤
+- admin 手动发放不受白名单限制（assign_resource 独立路径），选手自助准入走白名单校验
+- 报名审核/签到系统开关默认开启，迁移后行为不变
+
 ## [0.5.0] - 2026-06-18
 
 ### Added
