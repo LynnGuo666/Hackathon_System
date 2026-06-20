@@ -1,4 +1,5 @@
 import { Card, CardBody, CardHeader } from "@heroui/react";
+import { DocSection } from "@/components/markdown";
 import type { ResourcePool } from "@/web/lib/api";
 import { distributionLabels, formatDateTime, phaseLabels, typeLabels } from "./utils";
 
@@ -20,6 +21,7 @@ export function PoolStatsCards({
 }
 
 export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
+  const hasDoc = Boolean(pool.docUrl || pool.docMarkdown);
   return (
     <Card classNames={{ base: "rounded-card" }}>
       <CardHeader>
@@ -30,6 +32,12 @@ export function PoolInfoCard({ pool }: { pool: ResourcePool }) {
         <InfoItem label="发放规则" value={distributionLabels[pool.distributionRule] ?? pool.distributionRule} />
         <InfoItem label="可见阶段" value={phaseLabels[pool.visiblePhase] ?? pool.visiblePhase} />
         <InfoItem label="创建时间" value={formatDateTime(pool.createdAt)} />
+        {hasDoc && (
+          <div className="md:col-span-2 xl:col-span-4">
+            <p className="mb-1 text-foreground/55">说明文档</p>
+            <DocSection url={pool.docUrl} markdown={pool.docMarkdown} />
+          </div>
+        )}
       </CardBody>
     </Card>
   );

@@ -6,7 +6,15 @@ from fastapi import APIRouter, Depends, Header, Request
 from app.core.dependencies import repository, service
 from app.core.security import actor_id, require_admin_token
 from app.repositories.sqlite import SQLiteRepository
-from app.schemas import AssignInput, ImportCodesInput, ResourceAssignment, ResourceItem, ResourcePool
+from app.schemas import (
+    AssignInput,
+    ImportCodesInput,
+    ResourceAssignment,
+    ResourceItem,
+    ResourceItemUpdateInput,
+    ResourcePool,
+    ResourcePoolUpdateInput,
+)
 from app.services.hackathon import HackathonService
 
 router = APIRouter(dependencies=[Depends(require_admin_token)])
@@ -34,6 +42,35 @@ def create_pool(
     svc: HackathonService = Depends(service),
 ) -> ResourcePool:
     return svc.create_pool(actor, input)
+
+
+@router.put(
+    "/resources/pools/{pool_id}",
+    response_model=ResourcePool,
+    response_model_by_alias=True,
+)
+def update_pool(
+    pool_id: str,
+    input: ResourcePoolUpdateInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> ResourcePool:
+    return svc.update_pool(actor, pool_id, input)
+
+
+@router.put(
+    "/resources/pools/{pool_id}/items/{item_id}",
+    response_model=ResourceItem,
+    response_model_by_alias=True,
+)
+def update_resource_item(
+    pool_id: str,
+    item_id: str,
+    input: ResourceItemUpdateInput,
+    actor: str = Depends(actor_id),
+    svc: HackathonService = Depends(service),
+) -> ResourceItem:
+    return svc.update_resource_item(actor, pool_id, item_id, input)
 
 
 @router.post(

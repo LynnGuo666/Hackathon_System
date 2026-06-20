@@ -10,6 +10,8 @@ import {
   CardHeader,
   Chip,
   Input,
+  Select,
+  SelectItem,
   Spinner,
   Switch,
   Table,
@@ -18,9 +20,10 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  Textarea,
   useDisclosure,
 } from "@heroui/react";
-import { ArrowLeft, ArrowRight, PackagePlus, Plus, RefreshCw, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil, PackagePlus, Plus, RefreshCw, Send } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { AppShell } from "@/components/app-shell";
 import { StatusChip } from "@/components/status-chip";
@@ -29,6 +32,7 @@ import { api, type ResourceAssignment, type ResourceItem, type ResourcePool } fr
 import { InventoryActions, ManualAssignmentForm } from "./_components/actions";
 import { ImportInventoryModal } from "./_components/import-modal";
 import { InventoryTable } from "./_components/inventory-table";
+import { PoolEditModal } from "./_components/pool-edit-modal";
 import { PoolInfoCard, PoolStatsCards } from "./_components/pool-summary";
 import { resourceStats } from "./_components/utils";
 
@@ -92,6 +96,7 @@ function PoolDetail({ poolId }: { poolId: string }) {
   const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const { isOpen: isImportOpen, onOpen: openImport, onOpenChange: onImportOpenChange } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: openEdit, onOpenChange: onEditOpenChange } = useDisclosure();
 
   const stats = useMemo(() => resourceStats(items), [items]);
 
@@ -182,9 +187,16 @@ function PoolDetail({ poolId }: { poolId: string }) {
             </Button>
             <h2 className="text-2xl font-semibold">{pool?.name ?? "资源条目"}</h2>
           </div>
-          <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
-            刷新
-          </Button>
+          <div className="flex gap-2">
+            {pool && (
+              <Button variant="flat" startContent={<Pencil size={16} />} onPress={openEdit}>
+                编辑信息
+              </Button>
+            )}
+            <Button variant="flat" startContent={<RefreshCw size={16} />} isLoading={loading} onPress={refresh}>
+              刷新
+            </Button>
+          </div>
         </div>
 
         {loading && <Spinner label="正在读取资源详情" />}
@@ -219,7 +231,26 @@ function PoolDetail({ poolId }: { poolId: string }) {
               onImport={importItems}
             />
 
-            <InventoryTable items={items} assignmentByItem={assignmentByItem} total={stats.total} />
+            {pool && (
+              <PoolEditModal
+                isOpen={isEditOpen}
+                pool={pool}
+                onOpenChange={onEditOpenChange}
+                onSaved={(updated) => {
+                  setPool(updated);
+                  onEditOpenChange();
+                }}
+              />
+            )}
+
+            <InventoryTable
+              items={items}
+              assignmentByItem={assignmentByItem}
+              total={stats.total}
+              onItemUpdated={(updated) =>
+                setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
+              }
+            />
           </>
         )}
 
@@ -239,6 +270,8 @@ function PoolList() {
   const [name, setName] = useState("");
   const [type, setType] = useState("code");
   const [allowMultipleClaims, setAllowMultipleClaims] = useState(false);
+  const [docUrl, setDocUrl] = useState("");
+  const [docMarkdown, setDocMarkdown] = useState("");
   const [pools, setPools] = useState<ResourcePool[]>([]);
   const [itemsByPool, setItemsByPool] = useState<Record<string, ResourceItem[]>>({});
   const [loading, setLoading] = useState(false);
@@ -287,13 +320,17 @@ function PoolList() {
     try {
       const pool = await api.createPool({
         name: name.trim(),
-        type: type.trim() || "code",
+        type,
         allowMultipleClaims,
+        docUrl: docUrl.trim(),
+        docMarkdown,
       });
       notify.success(`已创建资源池：${pool.name}`);
       setName("");
       setType("code");
       setAllowMultipleClaims(false);
+      setDocUrl("");
+      setDocMarkdown("");
       await refresh();
     } catch (error) {
       notify.error(errorText(error, "创建失败"));
@@ -325,10 +362,33 @@ function PoolList() {
           </CardHeader>
           <CardBody className="grid gap-3 md:grid-cols-[1fr_180px]">
             <Input label="资源名称" placeholder="AI 工具兑换码" value={name} onValueChange={setName} />
-            <Input label="类型" placeholder="code / link / credential" value={type} onValueChange={setType} />
+            <Select
+              label="类型"
+              selectedKeys={[type]}
+              onSelectionChange={(keys) => setType(String(Array.from(keys)[0] ?? "code"))}
+            >
+              {Object.entries(typeLabels).map(([value, label]) => (
+                <SelectItem key={value}>{label}</SelectItem>
+              ))}
+            </Select>
             <Switch className="md:col-span-2" isSelected={allowMultipleClaims} onValueChange={setAllowMultipleClaims}>
               允许同一选手多次申请/发放
             </Switch>
+            <Input
+              className="md:col-span-2"
+              label="说明文档链接"
+              placeholder="https://..."
+              value={docUrl}
+              onValueChange={setDocUrl}
+            />
+            <Textarea
+              className="md:col-span-2"
+              label="说明文档（Markdown）"
+              minRows={6}
+              placeholder={"# 标题\n- 列表项\n`代码`"}
+              value={docMarkdown}
+              onValueChange={setDocMarkdown}
+            />
             <div className="flex gap-2 md:col-span-2">
               <Button color="primary" startContent={<Plus size={16} />} isLoading={loading} onPress={createPool}>
                 创建条目

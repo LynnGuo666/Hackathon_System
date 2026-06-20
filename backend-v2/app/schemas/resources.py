@@ -5,7 +5,6 @@ from pydantic import Field
 
 from app.schemas.base import APIModel
 
-
 class ResourcePoolType(StrEnum):
     code = "code"
     link = "link"
@@ -35,6 +34,8 @@ class ResourcePool(APIModel):
     visible_phase: VisiblePhase = Field(default=VisiblePhase.all, alias="visiblePhase")
     enabled: bool = True
     allow_multiple_claims: bool = Field(default=False, alias="allowMultipleClaims")
+    doc_url: str = Field(default="", alias="docUrl")
+    doc_markdown: str = Field(default="", alias="docMarkdown")
     created_at: datetime | None = Field(default=None, alias="createdAt")
 
 
@@ -53,6 +54,8 @@ class ResourceItem(APIModel):
     assigned_checkin_id: str = Field(default="", alias="assignedCheckinId")
     assigned_at: datetime | None = Field(default=None, alias="assignedAt")
     expires_at: datetime | None = Field(default=None, alias="expiresAt")
+    doc_url: str = Field(default="", alias="docUrl")
+    doc_markdown: str = Field(default="", alias="docMarkdown")
 
 
 class ResourceAssignmentStatus(StrEnum):
@@ -71,6 +74,10 @@ class ResourceAssignment(APIModel):
     delivered_at: datetime | None = Field(default=None, alias="deliveredAt")
     created_at: datetime | None = Field(default=None, alias="createdAt")
     plain_code: str = Field(default="", alias="plainCode")
+    pool_name: str = Field(default="", alias="poolName")
+    pool_type: str = Field(default="", alias="poolType")
+    item_doc_url: str = Field(default="", alias="itemDocUrl")
+    item_doc_markdown: str = Field(default="", alias="itemDocMarkdown")
 
 
 class ImportCodesInput(APIModel):
@@ -80,3 +87,23 @@ class ImportCodesInput(APIModel):
 
 class AssignInput(APIModel):
     checkin_id: str = Field(alias="checkinId")
+
+
+class ResourcePoolUpdateInput(APIModel):
+    """编辑资源池信息；None 表示不改。"""
+
+    name: str | None = Field(default=None)
+    type: ResourcePoolType | None = Field(default=None)
+    distribution_rule: DistributionRule | None = Field(default=None, alias="distributionRule")
+    visible_phase: VisiblePhase | None = Field(default=None, alias="visiblePhase")
+    enabled: bool | None = Field(default=None)
+    allow_multiple_claims: bool | None = Field(default=None, alias="allowMultipleClaims")
+    doc_url: str | None = Field(default=None, alias="docUrl")
+    doc_markdown: str | None = Field(default=None, alias="docMarkdown")
+
+
+class ResourceItemUpdateInput(APIModel):
+    """编辑单个 Key 的说明文档；None 表示不改。"""
+
+    doc_url: str | None = Field(default=None, alias="docUrl")
+    doc_markdown: str | None = Field(default=None, alias="docMarkdown")

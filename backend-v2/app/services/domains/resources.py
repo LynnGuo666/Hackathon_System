@@ -1,6 +1,12 @@
-from app.core.errors import InvalidCheckinID, InvalidResourceCSV
+from app.core.errors import InvalidCheckinID, InvalidResourceCSV, NotFound
 from app.repositories.common import now_utc
-from app.schemas import ResourceAssignment, ResourceItem, ResourcePool
+from app.schemas import (
+    ResourceAssignment,
+    ResourceItem,
+    ResourceItemUpdateInput,
+    ResourcePool,
+    ResourcePoolUpdateInput,
+)
 from app.services import mailer
 
 
@@ -11,6 +17,34 @@ class ResourceServiceMixin:
             actor_id, "resource_pool.create", "resource_pool", saved.id, "", now_utc()
         )
         return saved
+
+    def update_pool(
+        self, actor_id: str, pool_id: str, input: ResourcePoolUpdateInput
+    ) -> ResourcePool:
+        saved = self.repository.update_resource_pool(pool_id, input)
+        self.repository.record_audit(
+            actor_id, "resource_pool.update", "resource_pool", saved.id, "", now_utc()
+        )
+        return saved
+
+    def update_resource_item(
+        self,
+        actor_id: str,
+        pool_id: str,
+        item_id: str,
+        input: ResourceItemUpdateInput,
+    ) -> ResourceItem:
+        items = self.repository.list_resource_items(pool_id)
+        if not any(item.id == item_id for item in items):
+            raise NotFound("resource item not found")
+        saved = self.repository.update_resource_item(item_id, input)
+        self.repository.record_audit(
+            actor_id, "resource_item.update", "resource_item", saved.id, "", now_utc()
+        )
+        return saved
+
+    def list_visible_pools(self) -> list[ResourcePool]:
+        return self.repository.list_visible_pools()
 
     def import_resource_codes(
         self, actor_id: str, pool_id: str, codes: list[str]

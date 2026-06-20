@@ -12,6 +12,7 @@ from app.schemas import (
     Participant,
     ParticipantProfile,
     ResourceAssignment,
+    ResourcePool,
 )
 from app.services.hackathon import HackathonService
 
@@ -137,6 +138,15 @@ def delete_drink_order(
     svc: HackathonService = Depends(service),
 ) -> None:
     svc.cancel_drink_order(email, slot_id)
+
+
+@router.get("/resources/pools", response_model=list[ResourcePool], response_model_by_alias=True)
+def visible_pools(
+    email: str = Depends(participant_email),
+    svc: HackathonService = Depends(service),
+) -> list[ResourcePool]:
+    # participant_email 已确保是登录选手；说明内容对所有启用池一致可见，无需 checkin。
+    return svc.list_visible_pools()
 
 
 @router.get("/resources", response_model=list[ResourceAssignment], response_model_by_alias=True)

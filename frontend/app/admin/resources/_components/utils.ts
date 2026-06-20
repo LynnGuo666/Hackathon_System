@@ -1,23 +1,11 @@
 import type { ResourceItem } from "@/web/lib/api";
+import {
+  distributionLabels,
+  phaseLabels,
+  resourceTypeLabels as typeLabels,
+} from "@/web/lib/resource-labels";
 
-export const typeLabels: Record<string, string> = {
-  code: "Key",
-  link: "链接",
-  credential: "凭证",
-  physical: "实体物资",
-};
-
-export const distributionLabels: Record<string, string> = {
-  one_per_participant: "每人一次",
-  role_based: "按角色",
-  manual: "手动发放",
-};
-
-export const phaseLabels: Record<string, string> = {
-  pre_event: "赛前",
-  in_event: "赛中",
-  all: "全阶段",
-};
+export { distributionLabels, phaseLabels, typeLabels };
 
 export function resourceStats(items: ResourceItem[]) {
   return {

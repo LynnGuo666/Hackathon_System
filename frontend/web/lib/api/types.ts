@@ -57,6 +57,8 @@ export type ResourcePool = {
   visiblePhase: string;
   enabled: boolean;
   allowMultipleClaims: boolean;
+  docUrl: string;
+  docMarkdown: string;
   createdAt: string;
 };
 
@@ -68,6 +70,8 @@ export type ResourceItem = {
   assignedCheckinId: string;
   assignedAt?: string;
   expiresAt?: string;
+  docUrl: string;
+  docMarkdown: string;
 };
 
 export type ResourceAssignment = {
@@ -80,6 +84,10 @@ export type ResourceAssignment = {
   deliveredAt?: string;
   createdAt: string;
   plainCode?: string;
+  poolName: string;
+  poolType: string;
+  itemDocUrl: string;
+  itemDocMarkdown: string;
 };
 
 export type EmailOutbox = {

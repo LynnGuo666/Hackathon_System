@@ -81,8 +81,10 @@ from app.schemas.resources import (
     ResourceAssignmentStatus,
     ResourceItem,
     ResourceItemStatus,
+    ResourceItemUpdateInput,
     ResourcePool,
     ResourcePoolType,
+    ResourcePoolUpdateInput,
     VisiblePhase,
 )
 
@@ -151,8 +153,10 @@ __all__ = [
     "ResourceAssignmentStatus",
     "ResourceItem",
     "ResourceItemStatus",
+    "ResourceItemUpdateInput",
     "ResourcePool",
     "ResourcePoolType",
+    "ResourcePoolUpdateInput",
     "SecretKeyList",
     "SecretValueInput",
     "SendCodeInput",
